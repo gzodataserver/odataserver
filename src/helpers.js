@@ -20,9 +20,9 @@
   var h = self_.helpers || {};
   var u = require('underscore');
   var crypto = require('crypto');
-
   var Writable = require('stream').Writable;
-//  var StringDecoder = require('string_decoder').StringDecoder;
+
+  var CONFIG = require('./config.js');
 
   // change to false to stop logging
   h.debug = false;
@@ -67,6 +67,12 @@
     leveldb.pipeReadStream(hash);
   };
 
+
+  h.hashString = function(alg, enc, data) {
+    var hashSum = crypto.createHash(alg);
+    hashSum.update(data);
+    return hashSum.digest(enc);
+  };
 
   //
   // Leveldb Helpers
@@ -179,6 +185,59 @@
     // if new wasn't used, do it for them
     if (!(this instanceof arrayBucketStream))
       return new arrayBucketStream(options);
+
+    // call stream.Writeable constructor
+    Writable.call(this, options);
+
+    this.data = [];
+  };
+
+  // inherit stream.Writeable
+  h.arrayBucketStream.prototype = Object.create(Writable.prototype);
+
+  // override the write function
+  h.arrayBucketStream.prototype._write = function(chunk, encoding, done) {
+    this.data.push(chunk);
+    done();
+  };
+
+  h.arrayBucketStream.prototype.get = function() {
+    return this.data;
+  };
+
+  h.arrayBucketStream.prototype.empty = function() {
+    this.data = [];
+  };
+
+  // calculate account id from email
+  h.email2accountId = function(email) {
+    return h.hashString(CONFIG.ACCOUNT_ID.HASH_ALG,
+                           CONFIG.ACCOUNT_ID.HASH_ENCODING,
+                           CONFIG.ACCOUNT_ID.SECRET_SALT + email).slice(0,12);
+
+  };
+
+  // generate random string
+  h.randomString = function(len) {
+    try {
+      var buf = crypto.randomBytes(256);
+      var str = new Buffer(buf).toString('base64');
+      return str.slice(0,len);
+    } catch (ex) {
+      // handle error, most likely are entropy sources drained
+      console.log('Error! '+ex);
+      return null;
+    }
+  };
+
+  //
+  // Stream that aggregates objects that are written into array
+  // ---------------------------------------------------------
+
+  h.arrayBucketStream = function(options) {
+    // if new wasn't used, do it for them
+    if (!(this instanceof h.arrayBucketStream))
+      return new h.arrayBucketStream(options);
 
     // call stream.Writeable constructor
     Writable.call(this, options);

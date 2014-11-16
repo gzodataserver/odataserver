@@ -15,6 +15,7 @@
   var Writable = require('stream').Writable;
   var util = require('util');
   var h = require('./helpers.js');
+  var CONFIG = require('./config.js');
 
   var mysql = require('mysql');
   var u = require('underscore');
@@ -23,7 +24,7 @@
 
   //
   // MySQL base class inherited when streams not are inherited
-  // ---------------------------------------------------------
+  // =========================================================
 
   // helper for running SQL queries. `resultFunc` determines what should happen
   // with the result
@@ -46,7 +47,6 @@
       })
       .on('end', function() {
         h.log.debug('runQuery end.');
-        conn.end();
         if(endFunc !== undefined) endFunc();
       });
 
@@ -61,15 +61,29 @@
   // Write results into a stream
   mysqlBase.prototype.pipe = function(writeStream) {
     var self = this;
-    runQuery(self.connection, self.sql, function(row) {
-      writeStream.write(JSON.stringify(row));
-    });
+    runQuery(self.connection, self.sql,
+      function(row) {
+        writeStream.write(JSON.stringify(row));
+      },
+      function() {
+        self.connection.end();
+      }
+    );
+  };
+
+  // Close the MySQL connection
+  mysqlBase.prototype.end = function() {
+    var self = this;
+    self.connection.end();
   };
 
 
+  // Functions for Mysql users (non-admin)
+  // ====================================
+
   //
   // Mysql readable object
-  // =======================
+  // ---------------------
   //
   // This is NOT a stream but there is a function for piping the resutl
   // into a stream. There is also a function for fetching all rows into
@@ -110,6 +124,7 @@
         self.result.push(processRow(row));
       },
       function() {
+        self.connection.end();
         done(self.result);
       }
     );
@@ -119,7 +134,7 @@
 
   //
   // Mysql writable stream
-  // =======================
+  // ----------------------
   //
 
   //
@@ -209,16 +224,21 @@
 
     var sql = json2insert(self.tableName, json);
 
-    runQuery(self.connection, sql, function(row) {
-      self.resultStream.write(JSON.stringify(row));
-      done();
-    });
+    runQuery(self.connection, sql,
+      function(row) {
+        self.resultStream.write(JSON.stringify(row));
+        done();
+      },
+      function() {
+        self.connection.end();
+      }
+    );
 
   };
 
   //
   // Delete from table
-  // ---------------------------------------
+  // ------------------
 
   exports.mysqlDelete = function(credentials, tableName, where) {
     var self = this;
@@ -257,6 +277,7 @@
   // inherit mysqlBase prototype
   exports.mysqlCreate.prototype = Object.create(mysqlBase.prototype);
 
+
   //
   // Drop table and write result to stream
   // ---------------------------------------
@@ -270,6 +291,74 @@
 
   // inherit mysqlBase prototype
   exports.mysqlDrop.prototype = Object.create(mysqlBase.prototype);
+
+  //
+  // Manage MySQL users - admin functions
+  // ====================================
+
+  // Drop a table if it exists and pipe the results to a stream
+  exports.mysqlAdmin = function(credentials, email) {
+    var self = this;
+
+    // Allow multiple statements
+    credentials.multipleStatements = true;
+
+    mysqlBase.call(this, credentials);
+
+    self.email = email;
+    self.accountId = h.email2accountId(email);
+    self.password = null;
+  };
+
+
+  // inherit mysqlBase prototype
+  exports.mysqlAdmin.prototype = Object.create(mysqlBase.prototype);
+
+  // create new user
+  exports.mysqlAdmin.prototype.getCredentials = function(password) {
+    return {
+      host: CONFIG.MYSQL.HOST,
+      database: self.accountId,
+      user: self.accountId,
+      password: password
+    };
+  };
+
+  // create new user
+  exports.mysqlAdmin.prototype.new = function() {
+    var self = this;
+    self.sql  = 'create database '+self.accountId+';';
+    self.sql += "create user '"+self.accountId+"'@'localhost';";
+    self.sql += "grant all privileges on "+self.accountId+".* to '"+self.accountId+"'@'localhost';";
+  };
+
+  // Delete user
+  exports.mysqlAdmin.prototype.delete = function() {
+    var self = this;
+    self.sql  = "drop user '"+self.accountId+"'@'localhost';";
+    self.sql += 'drop database '+self.accountId+';';
+  };
+
+  // Set password for user
+  exports.mysqlAdmin.prototype.setPassword = function() {
+    var self = this;
+    self.password = h.randomString(12);
+    self.sql = "set password for '"+self.accountId+"'@'localhost' = password('"+self.password+"');";
+  };
+
+  // Grant
+  exports.mysqlAdmin.prototype.grant = function(tableName, email) {
+    var self = this;
+    var accountId=h.email2accountId(email);
+    self.sql = "grant insert, delete, update, delete on "+tableName+" to '"+accountId+"'@'localhost';";
+  };
+
+  // Revoke
+  exports.mysqlAdmin.prototype.revoke = function(tableName, email) {
+    var self = this;
+    var accountId=h.email2accountId(email);
+    self.sql = "revoke insert, delete, update, delete on "+tableName+" to '"+accountId+"'@'localhost';";
+  };
 
 
 })(this);

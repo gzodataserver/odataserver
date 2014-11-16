@@ -84,4 +84,4 @@ Here is an example: `docker run -d -p 80:80 -p 443:443 -e USERNAME="admin", PASS
 Know issues
 -----------
 
-1. Build fails during `npm install`. This is rather common and is probably related to problems with the npm package servers. Just build again until it works.
+1. Docker build fails during `npm install`. This is rather common and is probably related to problems with the npm package servers. Just build again until it works.

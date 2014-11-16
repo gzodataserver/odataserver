@@ -13,70 +13,88 @@
 //
 //------------------------------
 
-var mysql_streams = require('../src/mysql_streams.js');
-
-var rs = require('../src/mysql_streams.js').mysqlRead;
-var ws = require('../src/mysql_streams.js').mysqlWriteStream;
-var h = require('../src/helpers.js');
-var Transform = require('stream').Transform;
-var Writable = require('stream').Writable;
+//var Transform = require('stream').Transform;
+//var Writable = require('stream').Writable;
 var StringDecoder = require('string_decoder').StringDecoder;
 
+var mysql = require('../src/mysql.js');
+var rs = require('../src/mysql.js').mysqlRead;
+var ws = require('../src/mysql.js').mysqlWriteStream;
+var h = require('../src/helpers.js');
 
+var CONFIG = require('../src/config.js');
+var testEmail = 'test@gizur.com';
+var testEmail2 = 'test2@gizur.com';
 
 // Main
 // =====
 
+var delay = 1;
+
 var credentials = {
-  host: 'localhost',
-  database: 'wp',
-  user: 'wp',
-  password: 'wp'
+  host: CONFIG.MYSQL.HOST,
+};
+
+var credentials2 = {
+  host: CONFIG.MYSQL.HOST,
 };
 
 
-//
-// Stream that aggregates objects that are written into array
-// ---------------------------------------------------------
-
-var arrayBucketStream = function(options) {
-  // if new wasn't used, do it for them
-  if (!(this instanceof arrayBucketStream))
-    return new arrayBucketStream(options);
-
-  // call stream.Writeable constructor
-  Writable.call(this, options);
-
-  this.data = [];
-};
-
-// inherit stream.Writeable
-arrayBucketStream.prototype = Object.create(Writable.prototype);
-
-// override the write function
-arrayBucketStream.prototype._write = function(chunk, encoding, done) {
-  this.data.push(chunk);
-  done();
-};
-
-arrayBucketStream.prototype.get = function() {
-  return this.data;
-};
-
-arrayBucketStream.prototype.empty = function() {
-  this.data = [];
+var adminCredentials = {
+  host: CONFIG.MYSQL.HOST,
+  user: CONFIG.MYSQL.ADMIN_USER,
+  password: CONFIG.MYSQL.ADMIN_PASSWORD
 };
 
 
-//
-// Main
-// ---------------------------------------------------------
+// This streams save everything written to it
+var bucket = new h.arrayBucketStream();
 
-// drop table
-var drop = new mysql_streams.mysqlDrop(credentials, 'table1');
-drop.pipe(process.stdout);
 
-// Wait a second and create table
+// create new user
+setTimeout(function() {
+  var mysqlAdmin = new mysql.mysqlAdmin(adminCredentials, testEmail);
+  h.log.log('Create new user...');
+  mysqlAdmin.new();
+  mysqlAdmin.pipe(bucket);
+
+  // save the credentials to use below
+  credentials.database = mysqlAdmin.accountId;
+  credentials.user = mysqlAdmin.accountId;
+
+
+  var mysqlAdmin2 = new mysql.mysqlAdmin(adminCredentials, testEmail2);
+  h.log.log('Create new user #2...');
+  mysqlAdmin2.new();
+  mysqlAdmin2.pipe(bucket);
+
+  // save the credentials to use below
+  credentials2.database = mysqlAdmin2.accountId;
+  credentials2.user = mysqlAdmin2.accountId;
+
+}.bind(this), (delay++)*1000);
+
+// set passwords
+setTimeout(function() {
+  var mysqlAdmin = new mysql.mysqlAdmin(adminCredentials, testEmail);
+  mysqlAdmin.setPassword();
+  mysqlAdmin.pipe(bucket);
+
+  // save the password to use below
+  credentials.password = mysqlAdmin.password;
+  h.log.log('Password set to: '+credentials.password);
+
+  var mysqlAdmin2 = new mysql.mysqlAdmin(adminCredentials, testEmail2);
+  mysqlAdmin2.setPassword();
+  mysqlAdmin2.pipe(bucket);
+
+  // save the password to use below
+  credentials2.password = mysqlAdmin2.password;
+  h.log.log('Password #2 set to: '+credentials2.password);
+
+}.bind(this), (delay++)*1000);
+
+// create table
 setTimeout(function() {
   var tableDef = {
     table_name: 'table1',
@@ -86,11 +104,20 @@ setTimeout(function() {
     ]
   };
 
-  var create = new mysql_streams.mysqlCreate(credentials, tableDef);
+  var create = new mysql.mysqlCreate(credentials, tableDef);
   create.pipe(process.stdout);
-}, 1000);
+}, (delay++)*1000);
 
-// wait two seconds and insert into table
+// Grant privs to user #2
+setTimeout(function() {
+  h.log.debug('Grant privs to table1 to user #2');
+  var mysqlAdmin = new mysql.mysqlAdmin(credentials, testEmail);
+//  var mysqlAdmin = new mysql.mysqlAdmin(adminCredentials, testEmail);
+  mysqlAdmin.grant('table1', testEmail2);
+  mysqlAdmin.pipe(bucket);
+}.bind(this), (delay++)*1000);
+
+// insert into table
 setTimeout(function() {
   var mysqlStream = new ws(credentials, 'table1', process.stdout);
 
@@ -104,40 +131,58 @@ setTimeout(function() {
   };
 
   jsonStream.pipe(mysqlStream);
-}.bind(this), 2000);
+}.bind(this), (delay++)*1000);
 
-// This streams save everything written to it
-var bucket = new arrayBucketStream();
-
-// wait three seconds and select from tabele
+// select from tabele
 setTimeout(function() {
   h.log.debug('Read values of the mysql stream:');
 
   var mysqlRead = new rs(credentials, 'select * from table1');
   mysqlRead.pipe(bucket);
-}.bind(this), 3000);
+}.bind(this), (delay++)*1000);
 
 // wait four seconds and write results
 setTimeout(function() {
   var decoder = new StringDecoder('utf8');
   h.log.log('BUCKET CONTENTS after insert (decoded):' + decoder.write(bucket.get()));
-}.bind(this), 4000);
+}.bind(this), (delay++)*1000);
 
-// wait five seconds and delete from table
+// delete from table
 setTimeout(function() {
-  var create = new mysql_streams.mysqlDelete(credentials, 'table1');
+  var create = new mysql.mysqlDelete(credentials, 'table1');
   create.pipe(process.stdout);
-}.bind(this), 5000);
+}.bind(this), (delay++)*1000);
 
-// wait six secods and read table
+// read table
 setTimeout(function() {
   var mysqlRead = new rs(credentials, 'select * from table1');
   bucket.empty();
   mysqlRead.pipe(bucket);
-}.bind(this), 6000);
+}.bind(this), (delay++)*1000);
 
-// wait seven secods and check what was read this time
+// check what was read this time
 setTimeout(function() {
   var decoder = new StringDecoder('utf8');
   h.log.log('BUCKET CONTENTS delete (decoded):' + decoder.write(bucket.get()));
-}.bind(this), 7000);
+}.bind(this), (delay++)*1000);
+
+
+// drop table
+setTimeout(function() {
+  var drop = new mysql.mysqlDrop(credentials, 'table1');
+  drop.pipe(process.stdout);
+}.bind(this), (delay++)*1000);
+
+// drop the new user
+setTimeout(function() {
+  var mysqlAdmin = new mysql.mysqlAdmin(adminCredentials, testEmail);
+  h.log.log('Drop the new user...');
+  mysqlAdmin.delete();
+  mysqlAdmin.pipe(bucket);
+
+  var mysqlAdmin2 = new mysql.mysqlAdmin(adminCredentials, testEmail2);
+  h.log.log('Drop the new user #2...');
+  mysqlAdmin2.delete();
+  mysqlAdmin2.pipe(bucket);
+
+}.bind(this), (delay++)*1000);

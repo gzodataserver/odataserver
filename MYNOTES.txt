@@ -4,7 +4,7 @@ MySQL and streams
 Skulle det gå att implementera SELECT och INSERT som readable och writable
 streams?
 
-
+JA, och det är gjort!
 
 
 Access Control for LevelDB
