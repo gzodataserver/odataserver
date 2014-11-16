@@ -1,0 +1,21 @@
+{
+  "name": "odatamysql-tests",
+  "description": "Tests for odata server",
+  "version": "0.0.1",
+  "author": {
+    "name": "Jonas Colmsjö",
+    "email": "jonas@gizur.com"
+  },
+  "main": "main.js",
+  "dependencies": {
+    "nodeunit": "*"
+  },
+  "engines": {
+    "node": ">=0.11.2",
+    "npm": "1.1.x"
+  },
+  "keywords": [
+    "odata",
+    "MySQL"
+  ]
+}

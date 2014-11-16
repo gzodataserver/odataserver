@@ -1,0 +1,590 @@
+MySQL and streams
+=================
+
+Skulle det gå att implementera SELECT och INSERT som readable och writable
+streams?
+
+
+
+
+Access Control for LevelDB
+==========================
+
+MySQL is needed for authentication. Authorizations might as well also be done using
+MySQL.
+
+/accountid/b/bucket/object
+
+Store each account as a separate leveldb database.
+
+create a table for each bucket
+
+
+Apps
+====
+
+Store apps as files in level db. Introduce table, _gz_apps with information about the apps.
+The apps need to be able to create the datamodel when first initiated. Apps can be shared
+between schemas so there will not be any tables the first time an app is executed in a new
+account/schema.
+
+Columns:
+
+ * Name
+ * Description
+ * URL for the HTML/JS code - in the form /accountid/b/[UUID]
+
+
+Apps needs to be loaded by JavaScript loaders, HeadJS, RequireJS, yepnope.js, LABjs, LAzyLoad,  AMD etc.
+
+ Data model updates needs to managed with special care for apps that are shared. Perhaps require the developers to build this into the apps. Probably easier if users are required to upgrade step by step for all major versions.
+    - version X.1.0 -> X.1.1 minor update without data model changes
+    - version X.1.y -> X.2.0 major update where data model changes are allowed
+    - version 1.x.y -> 2.0.0 new generation, everything allowed
+
+
+Service Operations
+==================
+
+Reserve /accountid/s/XXX for service operations. This can be anything but will mainly be used for calling
+stored procedures. GET and POST is allowed and GET should not have any side effects. Paramters should be included in the URL and should not begin with a $.
+
+
+Account ID:s
+============
+
+Account ID:s are computed by taking the first 12 characters of a SHA-1 hash of the email adress. A secret random salt is added to make it a little harder to crack. The salt can also be used in case of collisions.
+
+The account ID is not secret but should be handled with care to avoid hacking attempts. It is only
+12 characters so it is possible to guess using brute force. Good passwords are the main protection
+against attacks.
+
+    npm install jssha
+
+    jsSHA = require("jssha");
+
+
+    var getUserId = function(email) {
+      var shaObj = new jsSHA(email, "TEXT");
+      var hash = shaObj.getHash("SHA-1", "HEX");
+      var hash1 = hash.substring(0,12);
+      return  hash1.slice(0,4) + '-' + hash1.slice(4,8) + '-' + hash1.slice(8,12);
+
+    }
+
+    console.log(getUserId('jonas@gizur.com'));
+    console.log(getUserId('jonass@gizur.com'));
+    console.log(getUserId('anders@svensson.se'));
+
+    mysql -uroot -p
+
+    /* userid for jonas@gizur.com using substring of sha1 hash */
+    CREATE DATABASE 419aea7e45c8;
+    CREATE USER '419aea7e45c8'@'localhost' IDENTIFIED BY 'initial_password';
+    GRANT ALL PRIVILEGES ON 419aea7e45c8.* TO '419aea7e45c8'@'localhost' WITH GRANT OPTION;
+    SHOW GRANTS FOR '419aea7e45c8'@'localhost';
+
+
+    /* userid for test@gizur.com using substring of sha1 hash */
+    CREATE DATABASE 4bc0fd5a7e49;
+    CREATE USER '4bc0fd5a7e49'@'localhost' IDENTIFIED BY 'initial_password';
+    GRANT ALL PRIVILEGES ON 4bc0fd5a7e49.* TO '4bc0fd5a7e49'@'localhost' WITH GRANT OPTION;
+    SHOW GRANTS FOR '4bc0fd5a7e49'@'localhost';
+
+    FLUSH PRIVILEGES;
+
+    # connect as jonas@gizur.com
+    mysql -u419aea7e45c8 -p
+
+    SHOW GRANTS;
+    SELECT user(), current_user();
+    USE 419aea7e45c8;
+    SHOW TABLES;
+
+    CREATE TABLE t1(c1 INT, c2 VARCHAR(255));
+    INSERT INTO t1 VALUES(111, '111');
+    SELECT * FROM t1;
+
+    GRANT SELECT, INSERT, UPDATE, DELETE ON t1 TO '4bc0fd5a7e49'@'localhost';
+    SHOW GRANTS FOR '4bc0fd5a7e49'@'localhost';
+
+    /* This shows the grants for all tables for a user */
+    SELECT * FROM mysql.db WHERE USER='419aea7e45c8';
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS show_privs ;
+CREATE PROCEDURE show_privs (IN in_user VARCHAR(20))
+BEGIN
+    SELECT * FROM mysql.db WHERE USER=in_user;
+END$$
+DELIMITER ;
+
+GRANT EXECUTE ON PROCEDURE show_privs TO '419aea7e45c8'@'localhost';
+GRANT EXECUTE ON PROCEDURE show_privs TO '4bc0fd5a7e49'@'localhost';
+
+------------
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS show_privs2 ;
+CREATE PROCEDURE show_privs2 (IN in_user VARCHAR(20))
+BEGIN
+    DECLARE v_user_host varchar(100) DEFAULT "";
+    SET v_user_host = CONCAT(in_user,"@localhost");
+    SELECT * FROM tables_priv WHERE Grantor=v_user_host;
+END$$
+DELIMITER ;
+
+GRANT EXECUTE ON PROCEDURE mysql.show_privs2 TO '419aea7e45c8'@'localhost';
+GRANT EXECUTE ON PROCEDURE mysql.show_privs2 TO '4bc0fd5a7e49'@'localhost';
+
+
+CALL mysql.show_privs2('419aea7e45c8');
+CALL mysql.show_privs2('4bc0fd5a7e49');
+
+------------
+
+
+    DECLARE v_user_host varchar(100) DEFAULT "";
+    SET v_user_host = CONCAT(user(),"@localhost");
+    select v_user_host;
+
+
+USE mysql;
+DELIMITER $$
+DROP PROCEDURE IF EXISTS show_privs3 ;
+CREATE PROCEDURE mysql.show_privs3 ()
+BEGIN
+    -- Need to string out @localhost for this to work
+    -- SELECT * FROM mysql.tables_priv WHERE Grantor=user() OR user=user();
+    SELECT * FROM mysql.tables_priv WHERE Grantor=user();
+END$$
+DELIMITER ;
+
+GRANT EXECUTE ON PROCEDURE mysql.show_privs3 TO '419aea7e45c8'@'localhost';
+GRANT EXECUTE ON PROCEDURE mysql.show_privs3 TO '4bc0fd5a7e49'@'localhost';
+
+
+CALL mysql.show_privs3();
+
+
+
+User model
+==========
+
+All users needs to register with their email adress. An activation mail will be sent and
+an account id assigned. The account id is the schema name in MySQL. Apps allows users to collaborate.
+It is possible to invite friends and colegues to your app. These users will then
+get the activation mail and an account once the accept the invitation.
+
+Each account has its own apps. These works on top of the database schema for the account.
+The apps are managed with a table _gz_sys_apps
+
+It will be possible to share apps between accounts (probaly a compiled version).
+A common app exchange will be developed. Apps will then be shared/published to this excahnge.
+This will technically be one account
+
+Types of collaboration:
+
+ * Invite other accounts to your app - will grant them priviledges in your schema
+ * Share apps between accounts - will create database model in other accounts schema
+
+Should use SQL roles for managing priviledges within schemas:
+
+ * https://mariadb.com/kb/en/mariadb/documentation/user-account-management/roles/
+
+
+Roles
+=====
+
+http://dev.mysql.com/doc/refman/5.1/en/grant.html#grant-table-privileges
+
+    CREATE ROLE role
+
+    GRANT role [, role2 ... ] TO grantee [, grantee2 ... ]
+
+    GRANT
+        priv_type [(column_list)]
+          [, priv_type [(column_list)]] ...
+        ON [object_type] priv_level
+        TO user [IDENTIFIED BY [PASSWORD] 'password']
+            [, user [IDENTIFIED BY [PASSWORD] 'password']] ...
+        [REQUIRE {NONE | ssl_option [[AND] ssl_option] ...}]
+        [WITH with_option [with_option] ...]
+
+    object_type:
+        TABLE
+      | FUNCTION
+      | PROCEDURE
+
+    priv_level:
+        *
+      | *.*
+      | db_name.*
+      | db_name.tbl_name
+      | tbl_name
+      | db_name.routine_name
+
+
+Example:    GRANT ALL ON mydb.mytbl TO 'someuser'@'somehost';
+            GRANT SELECT, INSERT ON mydb.mytbl TO 'someuser'@'somehost';
+
+
+Show privs for user: SHOW GRANTS FOR CURRENT_USER
+
+
+
+Listing users and privs
+=======================
+
+show grants for 'root'@'localhost';
+select user,host from mysql.user
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS show_privs ;
+CREATE PROCEDURE show_privs ()
+BEGIN
+
+DECLARE v_finished INTEGER DEFAULT 0;
+DECLARE v_user varchar(100) DEFAULT "";
+DECLARE v_host varchar(100) DEFAULT "";
+DECLARE v_user_host varchar(100) DEFAULT "";
+
+
+ -- declare cursor for users
+ DEClARE user_cursor CURSOR FOR select user,host from mysql.user;
+
+ -- declare NOT FOUND handler
+ DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_finished = 1;
+
+ OPEN user_cursor;
+
+ get_user: LOOP
+
+    FETCH user_cursor INTO v_user, v_host;
+
+    IF v_finished = 1 THEN
+        LEAVE get_user;
+    END IF;
+
+    -- do something with the user
+    set v_user_host = CONCAT("'",v_user,"'@'",v_host,"'");
+    select v_user_host;
+    show grants for v_user_host;
+
+END LOOP get_user;
+
+CLOSE user_cursor;
+
+END$$
+
+DELIMITER ;
+
+
+CALL show_privs();
+
+Leveldb
+=======
+
+Can save images in chunks with separate keys with a common prefix. Example UUID~1, UUID~2 etc.
+
+Naming scheme: /accountid/b/[UUID]. Strip the '-' out of the account id.
+
+One alternative to make these easier to handle is to introduce aliases like /accountid/a/myfirstapp.html
+Store aliases in a table, for instance _gz_aliases (alias -> UUID)
+
+Are versions needed? Could add a version to the URL /accountid/b/[UUID]~[rev#]
+Use /accountid/b/[UUID] as a shorthand for the last version
+
+The keys for the chunks will look like [UUID]~[rev#]~[seq#]
+
+Finding the last version will require that we first get all keys matching [UUID]~*. Then we'd
+need to find the max revision.
+
+
+POST to /accountid/b/ will create a new file. The UUID is returned once is has been successfully
+saved. Etags are not necessary since writes always are versioned.
+
+GET /accountid/b/[UUID] returns the file. Should probably handle binary data as base64 to avoid problems.
+Not sure this is all necessary though.
+
+
+Images in HTML5
+===============
+
+Save images in base64 in leveldb and also in IndexDB for caching.
+
+Use canvas to manipulate images
+
+ * https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial
+ * http://stackoverflow.com/questions/934012/get-image-data-in-javascript
+
+Test, see file:///Users/jonas/git/colmsjo/develvm/html5images/index.html
+
+
+UUIDs
+=====
+
+Code for generating random UUID
+
+    function generateUUID() {
+        var d = new Date().getTime();
+        var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+            var r = (d + Math.random()*16)%16 | 0;
+            d = Math.floor(d/16);
+            return (c=='x' ? r : (r&0x7|0x8)).toString(16);
+        });
+        return uuid;
+    };
+
+
+Test browser apps
+=================
+
+ci.testling.com
+
+https://browserling.com
+
+
+
+
+Stored procedurs
+=================
+
+
+ERROR 1548 (HY000): Cannot load from mysql.proc. The table is probably corrupted
+mysql_upgrade -u root -p
+
+call wp.get_wp_links;
+
+SHOW PROCEDURE STATUS;
+
+//
+// Primitive data types in JavaScript and JSON
+// -------------------------------------------
+//
+// JavaScript have six primitive data types, see
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures
+//
+// * Boolean
+// * Null
+// * Undefined
+// * Number
+// * String
+//
+// It is only Boolean, Number and Strings that can be mapped to SQL datatypes. Null values can be allowed
+// in all columns i a database. Undefined is not applicable to a database.
+//
+// JSON Schema defines seven primitive types for JSON values, see
+// http://json-schema.org/latest/json-schema-core.html#anchor5:
+//
+// array - A JSON array.
+// boolean - A JSON boolean.
+// integer - A JSON number without a fraction or exponent part.
+// number - Any JSON number. Number includes integer.
+// null - The JSON null value.
+// object - A JSON object.
+// string - A JSON string.
+//
+//
+// MySQL to NodeJs type conversion
+// -------------------------------
+//
+// This is how the NodeJS MySQL driver performs typecasting. See https://github.com/felixge/node-mysql
+//
+// * Number: TINYINT, SMALLINT, INT, MEDIUMINT, YEAR, FLOAT, DOUBLE
+// * Date: TIMESTAMP, DATE, DATETIME
+// * Buffer: TINYBLOB, MEDIUMBLOB, LONGBLOB, BLOB, BINARY, VARBINARY, BIT (last byte will be filled with 0 bits as necessary)
+// String: CHAR, VARCHAR, TINYTEXT, MEDIUMTEXT, LONGTEXT, TEXT, ENUM, SET, DECIMAL (may exceed float precision), BIGINT (may exceed float precision), TIME (could be mapped to Date, but what date would be set?), GEOMETRY (never used those, get in touch if you do)
+//
+//
+// MySQL table definitions
+// -----------------------
+//
+// This is the format used for defining tables: `{table_name, columns: [create_definition]}`.
+//
+// It is recommended to stick to the SQL92 standard. This is not enforced though.
+//  * The SQL92 standard: http://www.contrib.andrew.cmu.edu/~shadow/sql/sql1992.txt
+//  * BNF for SQL92: http://savage.net.au/SQL/index.html
+//
+// There is no validation of the column_definition, it is simply sent to MySQL and any errors
+// sent as the result of the query.
+//
+// http://dev.mysql.com/doc/refman/5.6/en/create-table.html
+//
+// CREATE [TEMPORARY] TABLE [IF NOT EXISTS] tbl_name
+//     { LIKE old_tbl_name | (LIKE old_tbl_name) }
+// create_definition:
+//     col_name column_definition
+//   | [CONSTRAINT [symbol]] PRIMARY KEY [index_type] (index_col_name,...)
+//       [index_option] ...
+//   | {INDEX|KEY} [index_name] [index_type] (index_col_name,...)
+//       [index_option] ...
+//   | [CONSTRAINT [symbol]] UNIQUE [INDEX|KEY]
+//       [index_name] [index_type] (index_col_name,...)
+//       [index_option] ...
+//   | {FULLTEXT|SPATIAL} [INDEX|KEY] [index_name] (index_col_name,...)
+//       [index_option] ...
+//   | [CONSTRAINT [symbol]] FOREIGN KEY
+//       [index_name] (index_col_name,...) reference_definition
+//   | CHECK (expr)
+//
+// column_definition:
+//      data_type [NOT NULL | NULL] [DEFAULT default_value]
+//       [AUTO_INCREMENT] [UNIQUE [KEY] | [PRIMARY] KEY]
+//       [COMMENT 'string']
+//       [COLUMN_FORMAT {FIXED|DYNAMIC|DEFAULT}]
+//       [STORAGE {DISK|MEMORY|DEFAULT}]
+//       [reference_definition]
+//
+// data_type:
+//     BIT[(length)]
+//   | TINYINT[(length)] [UNSIGNED] [ZEROFILL]
+//   | SMALLINT[(length)] [UNSIGNED] [ZEROFILL]
+//   | MEDIUMINT[(length)] [UNSIGNED] [ZEROFILL]
+//   | INT[(length)] [UNSIGNED] [ZEROFILL]
+//   | INTEGER[(length)] [UNSIGNED] [ZEROFILL]
+//   | BIGINT[(length)] [UNSIGNED] [ZEROFILL]
+//   | REAL[(length,decimals)] [UNSIGNED] [ZEROFILL]
+//   | DOUBLE[(length,decimals)] [UNSIGNED] [ZEROFILL]
+//   | FLOAT[(length,decimals)] [UNSIGNED] [ZEROFILL]
+//   | DECIMAL[(length[,decimals])] [UNSIGNED] [ZEROFILL]
+//   | NUMERIC[(length[,decimals])] [UNSIGNED] [ZEROFILL]
+//   | DATE
+//   | TIME[(fsp)]
+//   | TIMESTAMP[(fsp)]
+//   | DATETIME[(fsp)]
+//   | YEAR
+//   | CHAR[(length)]
+//       [CHARACTER SET charset_name] [COLLATE collation_name]
+//   | VARCHAR(length)
+//       [CHARACTER SET charset_name] [COLLATE collation_name]
+//   | BINARY[(length)]
+//   | VARBINARY(length)
+//   | TINYBLOB
+//   | BLOB
+//   | MEDIUMBLOB
+//   | LONGBLOB
+//   | TINYTEXT [BINARY]
+//     [CHARACTER SET charset_name] [COLLATE collation_name]
+//   | TEXT [BINARY]
+//       [CHARACTER SET charset_name] [COLLATE collation_name]
+//   | MEDIUMTEXT [BINARY]
+//       [CHARACTER SET charset_name] [COLLATE collation_name]
+//   | LONGTEXT [BINARY]
+//       [CHARACTER SET charset_name] [COLLATE collation_name]
+//   | ENUM(value1,value2,value3,...)
+//       [CHARACTER SET charset_name] [COLLATE collation_name]
+//  | SET(value1,value2,value3,...)
+//       [CHARACTER SET charset_name] [COLLATE collation_name]
+//   | spatial_type
+//
+// index_col_name:
+//     col_name [(length)] [ASC | DESC]
+//
+// index_type:
+//     USING {BTREE | HASH}
+//
+// index_option:
+//     KEY_BLOCK_SIZE [=] value
+//   | index_type
+//   | WITH PARSER parser_name
+//   | COMMENT 'string'
+//
+// reference_definition:
+//     REFERENCES tbl_name (index_col_name,...)
+//       [MATCH FULL | MATCH PARTIAL | MATCH SIMPLE]
+//       [ON DELETE reference_option]
+//       [ON UPDATE reference_option]
+//
+// reference_option:
+//     RESTRICT | CASCADE | SET NULL | NO ACTION
+
+
+
+
+
+
+
+
+
+curl http://services.odata.org/V3/OData/OData.svc/Products\?\$format=json
+
+
+curl http://services.odata.org/V3/OData/OData.svc/$metadata#Products
+
+
+
+
+Microsoft PHP implementation
+------------------------
+
+vagrant@precise64:/vagrant$ curl http://localhost:81/gizur_com.svc/wp_options\?\$format=json
+	{
+    "d" : {
+        "results": [
+            {
+                "__metadata": {
+                    "uri": "http://localhost:81/gizur_com.svc/wp_options(option_id=1L)", "type": "gizur_com.wp_option"
+                }, "option_id": "1", "option_name": "siteurl", "option_value": "http://www.gizur.com", "autoload": "yes"
+            }, {
+                "__metadata": {
+                    "uri": "http://localhost:81/gizur_com.svc/wp_options(option_id=2L)", "type": "gizur_com.wp_option"
+                }, "option_id": "2", "option_name": "blogname", "option_value": "Gizur", "autoload": "yes"
+            }, {
+                "__metadata": {
+                    "uri": "http://localhost:81/gizur_com.svc/wp_options(option_id=3L)", "type": "gizur_com.wp_option"
+                }, "option_id": "3", "option_name": "blogdescription", "option_value": "Gizur&#039;s hemsida", "autoload": "yes"
+            }, {
+                "__metadata": {
+                    "uri": "http://localhost:81/gizur_com.svc/wp_options(option_id=4L)", "type": "gizur_com.wp_option"
+                }, "option_id": "4", "option_name": "users_can_register", "option_value": "0", "autoload": "yes"
+            }, {
+                "__metadata": {
+                    "uri": "http://localhost:81/gizur_com.svc/wp_options(option_id=5L)", "type": "gizur_com.wp_option"
+                }, "option_id": "5", "option_name": "admin_email", "option_value": "admin@gizur.com", "autoload": "yes"
+            }, {
+                "__metadata": {
+                    "uri": "http://localhost:81/gizur_com.svc/wp_options(option_id=6L)", "type": "gizur_com.wp_option"
+                }, "option_id": "6", "option_name": "start_of_week", "option_value": "1", "autoload": "yes"
+            }, {
+                "__metadata": {
+                    "uri": "http://localhost:81/gizur_com.svc/wp_options(option_id=7L)", "type": "gizur_com.wp_option"
+                }, "option_id": "7", "option_name": "use_balanceTags", "option_value": "0", "autoload": "yes"
+            }, {
+                "__metadata": {
+                    "uri": "http://localhost:81/gizur_com.svc/wp_options(option_id=8L)", "type": "gizur_com.wp_option"
+                }, "option_id": "8", "option_name": "use_smilies", "option_value": "1", "autoload": "yes"
+            }, {
+                "__metadata": {
+                    "uri": "http://localhost:81/gizur_com.svc/wp_options(option_id=9L)", "type": "gizur_com.wp_option"
+                }, "option_id": "9", "option_name": "require_name_email", "option_value": "1", "autoload": "yes"
+            }, {
+                "__metadata": {
+                    "uri": "http://localhost:81/gizur_com.svc/wp_options(option_id=10L)", "type": "gizur_com.wp_option"
+                }, "option_id": "10", "option_name": "comments_notify", "option_value": "1", "autoload": "yes"
+            }
+        ], "__next": "http://localhost:81/gizur_com.svc/wp_options?$skiptoken=10L"
+    }
+}
+
+
+
+The response has two parts. The first contains 10 rows and the second a link to the next 10.
+
+{
+  'd' : {
+    'results' : [..],
+    '__next' : 'http://...'
+  }
+}
+
+
+The results part consist of a list of objects containing the columns and a metadata object:
+
+            {
+                "__metadata"   : { "uri": "http://localhost:81/gizur_com.svc/wp_options(option_id=1L)", "type": "gizur_com.wp_option" },
+                "option_id"    : "1",
+                "option_name"  : "siteurl",
+                "option_value" : "http://www.gizur.com",
+                "autoload"     : "yes"
+            }
