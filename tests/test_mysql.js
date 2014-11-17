@@ -26,6 +26,10 @@ var CONFIG = require('../src/config.js');
 var testEmail = 'test@gizur.com';
 var testEmail2 = 'test2@gizur.com';
 
+var accountId=h.email2accountId(testEmail);
+var accountId2=h.email2accountId(testEmail2);
+
+
 // Main
 // =====
 
@@ -53,7 +57,7 @@ var bucket = new h.arrayBucketStream();
 
 // create new user
 setTimeout(function() {
-  var mysqlAdmin = new mysql.mysqlAdmin(adminCredentials, testEmail);
+  var mysqlAdmin = new mysql.mysqlAdmin(adminCredentials, accountId);
   h.log.log('Create new user...');
   mysqlAdmin.new();
   mysqlAdmin.pipe(bucket);
@@ -63,7 +67,7 @@ setTimeout(function() {
   credentials.user = mysqlAdmin.accountId;
 
 
-  var mysqlAdmin2 = new mysql.mysqlAdmin(adminCredentials, testEmail2);
+  var mysqlAdmin2 = new mysql.mysqlAdmin(adminCredentials, accountId2);
   h.log.log('Create new user #2...');
   mysqlAdmin2.new();
   mysqlAdmin2.pipe(bucket);
@@ -76,7 +80,7 @@ setTimeout(function() {
 
 // set passwords
 setTimeout(function() {
-  var mysqlAdmin = new mysql.mysqlAdmin(adminCredentials, testEmail);
+  var mysqlAdmin = new mysql.mysqlAdmin(adminCredentials, accountId);
   mysqlAdmin.setPassword();
   mysqlAdmin.pipe(bucket);
 
@@ -84,7 +88,7 @@ setTimeout(function() {
   credentials.password = mysqlAdmin.password;
   h.log.log('Password set to: '+credentials.password);
 
-  var mysqlAdmin2 = new mysql.mysqlAdmin(adminCredentials, testEmail2);
+  var mysqlAdmin2 = new mysql.mysqlAdmin(adminCredentials, accountId2);
   mysqlAdmin2.setPassword();
   mysqlAdmin2.pipe(bucket);
 
@@ -111,15 +115,14 @@ setTimeout(function() {
 // Grant privs to user #2
 setTimeout(function() {
   h.log.debug('Grant privs to table1 to user #2');
-  var mysqlAdmin = new mysql.mysqlAdmin(credentials, testEmail);
-//  var mysqlAdmin = new mysql.mysqlAdmin(adminCredentials, testEmail);
-  mysqlAdmin.grant('table1', testEmail2);
+  var mysqlAdmin = new mysql.mysqlAdmin(credentials, accountId);
+  mysqlAdmin.grant('table1', accountId2);
   mysqlAdmin.pipe(bucket);
 }.bind(this), (delay++)*1000);
 
 // insert into table
 setTimeout(function() {
-  var mysqlStream = new ws(credentials, 'table1', process.stdout);
+  var mysqlStream = new ws(credentials, accountId, 'table1', process.stdout);
 
   // create stream that writes json into mysql
   var jsonStream = new require('stream');
@@ -131,6 +134,21 @@ setTimeout(function() {
   };
 
   jsonStream.pipe(mysqlStream);
+
+  // insert into a table that isn't owned by user #2
+  var mysqlStream2 = new ws(credentials2, accountId, 'table1', process.stdout);
+
+  // create stream that writes json into mysql
+  var jsonStream2 = new require('stream');
+  jsonStream2.pipe = function(dest) {
+    dest.write(JSON.stringify({
+      col1: 22,
+      col2: '22'
+    }));
+  };
+
+  jsonStream2.pipe(mysqlStream2);
+
 }.bind(this), (delay++)*1000);
 
 // select from tabele
@@ -149,7 +167,7 @@ setTimeout(function() {
 
 // delete from table
 setTimeout(function() {
-  var create = new mysql.mysqlDelete(credentials, 'table1');
+  var create = new mysql.mysqlDelete(credentials, accountId, 'table1');
   create.pipe(process.stdout);
 }.bind(this), (delay++)*1000);
 
@@ -175,12 +193,12 @@ setTimeout(function() {
 
 // drop the new user
 setTimeout(function() {
-  var mysqlAdmin = new mysql.mysqlAdmin(adminCredentials, testEmail);
+  var mysqlAdmin = new mysql.mysqlAdmin(adminCredentials, accountId);
   h.log.log('Drop the new user...');
   mysqlAdmin.delete();
   mysqlAdmin.pipe(bucket);
 
-  var mysqlAdmin2 = new mysql.mysqlAdmin(adminCredentials, testEmail2);
+  var mysqlAdmin2 = new mysql.mysqlAdmin(adminCredentials, accountId2);
   h.log.log('Drop the new user #2...');
   mysqlAdmin2.delete();
   mysqlAdmin2.pipe(bucket);

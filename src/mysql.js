@@ -30,7 +30,7 @@
   // with the result
   var runQuery = function(conn, sql, resultFunc, endFunc) {
     var self = this;
-    h.log.debug('runQuery sql: ' + sql);
+    h.log.debug('runQuery sql ('+conn.config.user+'): ' + sql);
 
     // connect to the mysql server using the connection created in init
     conn.connect();
@@ -169,7 +169,7 @@
   //     [, col_name=expr] ... ]
   //
   //
-  var json2insert = function(tableName, data) {
+  var json2insert = function(database, tableName, data) {
 
     // separate keys (columns names) and values into separate strings
     // values have quotes but column names don't
@@ -180,17 +180,29 @@
     v = v.substring(1, v.length - 1);
 
     // The insert query
-    var insert = 'insert into ' + tableName + '(' + k + ') values(' + v + ')';
+    var insert = 'insert into ' + database + '.' +tableName + '(' + k + ') values(' + v + ')';
     return insert;
   };
 
+  // build update sql from json object
+  var json2update = function(database, tableName, data) {
 
-  exports.mysqlWriteStream = function(credentials, tableName, resultStream) {
+    // {k1: v1, k2: v2} -> k1=v1,k2=v2
+    var str = u.map(data, function(k,v) {return v+'='+k;} ).join(',');
+
+    // The update query
+    var update = 'update ' + database + '.' +tableName + ' set ' + str;
+    return update;
+  };
+
+
+  exports.mysqlWriteStream = function(credentials, database, tableName, resultStream) {
     // call stream.Writeable constructor
     Writable.call(this);
     var self = this;
 
     self.connection = mysql.createConnection(credentials);
+    self.database = database;
     self.tableName = tableName;
     self.data = '';
     self.jsonOK = false;
@@ -222,7 +234,7 @@
       done();
     }
 
-    var sql = json2insert(self.tableName, json);
+    var sql = json2insert(self.database, self.tableName, json);
 
     runQuery(self.connection, sql,
       function(row) {
@@ -240,11 +252,11 @@
   // Delete from table
   // ------------------
 
-  exports.mysqlDelete = function(credentials, tableName, where) {
+  exports.mysqlDelete = function(credentials, database, tableName, where) {
     var self = this;
     mysqlBase.call(this, credentials);
 
-    self.sql = 'delete from '+ tableName;
+    self.sql = 'delete from '+ database + '.' + tableName;
     if (where !== undefined) self.sql += 'where' + where;
   };
 
@@ -292,12 +304,13 @@
   // inherit mysqlBase prototype
   exports.mysqlDrop.prototype = Object.create(mysqlBase.prototype);
 
+
   //
   // Manage MySQL users - admin functions
   // ====================================
 
-  // Drop a table if it exists and pipe the results to a stream
-  exports.mysqlAdmin = function(credentials, email) {
+  // Admin constructor
+  exports.mysqlAdmin = function(credentials, accountId) {
     var self = this;
 
     // Allow multiple statements
@@ -305,8 +318,8 @@
 
     mysqlBase.call(this, credentials);
 
-    self.email = email;
-    self.accountId = h.email2accountId(email);
+//    self.email = email;
+    self.accountId = accountId; //h.email2accountId(email);
     self.password = null;
   };
 
@@ -314,7 +327,7 @@
   // inherit mysqlBase prototype
   exports.mysqlAdmin.prototype = Object.create(mysqlBase.prototype);
 
-  // create new user
+  // get MySQL credentials for the object
   exports.mysqlAdmin.prototype.getCredentials = function(password) {
     return {
       host: CONFIG.MYSQL.HOST,
@@ -329,7 +342,8 @@
     var self = this;
     self.sql  = 'create database '+self.accountId+';';
     self.sql += "create user '"+self.accountId+"'@'localhost';";
-    self.sql += "grant all privileges on "+self.accountId+".* to '"+self.accountId+"'@'localhost';";
+    self.sql += "grant all privileges on "+self.accountId+".* to '"+
+                    self.accountId+"'@'localhost' with grant option;";
   };
 
   // Delete user
@@ -347,16 +361,16 @@
   };
 
   // Grant
-  exports.mysqlAdmin.prototype.grant = function(tableName, email) {
+  exports.mysqlAdmin.prototype.grant = function(tableName, accountId) {
     var self = this;
-    var accountId=h.email2accountId(email);
-    self.sql = "grant insert, delete, update, delete on "+tableName+" to '"+accountId+"'@'localhost';";
+    //var accountId=h.email2accountId(email);
+    self.sql = "grant insert, select, update, delete on "+tableName+" to '"+accountId+"'@'localhost';";
   };
 
   // Revoke
-  exports.mysqlAdmin.prototype.revoke = function(tableName, email) {
+  exports.mysqlAdmin.prototype.revoke = function(tableName, accountId) {
     var self = this;
-    var accountId=h.email2accountId(email);
+    //var accountId=h.email2accountId(email);
     self.sql = "revoke insert, delete, update, delete on "+tableName+" to '"+accountId+"'@'localhost';";
   };
 
