@@ -235,47 +235,51 @@
     var self = this;
   };
 
-
+  // parse the uri and create a JSON object. The where_sql property is used
+  // for select and delete statements.
+  //
+  // {
+  //   schema: xxx,
+  //   table: yyy,
+  //   query_type: service_def | create_table | delete_table | select | insert | delete,
+  //   sql: 'select col1, col2, colN from table where col1="YY"'
+  // }
+  //
   exports.ODataUri2Sql.prototype.parseUri = function(s, req_method) {
     var url = require('url');
     var parsedURL = url.parse(s, true, false);
-    var query_type, sqlString;
-
-    // translate odata queries in URI to sql
-    var sqlObjects = u.map(parsedURL.query, odata2sql);
 
     // get the schema and table name
     var a = parsedURL.pathname.split("/");
 
-    // Save schema for later use
-    var schema = a[1],
-      table = a[2];
+    var result = {
+      schema: a[1],
+      table: a[2]
+    };
 
     // Work on service definition, e.g. list of tables, for /schema/
     if (a.length == 2) {
 
-      // return list of tables
-      if (req_method == 'GET') {
-        return {
-          query_type: 'service_def',
-          schema: schema,
-          sql: 'select table_name, (data_length+index_length)/1024/1024 as mb from information_schema.tables where table_schema="' + schema + '"'
-        };
+      switch(req_method) {
+        // return list of tables
+        case 'GET':
+          result.query_type = 'service_def';
+          break;
+
+        case 'POST':
+            result.query_type = 'create_table';
+            break;
+
+        case 'DELETE':
+            result.query_type = 'delete_table';
+            break;
+
+        // POST etc. not supported here
+        default:
+          throw new Error('Operation on /schema not supported for ' + req_method);
       }
 
-      if (req_method == 'POST') {
-        return {
-          query_type: 'create_table',
-          schema: schema,
-          sql: 'create table '
-        };
-
-      }
-
-      // POST, DELETE etc. not supported here
-      else {
-        throw new Error('Operation on /schema not supported for ' + req_method);
-      }
+      return result;
     }
 
     // URI should look like this: /schema/table
@@ -284,19 +288,23 @@
     }
 
     // indexing with table(x) not supported
-    if (a[2].indexOf('(') > -1) {
+    if (result.table.indexOf('(') > -1) {
       throw new Error('The form /schema/entity(key) is not supported. Use $filter instead.');
     }
+
+
+    // translate odata queries in URI to sql
+    var sqlObjects = u.map(parsedURL.query, odata2sql);
 
     // parse GET requests
     if (req_method == 'GET') {
 
       // this is a select
-      query_type = 'select';
+      result.query_type = 'select';
 
       sqlObjects.push({
         id: 2,
-        q: ' from ' + schema + '.' + table
+        q: ' from ' + result.schema + '.' + result.table
       });
 
       // sort the query objects according to the sql specification
@@ -310,61 +318,45 @@
           id: 1,
           q: 'select *'
         });
-        // sort the query objects according to the sql specification
-        sqlObjects = u.sortBy(sqlObjects, function(o) {
-          return o.id;
-        });
       }
-
-      // create a string from the objects
-      sqlString = u.reduce(
-        sqlObjects,
-        function(memo, o) {
-          return memo + o.q;
-        },
-        "");
     }
 
     // parse POST requests
     if (req_method == 'POST') {
 
       // this is a insert
-      query_type = 'insert';
+      result.query_type = 'insert';
 
       // check that there are no parameters
       if (!u.isEmpty(parsedURL.query)) {
-        throw new Error('Parameters are not supported in POST: ' + JSON.stringify(parsedURL.query));
+        throw new Error('Parameters are not supported in POST: ' +
+                        JSON.stringify(parsedURL.query));
       }
 
-      sqlString = 'insert into ' + schema + '.' + table;
     }
 
     // parse DELETE request
     if (req_method == 'DELETE') {
 
       // this is a delete
-      query_type = 'delete';
-
-      // sort the query objects according to the sql specification
-      sqlObjects = u.sortBy(sqlObjects, function(o) {
-        return o.id;
-      });
-
-      // create a string from the objects
-      sqlString = 'delete from ' + schema + '.' + table + u.reduce(
-        sqlObjects,
-        function(memo, o) {
-          return memo + o.q;
-        },
-        "");
+      result.query_type = 'delete';
 
     }
 
-    return {
-      query_type: query_type,
-      schema: schema,
-      sql: sqlString
-    };
+    // sort the query objects according to the sql specification
+    sqlObjects = u.sortBy(sqlObjects, function(o) {
+      return o.id;
+    });
+
+    // create a string from the objects
+    result.sql = u.reduce(
+      sqlObjects,
+      function(memo, o) {
+        return memo + o.q;
+      },
+      "");
+
+    return result;
 
   };
 
@@ -389,6 +381,56 @@
     o['@odata.etag'] = e;
 
     return o;
+  };
+
+  // HTTP REST Server that
+  exports.ODataServer.prototype.main = function(request, response, odataBackend) {
+
+    var credentials = {
+      host     : 'localhost',
+      database : sql.schema,
+      user     : request.headers.user,
+      password : request.headers.password
+    };
+
+    // Just for debugging
+    request.on('end', function() {
+      h.log.debug('end of request');
+    });
+
+    var uriParser = new exports.ODataUri2Sql();
+    var odataRequest = uriParser.parseUri(request.url, request.method);
+
+    // query_type: service_def | create_table | delete_table | select | insert | delete,
+
+    switch(odataRequest.query_type) {
+      case 'service_def':
+        odataBackend.create();
+        break;
+
+      case 'create_table':
+      case 'delete_table':
+      case 'select':
+      case 'insert':
+        var mysql = require('../src/mysql.js');
+        var mysqlStream = new mysql.mysqlWriteStream(credentials, odataRequest.schema,
+                                        odataRequest.table, response);
+
+        // I'd like to handle it this way - more generic
+        var writeStream = new odataBackend.writeStream(credentials, odataRequest.schema,
+                                        odataRequest.table, response);
+
+        // pipe the request into the mysql write stream
+        request.pipe(mysqlStream);
+        break;
+
+      case 'delete':
+        break;
+
+      default:
+        response.write('Internal error, query_type: '+odataRequest.query_type);
+    }
+
   };
 
 })(this);

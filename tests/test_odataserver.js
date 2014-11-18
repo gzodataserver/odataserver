@@ -13,7 +13,7 @@
 //
 //------------------------------
 //
-// Run like this: `./node_modules/.bin/nodeunit test_odatauri2sql.js`
+// Run like this: `./node_modules/.bin/nodeunit test_odataserver.js`
 // Install dependencies first: `npm install`
 
 /*
@@ -46,7 +46,7 @@ exports['test.odatauri2sql'] = {
   setUp: function(done) {
     var self=this;
 
-    self.o2s = require('../src/odatauri2sql.js');
+    self.o2s = require('../src/odataserver.js');
     self.h = require('../src/helpers.js');
     self.h.debug = true;
 
@@ -63,10 +63,41 @@ exports['test.odatauri2sql'] = {
     this.c.push('http://localhost/schema/table?$orderby=col2');
 
 
+    // start http server
+    // -----------------
+
+    var http = require("http");
+    var h = require('../src/helpers.js');
+    var level = require('./../src/leveldb.js');
+
+    var defaultPort = 8080;
+
+    self.server = http.createServer(function(request, response) {
+
+      h.log.log("Processing request: " +
+        JSON.stringify(request.method) + " - " +
+        JSON.stringify(request.url) + " - " +
+        JSON.stringify(request.headers));
+
+      // handle request with leveldb
+      var leveldb = new level.LevelDBHttpServer();
+      leveldb.main(request, response);
+
+    });
+
+    self.server.listen(defaultPort);
+
+    h.log.log("Server is listening on port " + defaultPort);
+
     // setup finished
     done();
   },
 
+  tearDown: function(done) {
+    var self=this;
+    self.server.close();
+    done();
+  },
 
   //
   // Test GET/SELECT Uris
@@ -79,18 +110,19 @@ exports['test.odatauri2sql'] = {
     test.expect(6);
 
     var expected = [];
-    expected.push('{"query_type":"select","schema":"schema","sql":"select col1,col2 from schema.table where co1 = \\"help\\" order by col2 limit 10,100"}');
-    expected.push('{"query_type":"select","schema":"schema","sql":"select * from schema.table"}');
-    expected.push('{"query_type":"select","schema":"schema","sql":"select col1,col2 from schema.table where Price + 5 > 10 order by col2"}');
-    expected.push('{"query_type":"select","schema":"schema","sql":"select * from schema.table order by col2"}');
+    expected.push('{"query_type":"select","schema":"schema","table":"table","sql":"select col1,col2 from schema.table where co1 = \\"help\\" order by col2 limit 10,100"}');
+    expected.push('{"query_type":"select","schema":"schema","table":"table","sql":"select * from schema.table"}');
+    expected.push('{"query_type":"select","schema":"schema","table":"table","sql":"select col1,col2 from schema.table where Price + 5 > 10 order by col2"}');
+    expected.push('{"query_type":"select","schema":"schema","table":"table","sql":"select * from schema.table order by col2"}');
 
 
     for (var i = 0; i < this.c.length; i++) {
       var o = uriParser.parseUri(this.c[i], 'GET');
 
-      test.equal(JSON.stringify(o),
-        expected[i],
+      test.deepEqual(o,
+        JSON.parse(expected[i]),
         this.c[i]);
+
     }
 
     for (i = 0; i < this.ic.length; i++) {

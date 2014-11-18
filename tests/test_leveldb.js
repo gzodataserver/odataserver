@@ -48,7 +48,7 @@ exports['test.leveldb'] = {
     var self=this;
 
     var http = require("http");
-    var h = require('../src//helpers.js');
+    var h = require('../src/helpers.js');
     var level = require('./../src/leveldb.js');
 
     var defaultPort = 8080;

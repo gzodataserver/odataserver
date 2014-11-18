@@ -357,22 +357,35 @@
   exports.mysqlAdmin.prototype.setPassword = function() {
     var self = this;
     self.password = h.randomString(12);
-    self.sql = "set password for '"+self.accountId+"'@'localhost' = password('"+self.password+"');";
+    self.sql = "set password for '"+self.accountId+"'@'localhost' = password('"+
+            self.password+"');";
   };
 
   // Grant
   exports.mysqlAdmin.prototype.grant = function(tableName, accountId) {
     var self = this;
     //var accountId=h.email2accountId(email);
-    self.sql = "grant insert, select, update, delete on "+tableName+" to '"+accountId+"'@'localhost';";
+    self.sql = "grant insert, select, update, delete on "+tableName+" to '"+
+            accountId+"'@'localhost';";
   };
 
   // Revoke
   exports.mysqlAdmin.prototype.revoke = function(tableName, accountId) {
     var self = this;
     //var accountId=h.email2accountId(email);
-    self.sql = "revoke insert, delete, update, delete on "+tableName+" to '"+accountId+"'@'localhost';";
+    self.sql = "revoke insert, delete, update, delete on "+tableName+" to '"+
+            accountId+"'@'localhost';";
   };
 
+
+  // Get the service definition, e.g database model
+  // sql:'select table_name, (data_length+index_length)/1024/1024 as mb from information_schema.tables where table_schema="'+ schema + '"'};
+  exports.mysqlAdmin.prototype.serviceDef = function() {
+    var self = this;
+    //var accountId=h.email2accountId(email);
+    self.sql = 'select table_name, (data_length+index_length)/1024/1024 as mb '+
+            'from information_schema.tables where table_schema="'+
+            self.accountID + '"';
+  };
 
 })(this);
