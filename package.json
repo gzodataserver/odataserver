@@ -1,0 +1,46 @@
+{
+  "name": "odatamysql",
+  "description": "Serve MySQL database as odata",
+  "version": "0.0.1",
+  "author": {
+    "name": "Jonas Colmsjö",
+    "email": "jonas@gizur.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/colmsjo/odatamysql.git"
+  },
+  "bugs": {
+    "url": "https://github.com/colmsjo/odatamysql/issues"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "http://opensource.org/licenses/MIT"
+    }
+  ],
+  "main": "src/main.js",
+  "dependencies": {
+    "underscore": "*",
+    "mysql":"*",
+    "level" : "*"
+  },
+  "devDependencies" : {
+    "docco":"*",
+    "nodeunit":"*"
+  },
+  "engines": {
+    "node": ">=0.10.x",
+    "npm": "1.1.x"
+  },
+  "scripts": {
+    "test": "nodeunit tests/test*.js",
+    "start": "sudo node -e 'require(\"./src/main.js\").start();'",
+    "docs": "docco src/*.js test/*.js",
+    "clean": "rm -rf docs; rm -rf mydb"
+  },
+  "keywords": [
+    "odata",
+    "MySQL"
+  ]
+}
