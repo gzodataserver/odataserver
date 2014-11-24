@@ -90,7 +90,7 @@ exports['test.leveldb'] = {
     h.log.debug('Start of testing POST');
 
     fs = require('fs');
-    var readStream = fs.createReadStream('./projektledning_w767.png');
+    var readStream = fs.createReadStream(__dirname+'/projektledning_w767.png');
 
     readStream.on('open', function() {
       h.log.debug('in readStream on open');

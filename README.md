@@ -19,16 +19,16 @@ The 80 and 443 ports that have been exposed from the container will be routed fr
 Documentation
 ------------
 
-Generate documentation: `./src/node_modules/.bin/docco src/*.js`
+Generate documentation: `npm run-script docs`
 
-First you need install the node modules though: `cd src; npm install`.
+First you need install the node modules though: `npm install`.
 
 
 Development
 -----------
 
-The simplest way to start the server is: `sudo node -e "require('./src/main.js').start();"`.
-First you need install the node modules though: `cd src; npm install`
+The simplest way to start the server is: `npm start`.
+First you need install the node modules though: `npm install`
 A MySQL server needs to be running on the same host and port 80 must not be in use.
 On OSX install with `brew install mysql` and run `mysql.server start`. Load the test data
 with the script `./src-sql/init-mysql2.sh`

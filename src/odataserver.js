@@ -383,6 +383,13 @@
     return o;
   };
 
+
+
+  //
+  // NOTE: THIS PART IS NOT COMPLETED!!!!
+  // Check odataBackend
+  //
+
   // HTTP REST Server that
   exports.ODataServer.prototype.main = function(request, response, odataBackend) {
 
