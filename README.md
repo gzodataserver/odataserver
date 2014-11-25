@@ -2,7 +2,7 @@ Simple OData server for MySQL
 ==============================
 
 
-[!Build status](https://travis-ci.org/gizur/odataserver.svg?branch=master)]
+[![Build status][https://travis-ci.org/gizur/odataserver.svg?branch=master]]
 
 
 Usage
