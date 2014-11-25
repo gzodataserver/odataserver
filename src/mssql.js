@@ -20,7 +20,7 @@
   var h = require('./helpers.js');
   var CONFIG = require('./config.js');
 
-  var mssql = require('mssql');
+  var mssql = require('../win/node_modules/mssql');
   var u = require('underscore');
 
   h.debug = true;
