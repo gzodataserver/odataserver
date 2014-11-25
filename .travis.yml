@@ -20,6 +20,6 @@ node_js:
 # Simple setup without matrix
 env:
   global:
-    - USERNAME="root"
-    - PASSWORD=""
+    - ADMIN_USER="root"
+    - ADMIN_PASSWORD=""
     - HOSTNAME="localhost"

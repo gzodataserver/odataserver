@@ -1,6 +1,10 @@
 //
 // config.js
 //
+// A good way to manage sensitive data like passwords is to use environment
+// varaibles. For instance: `process.env.ADMIN_PASSWORD`
+//
+//
 
 (function(self_, undefined) {
 
@@ -34,10 +38,10 @@
   c.MYSQL = {
 
     // MySQL admin/root username
-    ADMIN_USER: 'root',
+    ADMIN_USER: process.env.ADMIN_USER,
 
     // MySQL admin/root password
-    ADMIN_PASSWORD: 'XXX',
+    ADMIN_PASSWORD: process.env.ADMIN_PASSWORD,
 
     // MySQL host
     DB_HOST: 'localhost',
@@ -57,10 +61,10 @@
   c.MSSQL = {
 
     // MySQL admin/root username
-    ADMIN_USER: 'admin',
+    ADMIN_USER: process.env.ADMIN_USER,
 
     // MySQL admin/root password
-    ADMIN_PASSWORD: 'XXX',
+    ADMIN_PASSWORD: process.env.ADMIN_PASSWORD,
 
     DATABASE: 'XXX',
 
