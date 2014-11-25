@@ -22,4 +22,3 @@ env:
   global:
     - ADMIN_USER="root"
     - ADMIN_PASSWORD=""
-    - HOSTNAME="localhost"
