@@ -7,20 +7,6 @@
 
   var c = self_.config || {};
 
-  // These credentials are use to create new users. It can for instance be
-  // the admin/root user, or you can also create a new user with only exactly
-  // the needed priviledges for extra security
-  c.MYSQL = {
-
-    // MySQL admin/root username
-    ADMIN_USER: 'root',
-
-    // MySQL admin/root password
-    ADMIN_PASSWORD: 'XXX'
-
-  };
-
-
   // Account IDs are based email adresses
   // Documentation of the hash function used is found here:
   // http://nodejs.org/api/crypto.html
@@ -37,6 +23,41 @@
     // 'utf8', 'ascii' or 'binary'
     HASH_ENCODING: 'hex'
   };
+
+
+  // MySQL configuration
+  // -------------------
+
+  // These credentials are use to create new users. It can for instance be
+  // the admin/root user, or you can also create a new user with only exactly
+  // the needed priviledges for extra security
+  c.MYSQL = {
+
+    // MySQL admin/root username
+    ADMIN_USER: 'root',
+
+    // MySQL admin/root password
+    ADMIN_PASSWORD: 'XXX'
+
+  };
+
+
+  // MSSQL configuration
+  // -------------------
+
+  // These credentials are use to create new users. It can for instance use
+  // the sysadmin role, or you can also create a new user/role with only exactly
+  // the needed priviledges for extra security
+  c.MSSQL = {
+
+    // MySQL admin/root username
+    ADMIN_USER: 'admin',
+
+    // MySQL admin/root password
+    ADMIN_PASSWORD: 'XXX'
+
+  };
+
 
   // Exports
   // =======

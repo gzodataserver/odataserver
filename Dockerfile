@@ -52,7 +52,7 @@ ADD ./src-phpmyadmin/config.inc.php /var/www/html/phpMyAdmin-4.0.8-all-languages
 
 RUN curl https://raw.githubusercontent.com/creationix/nvm/v0.13.1/install.sh | bash
 # RUN echo "[ -s $HOME/.nvm/nvm.sh ] && . $HOME/.nvm/nvm.sh" >> $HOME/.profile
-RUN /bin/bash -c "source $HOME/.profile && nvm install v0.11.9"
+RUN /bin/bash -c "source $HOME/.profile && nvm install v0.10.33"
 
 ADD ./src-docker/init-node.sh /src/
 RUN /src/init-node.sh
