@@ -37,7 +37,13 @@
     ADMIN_USER: 'root',
 
     // MySQL admin/root password
-    ADMIN_PASSWORD: 'XXX'
+    ADMIN_PASSWORD: 'XXX',
+
+    // MySQL host
+    DB_HOST: 'localhost',
+
+    // MySQL port
+    DB_PORT: '3306'
 
   };
 
@@ -54,7 +60,15 @@
     ADMIN_USER: 'admin',
 
     // MySQL admin/root password
-    ADMIN_PASSWORD: 'XXX'
+    ADMIN_PASSWORD: 'XXX',
+
+    // MS SQL host
+    DB_HOST: 'localhost',
+
+    // options for mssql module
+    OPTIONS: {
+      encrypt: false // Use this if you're on Windows Azure
+    }
 
   };
 
