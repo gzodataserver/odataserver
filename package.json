@@ -1,5 +1,5 @@
 {
-  "name": "odatamysql",
+  "name": "odataserver",
   "description": "Serve MySQL database as odata",
   "version": "0.0.1",
   "author": {
@@ -8,10 +8,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/colmsjo/odatamysql.git"
+    "url": "https://github.com/colmsjo/odataserver.git"
   },
   "bugs": {
-    "url": "https://github.com/colmsjo/odatamysql/issues"
+    "url": "https://github.com/colmsjo/odataserver/issues"
   },
   "licenses": [
     {

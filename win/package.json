@@ -1,0 +1,19 @@
+{
+  "name": "odataserver",
+  "main": "../src/main_old.js",
+  "dependencies": {
+    "underscore": "*",
+    "mssql":"*"
+  },
+  "devDependencies" : {
+    "nodeunit":"*"
+  },
+  "engines": {
+    "node": ">=0.10.x",
+    "npm": "1.1.x"
+  },
+  "scripts": {
+    "test": "nodeunit ../tests/test_mssql.js",
+    "start": "sudo node -e 'require(\"../src/main_old.js\").start();'"
+  }
+}

@@ -63,12 +63,24 @@ Here is an example: `docker run -d -p 80:80 -p 443:443 -e USERNAME="admin", PASS
 Development
 ===========
 
-Load the test data with the script `./src-sql/init-mysql2.sh`
+Load some test data with the script `./src-sql/init-mysql2.sh`
 
-Generate documentation: `npm run-script docs`
+Generate the documentation: `npm run-script docs`
 
 
-Know issues
+MS SQL Server - WORK IN PROGRESS
+=================================
+
+The `win` folder contains a `package.json` for installation on Windows. The
+[mssql module](https://www.npmjs.org/package/mssql) is used instead of the
+[mysql module](https://www.npmjs.org/package/mysql). This version don't include support
+for BLOB storage in leveldb since the [leveldb package](https://www.npmjs.org/package/leveldb)  
+don't support windows.
+
+Run `npm test` to validate that the setup is ok.
+
+
+Known issues
 ============
 
 1. Docker build fails during `npm install`. This is rather common and is probably related to problems with the npm package servers. Just build again until it works.
