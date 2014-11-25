@@ -32,7 +32,7 @@
 
     // Connect to db and run callback
     var conn = mssql.connect(config, function(err) {
-      h.log.debug('MSSQL runQuery sql ('+JSON.stringify(config.user)+'): ' + sql);
+      h.log.debug('MSSQL runQuery sql ('+JSON.stringify(config)+'): ' + sql);
 
       if(err) {
         h.log.log('MSSQL error'+err);
