@@ -36,6 +36,7 @@ var delay = 1;
 var adminCredentials = {
   host: CONFIG.MSSQL.DB_HOST,
   user: CONFIG.MSSQL.ADMIN_USER,
+  database: CONFIG.MSSQL.DATABASE,
   password: CONFIG.MSSQL.ADMIN_PASSWORD
 };
 

@@ -42,8 +42,6 @@
     // MySQL host
     DB_HOST: 'localhost',
 
-    DATABASE: 'XXX',
-
     // MySQL port
     DB_PORT: '3306'
 
@@ -63,6 +61,8 @@
 
     // MySQL admin/root password
     ADMIN_PASSWORD: 'XXX',
+
+    DATABASE: 'XXX',
 
     // MS SQL host
     DB_HOST: 'localhost',
