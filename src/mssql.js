@@ -31,7 +31,7 @@
     var self = this;
 
     // Connect to db and run callback
-    mssql.connect(config, function(err) {
+    var conn = mssql.connect(config, function(err) {
       h.log.debug('MSSQL runQuery sql ('+JSON.stringify(config.user)+'): ' + sql);
 
       if(err) {
@@ -62,7 +62,7 @@
 
       request.on('done', function(returnValue) {
         h.log.debug('MSSQL runQuery end.');
-        //conn.close();
+        conn.close();
         if(endFunc !== undefined) endFunc();
       });
 
