@@ -29,7 +29,7 @@
   // with the result
   var runQuery = function(conn, sql, resultFunc, endFunc) {
     var self = this;
-    h.log.debug('MSSQL runQuery sql ('+conn.config.user+'): ' + sql);
+    h.log.debug('MSSQL runQuery sql ('+JSON.stringify(conn.connection)+'): ' + sql);
 
     self.connection = new mssql.Connection(self.config, function(err) {
 
