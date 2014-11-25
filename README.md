@@ -5,8 +5,13 @@ Simple OData server for MySQL
 Usage
 ======
 
-The simplest way to start the server is: `npm start`. First you need install the node modules though: `npm install`
-A MySQL server needs to be running on the same host and port 80 must not be in use.
+Copy `src/config.template.js` to `src/config.js` and update with the database
+credentials. An admin user with privleges to create tables, users etc. is
+needed for these features to work.
+
+The simplest way to start the server is: `npm start`. First you need install
+the node modules though: `npm install` A MySQL server needs to be running on
+the same host and port 80 must not be in use.
 
 
 Test the installation
