@@ -62,7 +62,7 @@
 
       request.on('done', function(returnValue) {
         h.log.debug('MSSQL runQuery end.');
-        conn.close();
+        //conn.close();
         if(endFunc !== undefined) endFunc();
       });
 
