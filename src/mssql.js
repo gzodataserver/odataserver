@@ -27,41 +27,43 @@
 
   // helper for running SQL queries. `resultFunc` determines what should happen
   // with the result
-  var runQuery = function(conn, sql, resultFunc, endFunc) {
+  var runQuery = function(config, sql, resultFunc, endFunc) {
     var self = this;
-    h.log.debug('MSSQL runQuery sql ('+JSON.stringify(conn.connection)+'): ' + sql);
 
-    self.connection = new mssql.Connection(self.config, function(err) {
+    // Connect to db and run callback
+    mssql.connect(config, function(err) {
+      h.log.debug('MSSQL runQuery sql ('+JSON.stringify(config.user)+'): ' + sql);
 
-      // Connect to db and run callback
-      sql.connect(self.config, function(err) {
+      if(err) {
+        h.log.log('MSSQL error'+err);
+        return;
+      }
 
-        var request = new mssql.Request();
-        request.stream = true;
+      var request = new mssql.Request();
+      request.stream = true;
 
-        // or request.execute(procedure);
-        request.query(self.sql);
+      // or request.execute(procedure);
+      request.query(sql);
 
-        request.on('recordset', function(columns) {
-          // Emitted once for each recordset in a query
-          h.log.debug('MSSQL Recordset columns: '+columns);
-        });
+      request.on('recordset', function(columns) {
+        // Emitted once for each recordset in a query
+        h.log.debug('MSSQL Recordset columns: '+columns);
+      });
 
-        request.on('row', function(row) {
-          resultFunc(row);
-          h.log.debug('MSSQL runQuery result: ' + JSON.stringify(row));
-        });
+      request.on('row', function(row) {
+        resultFunc(row);
+        h.log.debug('MSSQL runQuery result: ' + JSON.stringify(row));
+      });
 
-        request.on('error', function(err) {
-          // May be emitted multiple times
-          h.log.log('MSSQL: error'+err);
-        });
+      request.on('error', function(err) {
+        // May be emitted multiple times
+        h.log.log('MSSQL error:'+err);
+      });
 
-        request.on('done', function(returnValue) {
-          h.log.debug('MSSQL runQuery end.');
-          if(endFunc !== undefined) endFunc();
-        });
-
+      request.on('done', function(returnValue) {
+        h.log.debug('MSSQL runQuery end.');
+        conn.close();
+        if(endFunc !== undefined) endFunc();
       });
 
     });
@@ -89,12 +91,9 @@
   // Write results into a stream
   mssqlBase.prototype.pipe = function(writeStream) {
     var self = this;
-    runQuery(self.connection, self.sql,
+    runQuery(self.config, self.sql,
       function(row) {
         writeStream.write(JSON.stringify(row));
-      },
-      function() {
-        self.connection.close();
       }
     );
   };
@@ -132,7 +131,6 @@
     mssqlBase.call(this, credentials);
 
     self.sql = sql;
-    self.credentials = credentials;
     self.processRowFunc = processRowFunc;
     self.result = [];
 

@@ -34,7 +34,7 @@ var accountId2=h.email2accountId(testEmail2);
 var delay = 1;
 
 var adminCredentials = {
-  host: CONFIG.MSSQL.HOST,
+  host: CONFIG.MSSQL.DB_HOST,
   user: CONFIG.MSSQL.ADMIN_USER,
   password: CONFIG.MSSQL.ADMIN_PASSWORD
 };
