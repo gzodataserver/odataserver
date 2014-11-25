@@ -14,11 +14,11 @@ Test the installation
 
 Here are some queries, just to get you started:
 
-  # Get all rows in wp_options
-  curl -H "user:wp" -H "password:wp" http://[IP]/wp/wp_options
+    # Get all rows in wp_options
+    curl -H "user:wp" -H "password:wp" http://[IP]/wp/wp_options
 
-  # Select a few columns
-  curl -H "user:wp" -H "password:wp" http://[IP]/wp/wp_options\?\$select=option_id,option_name
+    # Select a few columns
+    curl -H "user:wp" -H "password:wp" http://[IP]/wp/wp_options\?\$select=option_id,option_name
 
 
 Run using docker
@@ -36,14 +36,14 @@ using the `-p` flag.
 
 When developing using docker, it is usefull to connect to the containers shell:
 
-  # Start a container and connect to the shell (remove when stopped)
-  docker run -t -i --rm -p 80:80 -p 81:81 -p 443:443 odatamysql /bin/bash
+    # Start a container and connect to the shell (remove when stopped)
+    docker run -t -i --rm -p 80:80 -p 81:81 -p 443:443 odatamysql /bin/bash
 
-  # Start the services
-  supervisord &> /tmp/out.txt &
+    # Start the services
+    supervisord &> /tmp/out.txt &
 
-  # Check that all processes are up
-  ps -ef
+    # Check that all processes are up
+    ps -ef
 
 
 Login to MySQL using phpMyAdmin at: `http://[IP]:PORT/phpMyAdmin-4.0.8-all-languages`
