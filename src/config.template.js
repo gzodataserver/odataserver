@@ -42,6 +42,8 @@
     // MySQL host
     DB_HOST: 'localhost',
 
+    DATABASE: 'XXX',
+
     // MySQL port
     DB_PORT: '3306'
 
