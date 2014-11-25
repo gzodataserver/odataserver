@@ -8,7 +8,7 @@ Usage
 ======
 
 Copy `src/config.template.js` to `src/config.js` and update with the database
-credentials. An admin user with privleges to create tables, users etc. is
+credentials. An admin user with privileges to create tables, users etc. is
 needed for these features to work.
 
 The simplest way to start the server is: `npm start`. First you need install

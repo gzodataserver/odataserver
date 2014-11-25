@@ -1,21 +1,25 @@
 language: node_js
 node_js:
-  - "0.11"
   - "0.10"
-  - "0.8"
-  - "0.6"
 
 # MySQL credentials for travis is root and blank password. The system test
 # stest*.js files are currently not executed by npm test
+#env:
+#  global:
+#    - USERNAME="root"
+#    - PASSWORD=""
+#    - HOSTNAME="localhost"
+#  matrix:
+#    - USE_NETWORK=true
+#    - USE_NETWORK=false
 # Tests with the following setups will be executed
 # 1. USERNAME="root" PASSWORD="" HOSTNAME="localhost" USE_NETWORK=true
 # 2. USERNAME="root" PASSWORD="" HOSTNAME="localhost" USE_NETWORK=false
 #
+
+# Simple setup without matrix
 env:
   global:
     - USERNAME="root"
     - PASSWORD=""
     - HOSTNAME="localhost"
-  matrix:
-    - USE_NETWORK=true
-    - USE_NETWORK=false
