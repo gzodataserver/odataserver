@@ -93,5 +93,5 @@ Known issues
 1. Docker build fails during `npm install`. This is rather common and is probably related to problems with the npm package servers. Just build again until it works.
 
 
-[travis-image]: https://img.shields.io/travis/felixge/node-mysql.svg?style=flat
-[travis-url]: https://travis-ci.org/felixge/node-mysql
+[travis-image]: https://img.shields.io/travis/gizur/odataserver.svg?style=flat
+[travis-url]: https://travis-ci.org/gizur/odataserver
