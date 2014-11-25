@@ -80,11 +80,15 @@
       user: credentials.user,
       password: credentials.password,
       server: credentials.host,
-      database: CONFIG.MSSQL.DATABASE,
+      database: credentials.database,
       options: CONFIG.MSSQL.OPTIONS
     };
 
     self.sql = null;
+
+
+    h.log.debug('MSSQL self.config: ' + JSON.stringify(self.config));
+
   };
 
 
