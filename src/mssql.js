@@ -86,9 +86,6 @@
 
     self.sql = null;
 
-
-    h.log.debug('MSSQL self.config: ' + JSON.stringify(self.config));
-
   };
 
 

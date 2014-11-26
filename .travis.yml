@@ -2,6 +2,14 @@ language: node_js
 node_js:
   - "0.10"
 
+#notifications:
+#  email:
+#    recipients:
+#      - one@example.com
+#      - other@example.com
+#    on_success: [always|never|change] # default: change
+#    on_failure: [always|never|change] # default: always
+
 # MySQL credentials for travis is root and blank password. The system test
 # stest*.js files are currently not executed by npm test
 #env:
