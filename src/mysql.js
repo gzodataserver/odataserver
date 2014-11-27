@@ -102,7 +102,7 @@
   // * sql - the sql select statement to run
   // * processRowFunc - each row can be manipulated with this function before
   // it is returned
-  exports.mysqlRead = function(credentials, sql, processRowFunc) {
+  exports.sqlRead = function(credentials, sql, processRowFunc) {
     var self = this;
 
     mysqlBase.call(this, credentials);
@@ -113,11 +113,11 @@
   };
 
   // inherit mysqlBase prototype
-  exports.mysqlRead.prototype = Object.create(mysqlBase.prototype);
+  exports.sqlRead.prototype = Object.create(mysqlBase.prototype);
 
   // Fetch all rows in to an array. `done` is then called with this
   // array is its only argument
-  exports.mysqlRead.prototype.fetchAll = function(done) {
+  exports.sqlRead.prototype.fetchAll = function(done) {
     var self = this;
 
     runQuery(self.connection, self.sql,
@@ -197,7 +197,7 @@
   };
 
 
-  exports.mysqlWriteStream = function(credentials, database, tableName, resultStream) {
+  exports.sqlWriteStream = function(credentials, database, tableName, resultStream) {
     // call stream.Writeable constructor
     Writable.call(this);
     var self = this;
@@ -214,10 +214,10 @@
 
 
   // inherit stream.Writeable
-  exports.mysqlWriteStream.prototype = Object.create(Writable.prototype);
+  exports.sqlWriteStream.prototype = Object.create(Writable.prototype);
 
   // override the write function
-  exports.mysqlWriteStream.prototype._write = function(chunk, encoding, done) {
+  exports.sqlWriteStream.prototype._write = function(chunk, encoding, done) {
     var self = this;
     var json;
 
@@ -255,7 +255,7 @@
   // Delete from table
   // ------------------
 
-  exports.mysqlDelete = function(credentials, database, tableName, where) {
+  exports.sqlDelete = function(credentials, database, tableName, where) {
     var self = this;
     mysqlBase.call(this, credentials);
 
@@ -264,7 +264,7 @@
   };
 
   // inherit mysqlBase prototype
-  exports.mysqlDelete.prototype = Object.create(mysqlBase.prototype);
+  exports.sqlDelete.prototype = Object.create(mysqlBase.prototype);
 
 
   //
@@ -283,14 +283,14 @@
   //      'boolean bit(1)'
   //    ]
   //
-  exports.mysqlCreate = function(credentials, tableDef) {
+  exports.sqlCreate = function(credentials, tableDef) {
     var self = this;
     mysqlBase.call(this, credentials);
     self.sql = 'create table '+tableDef.table_name + ' (' + tableDef.columns.join(',') + ')';
   };
 
   // inherit mysqlBase prototype
-  exports.mysqlCreate.prototype = Object.create(mysqlBase.prototype);
+  exports.sqlCreate.prototype = Object.create(mysqlBase.prototype);
 
 
   //
@@ -298,14 +298,14 @@
   // ---------------------------------------
 
   // Drop a table if it exists and pipe the results to a stream
-  exports.mysqlDrop = function(credentials, tableName) {
+  exports.sqlDrop = function(credentials, tableName) {
     var self = this;
     mysqlBase.call(this, credentials);
     self.sql = 'drop table if exists '+tableName+';';
   };
 
   // inherit mysqlBase prototype
-  exports.mysqlDrop.prototype = Object.create(mysqlBase.prototype);
+  exports.sqlDrop.prototype = Object.create(mysqlBase.prototype);
 
 
   //
@@ -313,7 +313,7 @@
   // ====================================
 
   // Admin constructor
-  exports.mysqlAdmin = function(credentials, accountId) {
+  exports.sqlAdmin = function(credentials, accountId) {
     var self = this;
 
     // Allow multiple statements
@@ -328,10 +328,10 @@
 
 
   // inherit mysqlBase prototype
-  exports.mysqlAdmin.prototype = Object.create(mysqlBase.prototype);
+  exports.sqlAdmin.prototype = Object.create(mysqlBase.prototype);
 
   // get MySQL credentials for the object
-  exports.mysqlAdmin.prototype.getCredentials = function(password) {
+  exports.sqlAdmin.prototype.getCredentials = function(password) {
     return {
       host: CONFIG.MYSQL.HOST,
       database: self.accountId,
@@ -341,7 +341,7 @@
   };
 
   // create new user
-  exports.mysqlAdmin.prototype.new = function() {
+  exports.sqlAdmin.prototype.new = function() {
     var self = this;
     self.sql  = 'create database '+self.accountId+';';
     self.sql += "create user '"+self.accountId+"'@'localhost';";
@@ -350,14 +350,14 @@
   };
 
   // Delete user
-  exports.mysqlAdmin.prototype.delete = function() {
+  exports.sqlAdmin.prototype.delete = function() {
     var self = this;
     self.sql  = "drop user '"+self.accountId+"'@'localhost';";
     self.sql += 'drop database '+self.accountId+';';
   };
 
   // Set password for user
-  exports.mysqlAdmin.prototype.setPassword = function() {
+  exports.sqlAdmin.prototype.setPassword = function() {
     var self = this;
     self.password = h.randomString(12);
     self.sql = "set password for '"+self.accountId+"'@'localhost' = password('"+
@@ -365,7 +365,7 @@
   };
 
   // Grant
-  exports.mysqlAdmin.prototype.grant = function(tableName, accountId) {
+  exports.sqlAdmin.prototype.grant = function(tableName, accountId) {
     var self = this;
     //var accountId=h.email2accountId(email);
     self.sql = "grant insert, select, update, delete on "+tableName+" to '"+
@@ -373,7 +373,7 @@
   };
 
   // Revoke
-  exports.mysqlAdmin.prototype.revoke = function(tableName, accountId) {
+  exports.sqlAdmin.prototype.revoke = function(tableName, accountId) {
     var self = this;
     //var accountId=h.email2accountId(email);
     self.sql = "revoke insert, delete, update, delete on "+tableName+" to '"+
@@ -383,7 +383,7 @@
 
   // Get the service definition, e.g database model
   // sql:'select table_name, (data_length+index_length)/1024/1024 as mb from information_schema.tables where table_schema="'+ schema + '"'};
-  exports.mysqlAdmin.prototype.serviceDef = function() {
+  exports.sqlAdmin.prototype.serviceDef = function() {
     var self = this;
     //var accountId=h.email2accountId(email);
     self.sql = 'select table_name, (data_length+index_length)/1024/1024 as mb '+

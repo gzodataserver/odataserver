@@ -260,21 +260,21 @@
     // Work on service definition, e.g. list of tables, for /schema/
     if (a.length == 2) {
 
-      switch(req_method) {
+      switch (req_method) {
         // return list of tables
         case 'GET':
           result.query_type = 'service_def';
           break;
 
         case 'POST':
-            result.query_type = 'create_table';
-            break;
+          result.query_type = 'create_table';
+          break;
 
         case 'DELETE':
-            result.query_type = 'delete_table';
-            break;
+          result.query_type = 'delete_table';
+          break;
 
-        // POST etc. not supported here
+          // POST etc. not supported here
         default:
           throw new Error('Operation on /schema not supported for ' + req_method);
       }
@@ -330,7 +330,7 @@
       // check that there are no parameters
       if (!u.isEmpty(parsedURL.query)) {
         throw new Error('Parameters are not supported in POST: ' +
-                        JSON.stringify(parsedURL.query));
+          JSON.stringify(parsedURL.query));
       }
 
     }
@@ -384,111 +384,184 @@
   };
 
 
-
   //
-  // NOTE: THIS PART IS NOT COMPLETED!!!!
-  // Check odataBackend
+  // Operations
+  // -----------
   //
-  // Operations:
-  //  * create user (account) - requires root credentials
-  //  * set password for user - requires root credentials
-  //  * delete user - requires root credentials
-  //  * grant privs to user
+  //  requires root credentials: THESE HAVE NOT BEEN IMPLMENTED IN PARSEUR!!!
+  //
+  //  * create user (account) (POST /createAccount data={email=...})
+  //  * reset password for user (POST /resetPassword data={email=...})
+  //  * delete user (DELETE /deleteAccount data={accountID=...} )
+  //
+  //  Using account credentials:
+  //
+  //  * grant privs to user (POST /privileges data={accountID=..., entity=...} )
+  //  * revoke privs from user (DELETE /privileges data={accountID=..., entity=...} ))
   //  * create table
   //  * drop table
   //  * get service definition (table definition)
   //  * CRUD operations
   //
 
+  // Respond with 406 and end the connection
+  var writeError = function(response, err) {
+    // Should return 406 when failing
+    // http://www.odata.org/documentation/odata-version-2-0/operations/
+    response.writeHead(406, {
+      "Content-Type": "application/json"
+    });
+    response.write(err.toString() + '\n');
+    response.end();
+
+    h.loh.log(err.toString());
+  };
+
+  // check that the request contains user and password headers
+  var checkCredentials = function(request, response) {
+
+    h.log.debug('Checking credentials: ' + JSON.stringify(request.headers));
+
+    // Check that the request is ok
+    return !( !request.headers.hasOwnProperty('user') ||
+              !request.headers.hasOwnProperty('password') ) ;
+
+  };
+
+  // empty constructor
+  exports.ODataServer = function() {
+  };
+
   // HTTP REST Server that
   exports.ODataServer.prototype.main = function(request, response, odataBackend) {
 
-    var credentials = {
-      database : sql.schema,
-      user     : request.headers.user,
-      password : request.headers.password
-    };
+    // Check the MySQL credentials have been supplied
+    if (!checkCredentials(request, response)) {
 
-    // Just for debugging
-    request.on('end', function() {
-      h.log.debug('end of request');
-    });
+      writeError(response, "Invalid credentials, user or password missing " +
+        JSON.stringify(request.headers));
 
-    var uriParser = new exports.ODataUri2Sql();
-    var odataRequest = uriParser.parseUri(request.url, request.method);
-
-    // query_type: service_def | create_table | delete_table | select | insert | delete,
-
-    switch(odataRequest.query_type) {
-      case 'create_user':
-        var mysqlAdmin = new mysql.mysqlAdmin(adminCredentials, accountId);
-        h.log.log('Create new user...');
-        mysqlAdmin.new();
-        mysqlAdmin.pipe(response);
-        break;
-
-      case 'set_password':
-        var mysqlAdmin = new mysql.mysqlAdmin(adminCredentials, accountId);
-        mysqlAdmin.setPassword();
-        mysqlAdmin.pipe(response);
-
-        // save the password to use below
-        credentials.password = mysqlAdmin.password;
-        h.log.log('Password set to: '+credentials.password);
-        break;
-
-      case 'delete_user':
-        var mysqlAdmin = new mysql.mysqlAdmin(adminCredentials, accountId);
-        h.log.log('Drop the new user...');
-        mysqlAdmin.delete();
-        mysqlAdmin.pipe(bucket);
-        break;
-
-      case 'grant':
-        h.log.debug('Grant privs to table1 to user #2');
-        var mysqlAdmin = new mysql.mysqlAdmin(credentials, accountId);
-        mysqlAdmin.grant('table1', accountId2);
-        mysqlAdmin.pipe(bucket);
-        break;
-
-      case 'revoke':
-        h.log.log('REVOKE NOT IMPLMENTED!');
-        break;
-
-      case 'service_def':
-        odataBackend.serviceDef();  // no args - gets all tables in account's schema
-        break;
-
-      case 'create_table':
-        var create = new odataBackend.mysqlCreate(credentials, tableDef);
-        create.pipe(process.stdout);
-        break;
-
-      case 'delete_table':
-        var drop = new mysql.mysqlDrop(credentials, 'table1');
-        drop.pipe(process.stdout);
-        break;
-
-      case 'select':
-        h.log.debug('Read values of the mysql stream:');
-
-        var mysqlRead = new rs(credentials, 'select * from table1');
-        mysqlRead.pipe(bucket);
-        break;
-
-      case 'insert':
-        var mysqlStream = new ws(credentials, accountId, 'table1', response);
-        request.pipe(mysqlStream);
-        break;
-
-      case 'delete':
-        var del = new mysql.mysqlDelete(credentials, accountId, 'table1');
-        del.pipe(process.stdout);
-        break;
-
-      default:
-        response.write('Internal error, query_type: '+odataRequest.query_type);
+      return;
     }
+
+    // Only GET, POST, PUT and DELTE supported
+    if (!(request.method == 'GET' ||
+        request.method == 'POST' ||
+        request.method == 'DELETE')) {
+
+      writeError(response, request.method + ' not supported.');
+    }
+
+    // save input from POST and PUT here
+    var data = '';
+
+    request
+      // read the data in the stream, if there is any
+      .on('data', function(chunk) {
+        data += chunk;
+      })
+      // request closed, process it
+      .on('end', function() {
+
+        try {
+
+          var uriParser = new ODataUri2Sql();
+          var odataRequest = uriParser.parseUri(request.url, request.method);
+          var mysqlAdmin,
+            accountId = request.headers.user,
+            password = request.headers.password;
+
+
+          var credentials = {
+            database: accountId,
+            user: accountId,
+            password: password
+          };
+
+          var adminCredentials = {
+            user: CONFIG.MYSQL.ADMIN_USER,
+            password: CONFIG.MYSQL.ADMIN_PASSWORD
+          };
+
+
+          // query_type: create_user | set_password | delete_user
+          // query_type: service_def | create_table | delete_table | select | insert | delete,
+
+          switch (odataRequest.query_type) {
+
+            case 'create_user':
+              mysqlAdmin = new odataBackend.sqlAdmin(adminCredentials, accountId);
+              h.log.log('Create new user...');
+              mysqlAdmin.new();
+              mysqlAdmin.pipe(response);
+              break;
+
+            case 'set_password':
+              mysqlAdmin = new odataBackend.sqlAdmin(adminCredentials, accountId);
+              mysqlAdmin.setPassword();
+              mysqlAdmin.pipe(response);
+
+              // save the password to use below
+              credentials.password = mysqlAdmin.password;
+              h.log.log('Password set to: ' + credentials.password);
+              break;
+
+            case 'delete_user':
+              mysqlAdmin = new odataBackend.sqlAdmin(adminCredentials, accountId);
+              h.log.log('Drop the new user...');
+              mysqlAdmin.delete();
+              mysqlAdmin.pipe(response);
+              break;
+
+            case 'grant':
+              h.log.debug('Grant privs to table1 to user #2');
+              mysqlAdmin = new odataBackend.sqlAdmin(credentials, accountId);
+              mysqlAdmin.grant('table1', accountId2);
+              mysqlAdmin.pipe(response);
+              break;
+
+              //case 'revoke':
+              //  break;
+
+            case 'service_def':
+              odataBackend.serviceDef(); // no args - gets all tables in account's schema
+              break;
+
+            case 'create_table':
+              var create = new odataBackend.sqlCreate(credentials, tableDef);
+              create.pipe(response);
+              break;
+
+            case 'delete_table':
+              var drop = new odataBackend.sqlDrop(credentials, 'table1');
+              drop.pipe(response);
+              break;
+
+            case 'select':
+              h.log.debug('Read values of the mysql stream:');
+              var mysqlRead = new mysql.sqlRead(credentials, 'select * from table1');
+              mysqlRead.pipe(response);
+              break;
+
+            case 'insert':
+              var mysqlStream = new mysql.sqlWriteStream(credentials, accountId, 'table1', response);
+              request.pipe(mysqlStream);
+              break;
+
+            case 'delete':
+              var del = new odataBackend.mysqlDelete(credentials, accountId, 'table1');
+              del.pipe(response);
+              break;
+
+            default:
+              response.write('Internal error, query_type: ' + odataRequest.query_type);
+          }
+
+        } catch (e) {
+          writeError(response, e);
+        }
+
+      });
 
   };
 
