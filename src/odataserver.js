@@ -389,12 +389,21 @@
   // NOTE: THIS PART IS NOT COMPLETED!!!!
   // Check odataBackend
   //
+  // Operations:
+  //  * create user (account) - requires root credentials
+  //  * set password for user - requires root credentials
+  //  * delete user - requires root credentials
+  //  * grant privs to user
+  //  * create table
+  //  * drop table
+  //  * get service definition (table definition)
+  //  * CRUD operations
+  //
 
   // HTTP REST Server that
   exports.ODataServer.prototype.main = function(request, response, odataBackend) {
 
     var credentials = {
-      host     : 'localhost',
       database : sql.schema,
       user     : request.headers.user,
       password : request.headers.password
@@ -411,27 +420,70 @@
     // query_type: service_def | create_table | delete_table | select | insert | delete,
 
     switch(odataRequest.query_type) {
+      case 'create_user':
+        var mysqlAdmin = new mysql.mysqlAdmin(adminCredentials, accountId);
+        h.log.log('Create new user...');
+        mysqlAdmin.new();
+        mysqlAdmin.pipe(response);
+        break;
+
+      case 'set_password':
+        var mysqlAdmin = new mysql.mysqlAdmin(adminCredentials, accountId);
+        mysqlAdmin.setPassword();
+        mysqlAdmin.pipe(response);
+
+        // save the password to use below
+        credentials.password = mysqlAdmin.password;
+        h.log.log('Password set to: '+credentials.password);
+        break;
+
+      case 'delete_user':
+        var mysqlAdmin = new mysql.mysqlAdmin(adminCredentials, accountId);
+        h.log.log('Drop the new user...');
+        mysqlAdmin.delete();
+        mysqlAdmin.pipe(bucket);
+        break;
+
+      case 'grant':
+        h.log.debug('Grant privs to table1 to user #2');
+        var mysqlAdmin = new mysql.mysqlAdmin(credentials, accountId);
+        mysqlAdmin.grant('table1', accountId2);
+        mysqlAdmin.pipe(bucket);
+        break;
+
+      case 'revoke':
+        h.log.log('REVOKE NOT IMPLMENTED!');
+        break;
+
       case 'service_def':
-        odataBackend.create();
+        odataBackend.serviceDef();  // no args - gets all tables in account's schema
         break;
 
       case 'create_table':
+        var create = new odataBackend.mysqlCreate(credentials, tableDef);
+        create.pipe(process.stdout);
+        break;
+
       case 'delete_table':
+        var drop = new mysql.mysqlDrop(credentials, 'table1');
+        drop.pipe(process.stdout);
+        break;
+
       case 'select':
+        h.log.debug('Read values of the mysql stream:');
+
+        var mysqlRead = new rs(credentials, 'select * from table1');
+        mysqlRead.pipe(bucket);
+        break;
+
       case 'insert':
-        var mysql = require('../src/mysql.js');
-        var mysqlStream = new mysql.mysqlWriteStream(credentials, odataRequest.schema,
-                                        odataRequest.table, response);
-
-        // I'd like to handle it this way - more generic
-        var writeStream = new odataBackend.writeStream(credentials, odataRequest.schema,
-                                        odataRequest.table, response);
-
-        // pipe the request into the mysql write stream
+        var mysqlStream = new ws(credentials, accountId, 'table1', response);
         request.pipe(mysqlStream);
         break;
 
       case 'delete':
+        var del = new mysql.mysqlDelete(credentials, accountId, 'table1');
+        del.pipe(process.stdout);
         break;
 
       default:

@@ -54,6 +54,7 @@
 
   var mysqlBase = function(credentials) {
     var self = this;
+    credentials.host = CONFIG.MYSQL.DB_HOST;
     self.connection = mysql.createConnection(credentials);
     self.sql = null;
   };
@@ -200,6 +201,8 @@
     // call stream.Writeable constructor
     Writable.call(this);
     var self = this;
+
+    credentials.host = CONFIG.MYSQL.DB_HOST;
 
     self.connection = mysql.createConnection(credentials);
     self.database = database;

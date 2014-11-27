@@ -13,8 +13,6 @@
 //
 //------------------------------
 
-//var Transform = require('stream').Transform;
-//var Writable = require('stream').Writable;
 var StringDecoder = require('string_decoder').StringDecoder;
 
 var mysql = require('../src/mysql.js');
@@ -36,16 +34,13 @@ var accountId2=h.email2accountId(testEmail2);
 var delay = 1;
 
 var credentials = {
-  host: CONFIG.MYSQL.HOST,
 };
 
 var credentials2 = {
-  host: CONFIG.MYSQL.HOST,
 };
 
 
 var adminCredentials = {
-  host: CONFIG.MYSQL.HOST,
   user: CONFIG.MYSQL.ADMIN_USER,
   password: CONFIG.MYSQL.ADMIN_PASSWORD
 };
@@ -54,6 +49,8 @@ var adminCredentials = {
 // This streams save everything written to it
 var bucket = new h.arrayBucketStream();
 
+
+console.log('IMPORTANT!!! Make sure that the ADMIN_USER and ADMIN_PASSWORD environment variables are set.');
 
 // create new user
 setTimeout(function() {
@@ -167,8 +164,8 @@ setTimeout(function() {
 
 // delete from table
 setTimeout(function() {
-  var create = new mysql.mysqlDelete(credentials, accountId, 'table1');
-  create.pipe(process.stdout);
+  var del = new mysql.mysqlDelete(credentials, accountId, 'table1');
+  del.pipe(process.stdout);
 }.bind(this), (delay++)*1000);
 
 // read table
