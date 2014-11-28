@@ -1,4 +1,4 @@
-// odatauri2sql.js
+// odataserver.js
 //------------------------------
 //
 // 2014-11-15, Jonas Colmsjö
@@ -22,6 +22,8 @@
 
   // Default no of rows to return
   var defaultRowCount = 100;
+
+  var CONFIG = require('./config.js');
 
   //
   // Parse OData URI
@@ -414,7 +416,7 @@
     response.write(err.toString() + '\n');
     response.end();
 
-    h.loh.log(err.toString());
+    h.log.log(err.toString());
   };
 
   // check that the request contains user and password headers
@@ -430,10 +432,12 @@
 
   // empty constructor
   exports.ODataServer = function() {
+    h.log.debug('new ODataServer');
   };
 
   // HTTP REST Server that
   exports.ODataServer.prototype.main = function(request, response, odataBackend) {
+    h.log.debug('in main ...');
 
     // Check the MySQL credentials have been supplied
     if (!checkCredentials(request, response)) {
@@ -458,14 +462,16 @@
     request
       // read the data in the stream, if there is any
       .on('data', function(chunk) {
+        h.log.debug('ODATASERVER: RECEIVING DATA');
         data += chunk;
       })
       // request closed, process it
       .on('end', function() {
+        h.log.debug('ODATASERVER: END OF DATA');
 
         try {
 
-          var uriParser = new ODataUri2Sql();
+          var uriParser = new exports.ODataUri2Sql();
           var odataRequest = uriParser.parseUri(request.url, request.method);
           var mysqlAdmin,
             accountId = request.headers.user,
@@ -539,12 +545,12 @@
 
             case 'select':
               h.log.debug('Read values of the mysql stream:');
-              var mysqlRead = new mysql.sqlRead(credentials, 'select * from table1');
+              var mysqlRead = new odataBackend.sqlRead(credentials, 'select * from table1');
               mysqlRead.pipe(response);
               break;
 
             case 'insert':
-              var mysqlStream = new mysql.sqlWriteStream(credentials, accountId, 'table1', response);
+              var mysqlStream = new odataBackend.sqlWriteStream(credentials, accountId, 'table1', response);
               request.pipe(mysqlStream);
               break;
 

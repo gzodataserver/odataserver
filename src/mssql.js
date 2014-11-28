@@ -137,7 +137,7 @@
 
   };
 
-  // inherit mysqlBase prototype
+  // inherit mssqlBase prototype
   exports.mssqlRead.prototype = Object.create(mssqlBase.prototype);
 
   // Fetch all rows in to an array. `done` is then called with this
