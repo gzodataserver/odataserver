@@ -1,11 +1,27 @@
+// mysql.js
+//------------------------------
 //
-// * credetials- MySQL credetials is a JSON object:
-// {
-//   host     : host,
-//   database : database,
-//   user     : user,
-//   password : password
-// }
+// 2014-11-27, Jonas Colmsjö
+//
+//------------------------------
+//
+// Implementation of sql functions with on top of MySQL
+//
+// Classes:
+//  * mysqlBase      - base class with MySQL specific parts
+//  * sqlRead        - inhertis mysqlBase
+//  * sqlWriteStream - inherits Writable, have parts unique to MySQL
+//  * sqlDelete      - inhertis mysqlBase
+//  * sqlDrop        - inhertis mysqlBase
+//  * sqlAdmin       - inhertis mysqlBase
+//
+//
+//------------------------------
+//
+// Using Google JavaScript Style Guide:
+// http://google-styleguide.googlecode.com/svn/trunk/javascriptguide.xml
+//
+//------------------------------
 //
 
 
