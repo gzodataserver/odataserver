@@ -74,7 +74,7 @@
   // sql readable object
   // ---------------------
   //
-  // This is NOT a stream but there is a function for piping the resutl
+  // This is NOT a stream but there is a function for piping the result
   // into a stream. There is also a function for fetching all rows into
   // a array.
 

@@ -5,7 +5,9 @@
 //
 //------------------------------
 //
-// Implementation of sql functions with on top of MySQL
+// Implementation of sql functions with on top of MySQL.
+//
+// NOTE: see sqlBase.js for documentation about the classes.
 //
 // Classes:
 //  * mysqlBase      - base class with MySQL specific parts
@@ -154,65 +156,6 @@
   // ----------------------
   //
 
-  //
-  // JSON input:
-  // [{col1: val1, ..., colX: valX}, ... ,{}]
-  //
-  // SQL output:
-  // insert into table_name('col1', ...'colX')
-  // values ('val1', ..., 'valX'), ..., ()
-  //
-  // All JSON objects must contain the same columns
-  //
-  // Check if the chunk is valid JSON. If not, append with next chunk and check
-  // again
-  //
-  // NOTE: Only one JSON object is currently supported, NOT arrays
-
-  // Execute select write result to stream
-  //
-  // MySQL reference
-  // --------------
-  //
-  // http://dev.mysql.com/doc/refman/5.6/en/insert.html
-  //
-  // INSERT [LOW_PRIORITY | DELAYED | HIGH_PRIORITY] [IGNORE]
-  // [INTO] tbl_name
-  // [PARTITION (partition_name,...)]
-  // [(col_name,...)]
-  // {VALUES | VALUE} ({expr | DEFAULT},...),(...),...
-  // [ ON DUPLICATE KEY UPDATE
-  //   col_name=expr
-  //     [, col_name=expr] ... ]
-  //
-  //
-  var json2insert = function(database, tableName, data) {
-
-    // separate keys (columns names) and values into separate strings
-    // values have quotes but column names don't
-    var k = u.keys(data).join(','),
-      v = JSON.stringify(u.values(data));
-
-    // Skip [ and ] characters in string
-    v = v.substring(1, v.length - 1);
-
-    // The insert query
-    var insert = 'insert into ' + database + '.' +tableName + '(' + k + ') values(' + v + ')';
-    return insert;
-  };
-
-  // build update sql from json object
-  var json2update = function(database, tableName, data) {
-
-    // {k1: v1, k2: v2} -> k1=v1,k2=v2
-    var str = u.map(data, function(k,v) {return v+'='+k;} ).join(',');
-
-    // The update query
-    var update = 'update ' + database + '.' +tableName + ' set ' + str;
-    return update;
-  };
-
-
   exports.sqlWriteStream = function(credentials, database, tableName, resultStream) {
     // call stream.Writeable constructor
     Writable.call(this);
@@ -253,7 +196,7 @@
       done();
     }
 
-    var sql = json2insert(self.database, self.tableName, json);
+    var sql = h.json2insert(self.database, self.tableName, json);
 
     runQuery(self.connection, sql,
       function(row) {
@@ -287,18 +230,6 @@
   // Create table and write result to stream
   // ---------------------------------------
 
-  // Create table and write the result to a stream.
-  //
-  // tableDef = {
-  //    table_name: 'new_table',
-  //    columns: [
-  //      'id int not null auto_increment primary key',
-  //      'int_col int',
-  //      'float_col float',
-  //      'char_col varchar(255)',
-  //      'boolean bit(1)'
-  //    ]
-  //
   exports.sqlCreate = function(credentials, tableDef) {
     var self = this;
     mysqlBase.call(this, credentials);
@@ -337,7 +268,6 @@
 
     mysqlBase.call(this, credentials);
 
-//    self.email = email;
     self.accountId = accountId; //h.email2accountId(email);
     self.password = null;
   };
