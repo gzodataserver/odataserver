@@ -11,9 +11,8 @@
   moduleSelf.levelup = null;
   moduleSelf.leveldb = null;
 
-
   // set debugging flag
-  h.debug      = true;
+  var log = new h.log0({debug: false});
 
   //
   // Common for readable and writable stream
@@ -55,7 +54,7 @@
   exports.LevelDBReadStream.prototype.init = function(key, cb) {
 
     var self = this;
-    h.log.log('LevelDB.init: key=' + key);
+    log.log('LevelDB.init: key=' + key);
 
     // Open the LevelDB database
     if (moduleSelf.levelup === null)
@@ -75,7 +74,7 @@
   exports.LevelDBReadStream.prototype.pipeReadStream = function(writeStream) {
 
     var self = this;
-    h.log.log('LevelDB.pipeReadStream: key=' + self._key + ', rev=' + self._currentRevision);
+    log.log('LevelDB.pipeReadStream: key=' + self._key + ', rev=' + self._currentRevision);
 
     var _revision = h.pad(self._currentRevision, 9);
 
@@ -90,7 +89,7 @@
     });
 
     _valueStream.on('end', function() {
-      h.log.debug('End event in LevelDBReadStream.');
+      log.debug('End event in LevelDBReadStream.');
       self.emit('end');
     });
 
@@ -131,7 +130,7 @@
   exports.LevelDBWriteStream.prototype.init = function(key, cb) {
 
     var self = this;
-    h.log.log('LevelDB.init: key=' + key);
+    log.log('LevelDB.init: key=' + key);
 
     // Open the LevelDB database
     if (moduleSelf.levelup === null)
@@ -159,7 +158,7 @@
                              ++self._noSavedChunks);
 
     moduleSelf.leveldb.put(_k, chunk, function(err) {
-      h.log.debug('WROTE: chunk ('+self._key+','+
+      log.debug('WROTE: chunk ('+self._key+','+
                                       self._currentRevision+','+
                                       self._noSavedChunks+')');
 
@@ -167,7 +166,7 @@
         // save the number of the last successful chunk
         --self._noSavedChunks;
         var _msg = 'LevelDB stream write: error saving chunk! '+err;
-        h.log.log(_msg);
+        log.log(_msg);
         self.emit('error', _msg);
       }
 
@@ -186,7 +185,7 @@
   exports.LevelDBWriteStream.prototype.close = function () {
     var self = this;
 
-    h.log.debug('LevelDBWriteStream close');
+    log.debug('LevelDBWriteStream close');
 
     // save the last chunk if provided
     // risk that close below is exec first? if(arguments.length > 0) this._write(arguments[0]);
@@ -220,7 +219,7 @@
 
     // Just for debugging
     request.on('end', function() {
-      h.log.debug('end of request');
+      log.debug('end of request');
     });
 
     // Put into leveldb
@@ -234,7 +233,7 @@
         leveldb = new rs();
         leveldb.init(request.url, function() {
           h.calcHash(leveldb, 'sha1', 'hex', function(hash) {
-            h.log.debug('Finish event in leveldb write. Last chunk: ' + lastChunk);
+            log.debug('Finish event in leveldb write. Last chunk: ' + lastChunk);
 
             response.writeHead(200, {
               'Content-Type': 'application/json'
@@ -254,7 +253,7 @@
       // fetch any errors writing to database
       leveldb.on('error', function(err) {
         var lastChunk = leveldb.lastSucessfullChunk();
-        h.log.log('Error in leveldb write. Last successful chunk: ' + lastChunk);
+        log.log('Error in leveldb write. Last successful chunk: ' + lastChunk);
 
         // HTTP 400 General error: http://www.odata.org/documentation/odata-version-2-0/operations/
         // need to somehow indicate how many chunks that were written to

@@ -46,14 +46,14 @@ var adminCredentials = {
 };
 
 
-// This streams save everything written to it
-var bucket = new h.arrayBucketStream();
-
+var bucket, bucket2;
 
 console.log('IMPORTANT!!! Make sure that the ADMIN_USER and ADMIN_PASSWORD environment variables are set.');
 
 // create new user
 setTimeout(function() {
+  // This streams save everything written to it
+  bucket = new h.arrayBucketStream();
   var mysqlAdmin = new mysql.sqlAdmin(adminCredentials, accountId);
   h.log.log('Create new user...');
   mysqlAdmin.new();
@@ -64,10 +64,12 @@ setTimeout(function() {
   credentials.user = mysqlAdmin.accountId;
 
 
+  // This streams save everything written to it
+  bucket2 = new h.arrayBucketStream();
   var mysqlAdmin2 = new mysql.sqlAdmin(adminCredentials, accountId2);
   h.log.log('Create new user #2...');
   mysqlAdmin2.new();
-  mysqlAdmin2.pipe(bucket);
+  mysqlAdmin2.pipe(bucket2);
 
   // save the credentials to use below
   credentials2.database = mysqlAdmin2.accountId;
@@ -105,8 +107,9 @@ setTimeout(function() {
     ]
   };
 
+  bucket = new h.arrayBucketStream();
   var create = new mysql.sqlCreate(credentials, tableDef);
-  create.pipe(process.stdout);
+  create.pipe(bucket);
 }, (delay++)*1000);
 
 // Grant privs to user #2

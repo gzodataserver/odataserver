@@ -11,7 +11,22 @@
 
   var c = self_.config || {};
 
+
+  // OData server configuration
+  // --------------------------
+  //
+  // Use in the tests
+
+
+  c.ODATA = {
+    HOST: 'localhost',
+    PORT: '8080'
+
+  };
+
   // Account IDs are based email adresses
+  // -------------------------------------
+
   // Documentation of the hash function used is found here:
   // http://nodejs.org/api/crypto.html
   c.ACCOUNT_ID = {

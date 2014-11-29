@@ -42,20 +42,24 @@
 // -------------
 
 
+var h = require('../src/helpers.js');
+var log = new h.log0({debug: false});
+
+var CONFIG = require('../src/config.js');
+var defaultPort = CONFIG.ODATA.PORT;
+
+
 exports['test.leveldb'] = {
 
   setUp: function(done) {
     var self=this;
 
     var http = require("http");
-    var h = require('../src/helpers.js');
     var level = require('./../src/leveldb.js');
-
-    var defaultPort = 8080;
 
     self.server = http.createServer(function(request, response) {
 
-      h.log.log("Processing request: " +
+      log.log("Processing request: " +
         JSON.stringify(request.method) + " - " +
         JSON.stringify(request.url) + " - " +
         JSON.stringify(request.headers));
@@ -68,7 +72,7 @@ exports['test.leveldb'] = {
 
     self.server.listen(defaultPort);
 
-    h.log.log("Server is listening on port " + defaultPort);
+    log.log("Server is listening on port " + defaultPort);
 
     // setup finished
     done();
@@ -87,20 +91,20 @@ exports['test.leveldb'] = {
     var h = require('../src/helpers.js');
     h.debug = true;
 
-    h.log.debug('Start of testing POST');
+    log.debug('Start of testing POST');
 
     fs = require('fs');
     var readStream = fs.createReadStream(__dirname+'/projektledning_w767.png');
 
     readStream.on('open', function() {
-      h.log.debug('in readStream on open');
+      log.debug('in readStream on open');
 
       var http = require('http');
 
       // path and method is set in each test
       this.options = {
-        hostname: 'localhost',
-        port: 8080,
+        hostname: CONFIG.ODATA.HOST,
+        port: defaultPort,
         headers: {
           user: 'wp',
           password: 'wp',
@@ -114,18 +118,18 @@ exports['test.leveldb'] = {
       var data = '';
 
       var req = http.request(this.options, function(res) {
-        h.log.debug('in http.request');
+        log.debug('in http.request');
         res.setEncoding('utf8');
 
         test.ok(true, 'Did not receive what we expected.');
 
         res.on('data', function(chunk) {
-          h.log.debug('in http.request on data: ' + chunk);
+          log.debug('in http.request on data: ' + chunk);
           data += chunk;
         });
 
         res.on('end', function() {
-          h.log.debug('in http.response end for POST');
+          log.debug('in http.response end for POST');
 
           req.end();
 
@@ -134,8 +138,8 @@ exports['test.leveldb'] = {
 
           // path and method is set in each test
           var options2 = {
-            hostname: 'localhost',
-            port: 8080,
+            hostname: CONFIG.ODATA.HOST,
+            port: defaultPort,
             method: 'GET',
             path: '/image1',
             headers: {
@@ -152,11 +156,11 @@ exports['test.leveldb'] = {
             res.on('data', function(chunk) {
               data += chunk;
               counter++;
-              h.log.debug('in response for GET request: counter=' + counter);
+              log.debug('in response for GET request: counter=' + counter);
             });
 
             res.on('end', function() {
-              h.log.debug('Number of chunks received: ' + counter + ' calling test.done');
+              log.debug('Number of chunks received: ' + counter + ' calling test.done');
               test.done();
             });
           });
@@ -178,7 +182,7 @@ exports['test.leveldb'] = {
 
 
       // This just pipes the read stream to the response object (which goes to the client)
-      h.log.debug('will now pipe readStream with http request');
+      log.debug('will now pipe readStream with http request');
       readStream.pipe(req);
 
     });
@@ -190,7 +194,7 @@ exports['test.leveldb'] = {
 
     // This catches any errors that happen while creating the readable stream (usually invalid names)
     readStream.on('end', function() {
-      h.log.debug('readStream on end - nothing more to read');
+      log.debug('readStream on end - nothing more to read');
     });
 
   }

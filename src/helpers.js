@@ -24,6 +24,44 @@
 
   var CONFIG = require('./config.js');
 
+
+  // New enhanced logging class
+  // Each instance has its own flags for logging level
+
+  h.log0 = function(level, filename) {
+    var self = this;
+    self._debug = false;
+    self._info = true;
+    self._noLogging = false;
+    self._filename = filename;
+    if (level !== undefined) self.logLevel(level);
+  };
+
+  h.log0.prototype.debug = function(text) {
+    var self = this;
+    if (self._debug && !self._noLogging) self.log('DEBUG:' + text);
+  };
+
+  h.log0.prototype.info = function(text) {
+    var self = this;
+    if (self._info && !self._noLogging) self.log('INFO:' + text);
+  };
+
+  h.log0.prototype.log = function(text) {
+    var self = this;
+    if(self._filename !== undefined) text  = self._filename +':'+text;
+    if (!self._noLogging) console.log(text);
+  };
+
+  h.log0.prototype.logLevel = function(level) {
+    var self = this;
+    if (level.debug !== undefined) self._debug = level.debug;
+    if (level.info !== undefined) self._info = level.info;
+    if (level.noLogging !== undefined) self._noLogging = level.noLogging;
+  };
+
+  var log = new h.log0({debug: false});
+
   // change to false to stop logging
   h.debug = false;
   h.info = true;
@@ -31,8 +69,8 @@
 
   h.log = {
 
-    debug: function(o) {
-      if (h.debug && !h.noLogging) console.log('DEBUG: ' + o);
+    debug: function(text) {
+      if (h.debug && !h.noLogging) console.log('DEBUG: ' + text);
     },
 
     info: function(text) {
@@ -108,7 +146,7 @@
     });
 
     _keyStream.on('close', function() {
-      h.log.debug('_readKeys: ' + JSON.stringify(_keys));
+      log.debug('_readKeys: ' + JSON.stringify(_keys));
       cb(_keys);
     });
   };
@@ -133,7 +171,7 @@
     });
 
     _keyStream.on('error', function(err) {
-      h.log.log('Error reading leveldb stream: ' + err);
+      log.log('Error reading leveldb stream: ' + err);
     });
 
     _keyStream.on('close', function() {
@@ -162,7 +200,7 @@
         }));
       }
 
-      h.log.debug('LevelDB.getCurrentRev: keyPrefix=' + keyPrefix + ', rev= ' +
+      log.debug('LevelDB.getCurrentRev: keyPrefix=' + keyPrefix + ', rev= ' +
         currentRevision);
 
       // Save revision and run callback
@@ -303,6 +341,14 @@
     return update;
   };
 
+
+  h.jsonParse = function(data) {
+    try {
+      return JSON.parse(data);
+    } catch (e) {
+      log.log('Error parsing JSON:'+e);
+    }
+  };
 
   // Exports
   // =======

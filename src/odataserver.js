@@ -16,7 +16,7 @@
 (function(self_, undefined) {
 
   var h = require('./helpers.js');
-  h.debug = true;
+  var log = new h.log0({debug: true}, __filename);
 
   var u = require('underscore');
 
@@ -416,13 +416,13 @@
     response.write(err.toString() + '\n');
     response.end();
 
-    h.log.log(err.toString());
+    log.log(err.toString());
   };
 
   // check that the request contains user and password headers
   var checkCredentials = function(request, response) {
 
-    h.log.debug('Checking credentials: ' + JSON.stringify(request.headers));
+    log.debug('Checking credentials: ' + JSON.stringify(request.headers));
 
     // Check that the request is ok
     return !( !request.headers.hasOwnProperty('user') ||
@@ -432,12 +432,12 @@
 
   // empty constructor
   exports.ODataServer = function() {
-    h.log.debug('new ODataServer');
+    log.debug('new ODataServer');
   };
 
   // HTTP REST Server that
   exports.ODataServer.prototype.main = function(request, response, odataBackend) {
-    h.log.debug('in main ...');
+    log.debug('In main ...');
 
     // Check the MySQL credentials have been supplied
     if (!checkCredentials(request, response)) {
@@ -462,14 +462,18 @@
     request
       // read the data in the stream, if there is any
       .on('data', function(chunk) {
-        h.log.debug('ODATASERVER: RECEIVING DATA');
+        log.debug('Receiving data');
         data += chunk;
       })
       // request closed, process it
       .on('end', function() {
-        h.log.debug('ODATASERVER: END OF DATA');
+        log.debug('End of data');
 
         try {
+
+          // parse odata payload into JSON object
+          var jsonData = null;
+          if (data !== '') jsonData = JSON.parse(data);
 
           var uriParser = new exports.ODataUri2Sql();
           var odataRequest = uriParser.parseUri(request.url, request.method);
@@ -490,6 +494,9 @@
           };
 
 
+          log.debug('Processing request - credentials: '+JSON.stringify(credentials)+
+                      ', odataRequest: '+JSON.stringify(odataRequest));
+
           // query_type: create_user | set_password | delete_user
           // query_type: service_def | create_table | delete_table | select | insert | delete,
 
@@ -497,7 +504,7 @@
 
             case 'create_user':
               mysqlAdmin = new odataBackend.sqlAdmin(adminCredentials, accountId);
-              h.log.log('Create new user...');
+              log.log('Create new user...');
               mysqlAdmin.new();
               mysqlAdmin.pipe(response);
               break;
@@ -509,18 +516,18 @@
 
               // save the password to use below
               credentials.password = mysqlAdmin.password;
-              h.log.log('Password set to: ' + credentials.password);
+              log.log('Password set to: ' + credentials.password);
               break;
 
             case 'delete_user':
               mysqlAdmin = new odataBackend.sqlAdmin(adminCredentials, accountId);
-              h.log.log('Drop the new user...');
+              log.log('Drop the new user...');
               mysqlAdmin.delete();
               mysqlAdmin.pipe(response);
               break;
 
             case 'grant':
-              h.log.debug('Grant privs to table1 to user #2');
+              log.debug('Grant privs to table1 to user #2');
               mysqlAdmin = new odataBackend.sqlAdmin(credentials, accountId);
               mysqlAdmin.grant('table1', accountId2);
               mysqlAdmin.pipe(response);
@@ -544,8 +551,8 @@
               break;
 
             case 'select':
-              h.log.debug('Read values of the mysql stream:');
-              var mysqlRead = new odataBackend.sqlRead(credentials, 'select * from table1');
+              log.debug('Pipe values of the mysql stream to the response');
+              var mysqlRead = new odataBackend.sqlRead(credentials, odataRequest.sql);
               mysqlRead.pipe(response);
               break;
 

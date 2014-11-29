@@ -38,7 +38,7 @@
   var mysql = require('mysql');
   var u = require('underscore');
 
-  h.debug = true;
+  var log = new h.log0({debug: false});
 
   //
   // MySQL base class inherited when streams not are inherited
@@ -48,7 +48,7 @@
   // with the result
   var runQuery = function(conn, sql, resultFunc, endFunc) {
     var self = this;
-    h.log.debug('runQuery sql ('+conn.config.user+'): ' + sql);
+    log.debug('runQuery sql ('+conn.config.user+'): ' + sql);
 
     // connect to the mysql server using the connection created in init
     conn.connect();
@@ -58,13 +58,13 @@
     query
       .on('result', function(row) {
         resultFunc(row);
-        h.log.debug('runQuery result: ' + JSON.stringify(row));
+        log.debug('runQuery result: ' + JSON.stringify(row));
       })
       .on('error', function(err) {
-        h.log.log('runQuery error: ' + err);
+        log.log('runQuery error: ' + err);
       })
       .on('end', function() {
-        h.log.debug('runQuery end.');
+        log.debug('runQuery end.');
         if(endFunc !== undefined) endFunc();
       });
 
@@ -86,6 +86,7 @@
       },
       function() {
         self.connection.end();
+        writeStream.end();
       }
     );
   };
@@ -187,9 +188,9 @@
     try {
       json = JSON.parse(self.data);
       self.jsonOK = true;
-      h.log.debug('_write parsed this JSON: ' + JSON.stringify(json));
+      log.debug('_write parsed this JSON: ' + JSON.stringify(json));
     } catch (error) {
-      h.log.debug('_write could not parse this JSON (waiting for next chunk and trying again): ' +
+      log.debug('_write could not parse this JSON (waiting for next chunk and trying again): ' +
         self.data);
       // just wait for the next chunk
       self.jsonOK = false;
