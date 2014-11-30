@@ -54,7 +54,7 @@
   var mysql = require('mysql');
   var u = require('underscore');
 
-  var log = new h.log0({debug: false});
+  var log = new h.log0({debug: true, filename: __filename});
 
   //
   // MySQL base class inherited when streams not are inherited
@@ -86,12 +86,13 @@
 
   };
 
-  var mysqlBase = function(options) {
+  // self.options needs to be defined in the object that inherits this object
+  var mysqlBase = function(credentials) {
     var self = this;
-    self.options = options;
-    self.options.credentials.host = CONFIG.MYSQL.DB_HOST;
-    self.connection = mysql.createConnection(self.options.credentials);
+    credentials.host = CONFIG.MYSQL.DB_HOST;
+    self.connection = mysql.createConnection(credentials);
     self.sql = null;
+    log.debug('options:'+JSON.stringify(credentials));
   };
 
   // Write results into a stream
@@ -127,25 +128,27 @@
   // a array.
 
   // private helper function
-  var processRow = function(row) {
-    var self = this;
+  var processRow = function(self, row) {
 
     if (self.processRowFunc !== undefined) return self.processRowFunc(row);
     return row;
   };
 
 
-  // * sql - the sql select statement to run
-  // * processRowFunc - each row can be manipulated with this function before
-  // it is returned
+  // options: {
+  //  * sql - the sql select statement to run
+  //  * processRowFunc - each row can be manipulated with this function before
+  //                     it is returned
+  // }
   // exports.sqlRead = function(credentials, sql, processRowFunc) {
   exports.sqlRead = function(options) {
     var self = this;
 
-    mysqlBase.call(this, options);
+    mysqlBase.call(this, options.credentials);
 
+    self.options = options;
     self.sql = options.sql;
-    self.processRowFunc = options.processRowFunc;
+//    self.processRowFunc = options.processRowFunc;
     self.result = [];
   };
 
@@ -159,7 +162,7 @@
 
     runQuery(self.connection, self.sql,
       function(row) {
-        self.result.push(processRow(row));
+        self.result.push(processRow(self, row));
       },
       function() {
         self.connection.end();
@@ -236,7 +239,7 @@
   // exports.sqlDelete = function(credentials, database, tableName, where) {
   exports.sqlDelete = function(options) {
     var self = this;
-    mysqlBase.call(this, options);
+    mysqlBase.call(this, options.credentials);
     self.options = options;
     self.sql = 'delete from '+ options.database + '.' + options.tableName;
     if (options.where !== undefined) self.sql += 'where' + options.where;
@@ -252,7 +255,7 @@
   //exports.sqlCreate = function(credentials, tableDef) {
   exports.sqlCreate = function(options) {
     var self = this;
-    mysqlBase.call(this, options);
+    mysqlBase.call(this, options.credentials);
     self.options = options;
     self.sql = 'create table '+options.tableDef.table_name + ' (' + options.tableDef.columns.join(',') + ')';
   };
@@ -269,7 +272,7 @@
   //exports.sqlDrop = function(credentials, tableName) {
   exports.sqlDrop = function(options) {
     var self = this;
-    mysqlBase.call(this, options);
+    mysqlBase.call(this, options.credentials);
     self.options = options;
     self.sql = 'drop table if exists '+options.tableName+';';
   };
@@ -312,27 +315,28 @@
   };
 
   // create new user
-  exports.sqlAdmin.prototype.new = function() {
+  exports.sqlAdmin.prototype.new = function(accountId) {
     var self = this;
-    self.sql  = 'create database '+self.options.accountId+';';
-    self.sql += "create user '"+self.options.accountId+"'@'localhost';";
-    self.sql += "grant all privileges on "+self.options.accountId+".* to '"+
-                    self.options.accountId+"'@'localhost' with grant option;";
+    self.sql  = 'create database '+accountId+';';
+    self.sql += "create user '"+accountId+"'@'localhost';";
+    self.sql += "grant all privileges on "+accountId+".* to '"+
+                    accountId+"'@'localhost' with grant option;";
   };
 
   // Delete user
-  exports.sqlAdmin.prototype.delete = function() {
+  exports.sqlAdmin.prototype.delete = function(accountId) {
     var self = this;
-    self.sql  = "drop user '"+self.options.accountId+"'@'localhost';";
-    self.sql += 'drop database '+self.options.accountId+';';
+    self.sql  = "drop user '"+accountId+"'@'localhost';";
+    self.sql += 'drop database '+accountId+';';
   };
 
   // Set password for user
-  exports.sqlAdmin.prototype.setPassword = function() {
+  exports.sqlAdmin.prototype.resetPassword = function(accountId) {
     var self = this;
-    self.password = h.randomString(12);
-    self.sql = "set password for '"+self.options.accountId+"'@'localhost' = password('"+
-            self.password+"');";
+    var password = h.randomString(12);
+    self.sql = "set password for '"+accountId+"'@'localhost' = password('"+
+            password+"');";
+    return password;
   };
 
   // Grant

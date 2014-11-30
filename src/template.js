@@ -15,32 +15,37 @@
 
 (function(self_, undefined) {
 
-  // * sql - the sql select statement to run
-  // * processRowFunc - each row can be manipulated with this function before
-  // it is returned
-  exports.mysqlRead = function(credentials, sql, processRowFunc) {
+  // options: {
+  //  * sql - the sql select statement to run
+  //  * processRowFunc - each row can be manipulated with this function before
+  //                     it is returned
+  // }
+  // exports.sqlRead = function(credentials, sql, processRowFunc) {
+  exports.sqlRead = function(options) {
     var self = this;
 
-    mysqlBase.call(this, credentials);
+    mysqlBase.call(this, options);
 
-    self.sql = sql;
-    self.processRowFunc = processRowFunc;
+    self.options = options;
+    self.sql = options.sql;
+    //    self.processRowFunc = options.processRowFunc;
     self.result = [];
   };
 
   // inherit mysqlBase prototype
-  exports.mysqlRead.prototype = Object.create(mysqlBase.prototype);
+  exports.sqlRead.prototype = Object.create(mysqlBase.prototype);
 
   // Fetch all rows in to an array. `done` is then called with this
   // array is its only argument
-  exports.mysqlRead.prototype.fetchAll = function(done) {
+  exports.sqlRead.prototype.fetchAll = function(done) {
     var self = this;
 
     runQuery(self.connection, self.sql,
       function(row) {
-        self.result.push(processRow(row));
+        self.result.push(processRow(self, row));
       },
       function() {
+        self.connection.end();
         done(self.result);
       }
     );

@@ -26,15 +26,22 @@
 
 
   // New enhanced logging class
-  // Each instance has its own flags for logging level
+  // Each instance has its own options for logging level
+  //
+  // options: {
+  //   debug: boolean,
+  //   info: boolean,
+  //   noLogging: boolean,
+  //   filename: string to prefix logging with
+  // };
 
-  h.log0 = function(level, filename) {
+  h.log0 = function(options) {
     var self = this;
     self._debug = false;
     self._info = true;
     self._noLogging = false;
-    self._filename = filename;
-    if (level !== undefined) self.logLevel(level);
+    self._filename = null;
+    if (options !== undefined) self.logLevel(options);
   };
 
   h.log0.prototype.debug = function(text) {
@@ -53,11 +60,12 @@
     if (!self._noLogging) console.log(text);
   };
 
-  h.log0.prototype.logLevel = function(level) {
+  h.log0.prototype.logLevel = function(options) {
     var self = this;
-    if (level.debug !== undefined) self._debug = level.debug;
-    if (level.info !== undefined) self._info = level.info;
-    if (level.noLogging !== undefined) self._noLogging = level.noLogging;
+    if (options.debug !== undefined) self._debug = options.debug;
+    if (options.info !== undefined) self._info = options.info;
+    if (options.noLogging !== undefined) self._noLogging = options.noLogging;
+    if (options.filename !== undefined) self._filename = options.filename;
   };
 
   var log = new h.log0({debug: false});

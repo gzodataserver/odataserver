@@ -21,27 +21,45 @@ var ws = require('../src/mysql.js').sqlWriteStream;
 var h = require('../src/helpers.js');
 
 var CONFIG = require('../src/config.js');
-var testEmail = 'test@gizur.com';
-var testEmail2 = 'test2@gizur.com';
-
-var accountId=h.email2accountId(testEmail);
-var accountId2=h.email2accountId(testEmail2);
 
 
 // Main
 // =====
 
+
+
+
+
 var delay = 1;
 
-var credentials = {
+// First test user
+var testEmail = 'test@gizur.com';
+var accountId = h.email2accountId(testEmail);
+var options = {
+  credentials: {
+    user: accountId,
+    database: accountId
+  },
+  accountId: accountId
 };
 
-var credentials2 = {
+// second test user
+var testEmail2 = 'test2@gizur.com';
+var accountId2 = h.email2accountId(testEmail2);
+var options2 = {
+  credentials: {
+    user: accountId2,
+    database: accountId2
+  },
+  accountId: accountId2
 };
 
-var adminCredentials = {
-  user: CONFIG.MYSQL.ADMIN_USER,
-  password: CONFIG.MYSQL.ADMIN_PASSWORD
+// user for admin operatioons (creating/deleting user etc.)
+var adminOptions = {
+  credentials: {
+    user: CONFIG.MYSQL.ADMIN_USER,
+    password: CONFIG.MYSQL.ADMIN_PASSWORD
+  }
 };
 
 var bucket, bucket2;
@@ -53,72 +71,32 @@ console.log('IMPORTANT!!! Make sure that the ADMIN_USER and ADMIN_PASSWORD envir
 setTimeout(function() {
   // This streams save everything written to it
   bucket = new h.arrayBucketStream();
-
-  var options = {
-    credentials: adminCredentials,
-    accountId: accountId
-  };
-
-  //var mysqlAdmin = new mysql.sqlAdmin(adminCredentials, accountId);
-  var mysqlAdmin = new mysql.sqlAdmin(options);
+  var mysqlAdmin = new mysql.sqlAdmin(adminOptions);
   h.log.log('Create new user...');
-  mysqlAdmin.new();
+  mysqlAdmin.new(accountId);
   mysqlAdmin.pipe(bucket);
-
-  // save the credentials to use below
-  credentials.database = mysqlAdmin.accountId;
-  credentials.user = mysqlAdmin.accountId;
-
 
   // This streams save everything written to it
   bucket2 = new h.arrayBucketStream();
-
-  var options2 = {
-    credentials: adminCredentials,
-    accountId: accountId2
-  };
-
-  //var mysqlAdmin2 = new mysql.sqlAdmin(adminCredentials, accountId2);
-  var mysqlAdmin2 = new mysql.sqlAdmin(options2);
+  var mysqlAdmin2 = new mysql.sqlAdmin(adminOptions);
   h.log.log('Create new user #2...');
-  mysqlAdmin2.new();
+  mysqlAdmin2.new(accountId2);
   mysqlAdmin2.pipe(bucket2);
-
-  // save the credentials to use below
-  credentials2.database = mysqlAdmin2.accountId;
-  credentials2.user = mysqlAdmin2.accountId;
 
 }.bind(this), (delay++)*1000);
 
 // set passwords
 setTimeout(function() {
-  var options = {
-    credentials: adminCredentials,
-    accountId: accountId
-  };
-
-  //var mysqlAdmin = new mysql.sqlAdmin(adminCredentials, accountId);
-  var mysqlAdmin = new mysql.sqlAdmin(options);
-  mysqlAdmin.setPassword();
+  var mysqlAdmin = new mysql.sqlAdmin(adminOptions);
+  options.credentials.password = mysqlAdmin.resetPassword(accountId);
   mysqlAdmin.pipe(bucket);
+  h.log.log('Password set to: '+options.credentials.password);
 
-  // save the password to use below
-  credentials.password = mysqlAdmin.password;
-  h.log.log('Password set to: '+credentials.password);
-
-  var options2 = {
-    credentials: adminCredentials,
-    accountId: accountId2
-  };
-
-  //var mysqlAdmin2 = new mysql.sqlAdmin(adminCredentials, accountId2);
   var mysqlAdmin2 = new mysql.sqlAdmin(options2);
-  mysqlAdmin2.setPassword();
+  options2.credentials.password = mysqlAdmin2.resetPassword(accountId2);
   mysqlAdmin2.pipe(bucket);
-
-  // save the password to use below
-  credentials2.password = mysqlAdmin2.password;
-  h.log.log('Password #2 set to: '+credentials2.password);
+  options2.credentials.password = mysqlAdmin2.password;
+  h.log.log('Password #2 set to: '+options2.credentials.password);
 
 }.bind(this), (delay++)*1000);
 
@@ -133,14 +111,10 @@ setTimeout(function() {
     ]
   };
 
+  options.tableDef = tableDef;
+
   bucket = new h.arrayBucketStream();
-
-  var options = {
-    credentials: credentials,
-    tableDef: tableDef
-  };
-
-  //var create = new mysql.sqlCreate(credentials, tableDef);
+  h.log.debug('create using options:'+JSON.stringify(options));
   var create = new mysql.sqlCreate(options);
   create.pipe(bucket);
 }, (delay++)*1000);
@@ -149,12 +123,6 @@ setTimeout(function() {
 setTimeout(function() {
   h.log.debug('Grant privs to table1 to user #2');
 
-  var options = {
-    credentials: credentials,
-    accountId: accountId
-  };
-
-  //var mysqlAdmin = new mysql.sqlAdmin(credentials, accountId);
   var mysqlAdmin = new mysql.sqlAdmin(options);
   mysqlAdmin.grant('table1', accountId2);
   mysqlAdmin.pipe(bucket);
@@ -163,15 +131,9 @@ setTimeout(function() {
 // insert into table
 setTimeout(function() {
 
-  var options = {
-    credentials: credentials,
-    accountId: accountId,
-    tableName: 'table1',
-    resultStream: process.stdout,
-    closeStream: false
-  };
-
-  //var mysqlStream = new mysql.sqlWriteStream(credentials, accountId, 'table1', process.stdout);
+  options.tableName = 'table1';
+  options.resultStream = process.stdout;
+  options.closeStream = false;
   var mysqlStream = new mysql.sqlWriteStream(options);
 
   // create stream that writes json into mysql
@@ -185,16 +147,9 @@ setTimeout(function() {
 
   jsonStream.pipe(mysqlStream);
 
-  var options2 = {
-    credentials: credentials2,
-    accountId: accountId,
-    tableName: 'table1',
-    resultStream: process.stdout,
-    closeStream: false
-  };
-
-  // insert into a table that isn't owned by user #2
-  //var mysqlStream2 = new mysql.sqlWriteStream(credentials2, accountId, 'table1', process.stdout);
+  options2.tableName = 'table1';
+  options2.resultStream = process.stdout;
+  options2.closeStream = false;
   var mysqlStream2 = new mysql.sqlWriteStream(options2);
 
   // create stream that writes json into mysql
@@ -213,13 +168,7 @@ setTimeout(function() {
 // select from tabele
 setTimeout(function() {
   h.log.debug('Read values of the mysql stream:');
-
-  options = {
-    credentials: credentials,
-     sql: 'select * from table1',
-  //   processRowFunc: ''
-  };
-
+  options.sql = 'select * from table1';
   var mysqlRead = new mysql.sqlRead(options);
   mysqlRead.pipe(bucket);
 }.bind(this), (delay++)*1000);
@@ -232,25 +181,14 @@ setTimeout(function() {
 
 // delete from table
 setTimeout(function() {
-  var options = {
-    credentials: credentials,
-    accountId: accountId,
-    tableName: 'table1',
-  };
-
-  //var del = new mysql.sqlDelete(credentials, accountId, 'table1');
+  options.tableName = 'table1';
   var del = new mysql.sqlDelete(options);
   del.pipe(process.stdout);
 }.bind(this), (delay++)*1000);
 
 // read table
 setTimeout(function() {
-  var options = {
-    credentials: credentials,
-    sql: 'select * from table1'
-  };
-
-  //var mysqlRead = new mysql.sqlRead(credentials, 'select * from table1');
+  options.sql = 'select * from table1';
   var mysqlRead = new mysql.sqlRead(options);
   bucket.empty();
   mysqlRead.pipe(bucket);
@@ -265,38 +203,21 @@ setTimeout(function() {
 
 // drop table
 setTimeout(function() {
-  var options = {
-    credentials: credentials,
-    tableName: 'table1',
-  };
-
-  //var drop = new mysql.sqlDrop(credentials, 'table1');
+  options.tableName = 'table1';
   var drop = new mysql.sqlDrop(options);
   drop.pipe(process.stdout);
 }.bind(this), (delay++)*1000);
 
 // drop the new user
 setTimeout(function() {
-  var options = {
-    credentials: adminCredentials,
-    accountId: accountId,
-  };
-
-  //var mysqlAdmin = new mysql.sqlAdmin(adminCredentials, accountId);
-  var mysqlAdmin = new mysql.sqlAdmin(options);
+  var mysqlAdmin = new mysql.sqlAdmin(adminOptions);
   h.log.log('Drop the new user...');
-  mysqlAdmin.delete();
+  mysqlAdmin.delete(accountId);
   mysqlAdmin.pipe(bucket);
 
-  var options2 = {
-    credentials: adminCredentials,
-    accountId: accountId2,
-  };
-
-  //var mysqlAdmin2 = new mysql.sqlAdmin(adminCredentials, accountId2);
-  var mysqlAdmin2 = new mysql.sqlAdmin(options);
+  var mysqlAdmin2 = new mysql.sqlAdmin(adminOptions);
   h.log.log('Drop the new user #2...');
-  mysqlAdmin2.delete();
+  mysqlAdmin2.delete(accountId2);
   mysqlAdmin2.pipe(bucket);
 
 }.bind(this), (delay++)*1000);
