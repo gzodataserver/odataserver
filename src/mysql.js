@@ -92,7 +92,7 @@
     credentials.host = CONFIG.MYSQL.DB_HOST;
     self.connection = mysql.createConnection(credentials);
     self.sql = null;
-    log.debug('options:'+JSON.stringify(credentials));
+//    log.debug('options:'+JSON.stringify(credentials)+',conn.config:'+JSON.stringify(self.connection.config));
   };
 
   // Write results into a stream
@@ -219,7 +219,9 @@
       done();
     }
 
-    var sql = h.json2insert(self.options.database, self.options.tableName, json);
+    var sql = h.json2insert(self.options.credentials.database, self.options.tableName, json);
+
+log.debug('SQL: '+sql);
 
     runQuery(self.connection, sql,
       function(row) {
@@ -294,9 +296,9 @@
     // Allow multiple statements
     self.options.credentials.multipleStatements = true;
     // Use when resetting passwords
-    self.options.password = null;
+    //self.options.password = null;
 
-    mysqlBase.call(this, self.options);
+    mysqlBase.call(this, self.options.credentials);
 
   };
 
@@ -342,7 +344,6 @@
   // Grant
   exports.sqlAdmin.prototype.grant = function(tableName, accountId) {
     var self = this;
-    //var accountId=h.email2accountId(email);
     self.sql = "grant insert, select, update, delete on "+tableName+" to '"+
             accountId+"'@'localhost';";
   };
@@ -350,7 +351,6 @@
   // Revoke
   exports.sqlAdmin.prototype.revoke = function(tableName, accountId) {
     var self = this;
-    //var accountId=h.email2accountId(email);
     self.sql = "revoke insert, delete, update, delete on "+tableName+" to '"+
             accountId+"'@'localhost';";
   };
@@ -360,7 +360,6 @@
   // sql:'select table_name, (data_length+index_length)/1024/1024 as mb from information_schema.tables where table_schema="'+ schema + '"'};
   exports.sqlAdmin.prototype.serviceDef = function() {
     var self = this;
-    //var accountId=h.email2accountId(email);
     self.sql = 'select table_name, (data_length+index_length)/1024/1024 as mb '+
             'from information_schema.tables where table_schema="'+
             self.options.accountID + '"';

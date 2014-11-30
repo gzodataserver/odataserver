@@ -26,11 +26,7 @@ var CONFIG = require('../src/config.js');
 // Main
 // =====
 
-
-
-
-
-var delay = 1;
+var delay = 0;
 
 // First test user
 var testEmail = 'test@gizur.com';
@@ -40,18 +36,18 @@ var options = {
     user: accountId,
     database: accountId
   },
-  accountId: accountId
+  closeStream: false
 };
 
-// second test user
+// second test user, access the database for user #1
 var testEmail2 = 'test2@gizur.com';
 var accountId2 = h.email2accountId(testEmail2);
 var options2 = {
   credentials: {
     user: accountId2,
-    database: accountId2
+    database: accountId
   },
-  accountId: accountId2
+  closeStream: false
 };
 
 // user for admin operatioons (creating/deleting user etc.)
@@ -59,13 +55,26 @@ var adminOptions = {
   credentials: {
     user: CONFIG.MYSQL.ADMIN_USER,
     password: CONFIG.MYSQL.ADMIN_PASSWORD
-  }
+  },
+  closeStream: false
 };
 
 var bucket, bucket2;
 
 
 console.log('IMPORTANT!!! Make sure that the ADMIN_USER and ADMIN_PASSWORD environment variables are set.');
+
+
+// simple select
+setTimeout(function() {
+  // This streams save everything written to it
+  h.log.debug('select 1...');
+  adminOptions.sql = 'select 1';
+  var mysqlRead = new mysql.sqlRead(adminOptions);
+  mysqlRead.pipe(process.stdout);
+
+}.bind(this), (delay++)*1000);
+
 
 // create new user
 setTimeout(function() {
@@ -74,28 +83,28 @@ setTimeout(function() {
   var mysqlAdmin = new mysql.sqlAdmin(adminOptions);
   h.log.log('Create new user...');
   mysqlAdmin.new(accountId);
-  mysqlAdmin.pipe(bucket);
+  mysqlAdmin.pipe(process.stdout);
 
   // This streams save everything written to it
   bucket2 = new h.arrayBucketStream();
   var mysqlAdmin2 = new mysql.sqlAdmin(adminOptions);
   h.log.log('Create new user #2...');
   mysqlAdmin2.new(accountId2);
-  mysqlAdmin2.pipe(bucket2);
+  mysqlAdmin2.pipe(process.stdout);
 
 }.bind(this), (delay++)*1000);
+
 
 // set passwords
 setTimeout(function() {
   var mysqlAdmin = new mysql.sqlAdmin(adminOptions);
   options.credentials.password = mysqlAdmin.resetPassword(accountId);
-  mysqlAdmin.pipe(bucket);
+  mysqlAdmin.pipe(process.stdout);
   h.log.log('Password set to: '+options.credentials.password);
 
-  var mysqlAdmin2 = new mysql.sqlAdmin(options2);
+  var mysqlAdmin2 = new mysql.sqlAdmin(adminOptions);
   options2.credentials.password = mysqlAdmin2.resetPassword(accountId2);
-  mysqlAdmin2.pipe(bucket);
-  options2.credentials.password = mysqlAdmin2.password;
+  mysqlAdmin2.pipe(process.stdout);
   h.log.log('Password #2 set to: '+options2.credentials.password);
 
 }.bind(this), (delay++)*1000);
