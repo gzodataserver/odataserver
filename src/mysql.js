@@ -54,7 +54,7 @@
   var mysql = require('mysql');
   var u = require('underscore');
 
-  var log = new h.log0({debug: true, filename: __filename});
+  var log = new h.log0({debug: false, filename: __filename});
 
   //
   // MySQL base class inherited when streams not are inherited
@@ -148,7 +148,6 @@
 
     self.options = options;
     self.sql = options.sql;
-//    self.processRowFunc = options.processRowFunc;
     self.result = [];
   };
 
@@ -162,6 +161,7 @@
 
     runQuery(self.connection, self.sql,
       function(row) {
+        log.debug('processRow(self, row): '+processRow(self, row));
         self.result.push(processRow(self, row));
       },
       function() {
@@ -243,7 +243,7 @@ log.debug('SQL: '+sql);
     var self = this;
     mysqlBase.call(this, options.credentials);
     self.options = options;
-    self.sql = 'delete from '+ options.database + '.' + options.tableName;
+    self.sql = 'delete from '+ options.credentials.database + '.' + options.tableName;
     if (options.where !== undefined) self.sql += 'where' + options.where;
   };
 

@@ -13,7 +13,8 @@ needed for these features to work.
 
 The simplest way to start the server is: `npm start`. First you need install
 the node modules though: `npm install` A MySQL server needs to be running on
-the same host and port 80 must not be in use.
+the same host and port 80 must not be in use. Also the `ADMIN_USER` and
+`ADMIN_PASSWORD` environment variables needs to be set.
 
 
 Test the installation

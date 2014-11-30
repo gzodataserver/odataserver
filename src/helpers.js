@@ -56,7 +56,8 @@
 
   h.log0.prototype.log = function(text) {
     var self = this;
-    if(self._filename !== undefined) text  = self._filename +':'+text;
+    if(self._filename !== undefined && self._filename !== null)
+      text  = self._filename +':'+text;
     if (!self._noLogging) console.log(text);
   };
 

@@ -179,6 +179,7 @@ setTimeout(function() {
   h.log.debug('Read values of the mysql stream:');
   options.sql = 'select * from table1';
   var mysqlRead = new mysql.sqlRead(options);
+  bucket.empty();
   mysqlRead.pipe(bucket);
 }.bind(this), (delay++)*1000);
 

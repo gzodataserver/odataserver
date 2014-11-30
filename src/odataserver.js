@@ -16,7 +16,7 @@
 (function(self_, undefined) {
 
   var h = require('./helpers.js');
-  var log = new h.log0({debug: true}, __filename);
+  var log = new h.log0({debug: true, filename: __filename});
 
   var u = require('underscore');
 
@@ -473,7 +473,7 @@
 
           // parse odata payload into JSON object
           var jsonData = null;
-          if (data !== '') jsonData = JSON.parse(data);
+          if (data !== '') jsonData = h.jsonParse(data);
 
           var uriParser = new exports.ODataUri2Sql();
           var odataRequest = uriParser.parseUri(request.url, request.method);
@@ -482,20 +482,27 @@
             password = request.headers.password;
 
 
-          var credentials = {
-            database: accountId,
-            user: accountId,
-            password: password
+          var options = {
+            credentials: {
+              database: accountId,
+              user: accountId,
+              password: password
+            },
+            closeStream: true
           };
 
-          var adminCredentials = {
-            user: CONFIG.MYSQL.ADMIN_USER,
-            password: CONFIG.MYSQL.ADMIN_PASSWORD
+          var adminOptions = {
+            credentials: {
+              user: CONFIG.MYSQL.ADMIN_USER,
+              password: CONFIG.MYSQL.ADMIN_PASSWORD
+            },
+            closeStream: true
           };
 
 
-          log.debug('Processing request - credentials: '+JSON.stringify(credentials)+
-                      ', odataRequest: '+JSON.stringify(odataRequest));
+          log.debug('Processing request - credentials: '+JSON.stringify(options)+
+                      ', odataRequest: '+JSON.stringify(odataRequest) +
+                      ', JSON: '+JSON.stringify(jsonData));
 
           // query_type: create_user | set_password | delete_user
           // query_type: service_def | create_table | delete_table | select | insert | delete,
@@ -503,66 +510,78 @@
           switch (odataRequest.query_type) {
 
             case 'create_user':
-              mysqlAdmin = new odataBackend.sqlAdmin(adminCredentials, accountId);
+              mysqlAdmin = new odataBackend.sqlAdmin(adminOptions);
               log.log('Create new user...');
-              mysqlAdmin.new();
+              mysqlAdmin.new(accountId);
               mysqlAdmin.pipe(response);
               break;
 
             case 'set_password':
-              mysqlAdmin = new odataBackend.sqlAdmin(adminCredentials, accountId);
-              mysqlAdmin.setPassword();
+              mysqlAdmin = new odataBackend.sqlAdmin(adminOptions);
+              var password2 = mysqlAdmin.resetPassword(accountId);
               mysqlAdmin.pipe(response);
 
-              // save the password to use below
-              credentials.password = mysqlAdmin.password;
-              log.log('Password set to: ' + credentials.password);
+              log.log('Password set to: ' + password2);
               break;
 
             case 'delete_user':
-              mysqlAdmin = new odataBackend.sqlAdmin(adminCredentials, accountId);
+              mysqlAdmin = new odataBackend.sqlAdmin(adminOptions);
               log.log('Drop the new user...');
-              mysqlAdmin.delete();
+              mysqlAdmin.delete(accountId);
               mysqlAdmin.pipe(response);
               break;
 
             case 'grant':
               log.debug('Grant privs to table1 to user #2');
-              mysqlAdmin = new odataBackend.sqlAdmin(credentials, accountId);
+              mysqlAdmin = new odataBackend.sqlAdmin(options);
               mysqlAdmin.grant('table1', accountId2);
               mysqlAdmin.pipe(response);
               break;
 
-              //case 'revoke':
+            //case 'revoke':
               //  break;
 
             case 'service_def':
-              odataBackend.serviceDef(); // no args - gets all tables in account's schema
+              // no args - gets all tables in account's schema
+              odataBackend.serviceDef();
               break;
 
             case 'create_table':
-              var create = new odataBackend.sqlCreate(credentials, tableDef);
+              options.tableDef = jsonData.tableDef;
+
+              var create = new odataBackend.sqlCreate(options);
               create.pipe(response);
               break;
 
             case 'delete_table':
-              var drop = new odataBackend.sqlDrop(credentials, 'table1');
+              options.tableName = jsonData.tableName;
+              var drop = new odataBackend.sqlDrop(options);
               drop.pipe(response);
               break;
 
             case 'select':
-              log.debug('Pipe values of the mysql stream to the response');
-              var mysqlRead = new odataBackend.sqlRead(credentials, odataRequest.sql);
-              mysqlRead.pipe(response);
+              options.sql = odataRequest.sql;
+              log.debug('Pipe values of the mysql stream to the response - options: '
+                          +JSON.stringify(options));
+              var mysqlRead = new odataBackend.sqlRead(options);
+              mysqlRead.fetchAll(function(res){
+                response.write(JSON.stringify(res));
+                res.end();
+              });
+              //mysqlRead.pipe(response);
               break;
 
             case 'insert':
-              var mysqlStream = new odataBackend.sqlWriteStream(credentials, accountId, 'table1', response);
+              options.tableName = odataRequest.tableName;
+              options.resultStream = response;
+              var mysqlStream = new odataBackend.sqlWriteStream(options);
               request.pipe(mysqlStream);
               break;
 
             case 'delete':
-              var del = new odataBackend.mysqlDelete(credentials, accountId, 'table1');
+              options.tableName = odataRequest.tableName;
+              options.where = odataRequest.where;
+              var del = new odataBackend.mysqlDelete(options);
               del.pipe(response);
               break;
 
