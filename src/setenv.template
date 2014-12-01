@@ -1,2 +1,2 @@
-ADMIN_USER=xxx
-ADMIN_PASSWORD=xxx
+export ADMIN_USER=xxx
+export ADMIN_PASSWORD=xxx
