@@ -7,7 +7,7 @@
 //
 // This module contains abstract classes to be implemented for each database
 // that is supported. This file is only meant to be a guide for implementing
-// new a relational databse. It is actually never used.
+// new relational databases. It is currently not used.
 //
 // NOTE: I've tried to put db specific parts in a wrapper class and the rests in
 // a generic class taking the wrapper as an argument but I haven't found any

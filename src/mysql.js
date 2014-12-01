@@ -54,7 +54,9 @@
   var mysql = require('mysql');
   var u = require('underscore');
 
-  var log = new h.log0({debug: true, filename: __filename});
+  // The full path to the teste
+  //CONFIG.mysqlLoggerOptions.filename = __filename;
+  var log = new h.log0(CONFIG.mysqlLoggerOptions);
 
   //
   // MySQL base class inherited when streams not are inherited

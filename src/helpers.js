@@ -256,6 +256,7 @@
     this.data = [];
   };
 
+
   // calculate account id from email
   h.email2accountId = function(email) {
     return h.hashString(CONFIG.ACCOUNT_ID.HASH_ALG,

@@ -43,11 +43,10 @@
 
 
 var h = require('../src/helpers.js');
-var log = new h.log0({debug: false});
-
 var CONFIG = require('../src/config.js');
-var defaultPort = CONFIG.ODATA.PORT;
 
+var defaultPort = CONFIG.ODATA.PORT;
+var log = new h.log0(CONFIG.testLoggerOptions);
 
 exports['test.leveldb'] = {
 

@@ -94,6 +94,15 @@
   };
 
 
+  // Logging setup
+  // -------------
+
+  c.testLoggerOptions = {debug: false, filename: 'test_XXX.js'};
+  c.mysqlLoggerOptions = {debug: false, filename: 'mysql.js'};
+  c.leveldbLoggerOptions = {debug: false, filename: 'leveldb.js'};
+
+
+
   // Exports
   // =======
 

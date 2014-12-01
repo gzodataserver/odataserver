@@ -7,12 +7,13 @@
   var util     = require('util');
 
   var h        = require('./helpers.js');
+  var CONFIG   = require('./config.js');
 
   moduleSelf.levelup = null;
   moduleSelf.leveldb = null;
 
   // set debugging flag
-  var log = new h.log0({debug: false});
+  var log = new h.log0(CONFIG.leveldbLoggerOptions);
 
   //
   // Common for readable and writable stream
