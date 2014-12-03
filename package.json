@@ -36,7 +36,7 @@
     "npm": "1.1.x"
   },
   "scripts": {
-    "test": "nodeunit tests/test_leveldb.js tests/test_mysql.js tests/test_odataserver.js",
+    "test": "node tests/test_leveldb.js; node tests/test_mysql.js; node tests/test_odataserver.js",
     "start": "sudo node -e 'require(\"./src/main.js\").start();'",
     "docs": "docco src/*.js tests/*.js",
     "clean": "rm -rf docs; rm -rf mydb"
