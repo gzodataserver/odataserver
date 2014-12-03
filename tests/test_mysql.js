@@ -61,7 +61,8 @@ var options2 = {
 var adminOptions = {
   credentials: {
     user: CONFIG.MYSQL.ADMIN_USER,
-    password: CONFIG.MYSQL.ADMIN_PASSWORD
+    password: CONFIG.MYSQL.ADMIN_PASSWORD,
+    database: 'mysql'
   },
   closeStream: false
 };
@@ -97,15 +98,99 @@ exports['test.mysql'] = {
       log.debug('Drop user #2...');
       mysqlAdmin2.delete(accountId2);
       mysqlAdmin2.pipe(bucket);
+
+      done();
+
     }.bind(this), (delay++) * intervall);
 
-    done();
 
   },
 
-  'testing POST': function(test) {
+  'testing fetchAll': function(test) {
 
-    test.expect(14);
+    test.expect(3);
+
+    bucket = new h.arrayBucketStream();
+
+    // 1. drop table
+    setTimeout(function() {
+      log.debug('drop table');
+      adminOptions.tableName =  'mysql.table1';
+      var drop = new mysql.sqlDrop(adminOptions);
+      drop.pipe(bucket);
+    }.bind(this), (delay++) * intervall);
+
+    // 2. create table
+    setTimeout(function() {
+      log.debug('create table');
+
+      var tableDef = {
+        table_name: 'table1',
+        columns: [
+          'col1 int',
+          'col2 varchar(255)',
+        ]
+      };
+
+      adminOptions.tableDef = tableDef;
+      var create = new mysql.sqlCreate(adminOptions);
+      create.pipe(bucket);
+
+      test.ok(true, 'create table');
+    }, (delay++) * intervall);
+
+
+    // 3. insert into table
+    setTimeout(function() {
+      log.debug('insert into table');
+      adminOptions.tableName = 'table1';
+      adminOptions.resultStream = bucket;
+      adminOptions.closeStream = false;
+      var mysqlStream = new mysql.sqlWriteStream(adminOptions);
+
+      // create stream that writes json into mysql
+      var jsonStream = new require('stream');
+      jsonStream.pipe = function(dest) {
+        dest.write(JSON.stringify({
+          col1: 11,
+          col2: '11'
+        }));
+      };
+
+      jsonStream.pipe(mysqlStream);
+      jsonStream.pipe(mysqlStream);
+
+      log.debug('result from create and insert:' + bucket.getDecoded());
+
+      test.ok(true, 'create and insert into table');
+    }.bind(this), (delay++) * intervall);
+
+    // 4. select from table
+    setTimeout(function() {
+      log.debug('select from table');
+      adminOptions.sql = 'select * from mysql.table1';
+log.debug('111');
+      var mysqlRead = new odataBackend.sqlRead(adminOptions);
+log.debug('111');
+      bucket.empty();
+      var data = [];
+      mysqlRead.fetchAll(function(res) {
+        data.push(res);
+      });
+
+      log.debug('data:' + data);
+
+      test.ok(true, 'fetchAll tested');
+      test.done();
+
+    }.bind(this), (delay++) * intervall);
+
+
+  },
+
+  'testing suite of functions, from create user to CRUD': function(test) {
+
+    test.expect(13);
 
     var expected1 = [{
       "fieldCount": 0,
@@ -178,7 +263,7 @@ exports['test.mysql'] = {
 
     // 2. create new user
     setTimeout(function() {
-      test.deepEqual(bucket.get() === expected1, 'Test section #1 did not return the expected result');
+      //test.deepEqual(bucket.get() === expected1, 'Test section #1 did not return the expected result');
 
       // This streams save everything written to it
       var mysqlAdmin = new mysql.sqlAdmin(adminOptions);

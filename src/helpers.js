@@ -24,6 +24,9 @@
 
   var CONFIG = require('./config.js');
 
+  var StringDecoder = require('string_decoder').StringDecoder;
+  var decoder = new StringDecoder('utf8');
+
 
   // New enhanced logging class
   // Each instance has its own options for logging level
@@ -304,6 +307,10 @@
 
   h.arrayBucketStream.prototype.get = function() {
     return this.data;
+  };
+
+  h.arrayBucketStream.prototype.getDecoded = function() {
+    return decoder.write(this.data);
   };
 
   h.arrayBucketStream.prototype.empty = function() {

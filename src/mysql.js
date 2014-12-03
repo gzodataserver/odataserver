@@ -91,15 +91,18 @@
   // self.options needs to be defined in the object that inherits this object
   var mysqlBase = function(credentials) {
     var self = this;
+    log.debug('mysqlBase constructor');
     credentials.host = CONFIG.MYSQL.DB_HOST;
     self.connection = mysql.createConnection(credentials);
     self.sql = null;
-//    log.debug('options:'+JSON.stringify(credentials)+',conn.config:'+JSON.stringify(self.connection.config));
+    log.debug('mysqlBase options:'+JSON.stringify(credentials)+
+              ',conn.config:'+JSON.stringify(self.connection.config));
   };
 
   // Write results into a stream
   mysqlBase.prototype.pipe = function(writeStream) {
     var self = this;
+    log.debug('mysqlBase.pipe: '+self.sql);
     runQuery(self.connection, self.sql,
       function(row) {
         writeStream.write(JSON.stringify(row));
@@ -131,7 +134,6 @@
 
   // private helper function
   var processRow = function(self, row) {
-
     if (self.processRowFunc !== undefined) return self.processRowFunc(row);
     return row;
   };
@@ -178,8 +180,7 @@
   //
   // Mysql writable stream
   // ----------------------
-  //
-  // exports.sqlWriteStream = function(credentials, database, tableName, resultStream) {
+
   exports.sqlWriteStream = function(options) {
     var self = this;
     // call stream.Writeable constructor
@@ -240,7 +241,7 @@ log.debug('SQL: '+sql);
   //
   // Delete from table
   // ------------------
-  // exports.sqlDelete = function(credentials, database, tableName, where) {
+
   exports.sqlDelete = function(options) {
     var self = this;
     mysqlBase.call(this, options.credentials);
@@ -256,12 +257,12 @@ log.debug('SQL: '+sql);
   //
   // Create table and write result to stream
   // ---------------------------------------
-  //exports.sqlCreate = function(credentials, tableDef) {
   exports.sqlCreate = function(options) {
     var self = this;
     mysqlBase.call(this, options.credentials);
     self.options = options;
     self.sql = 'create table '+options.tableDef.table_name + ' (' + options.tableDef.columns.join(',') + ')';
+    log.debug('exports.sqlCreate: '+self.sql);
   };
 
   // inherit mysqlBase prototype
@@ -273,7 +274,6 @@ log.debug('SQL: '+sql);
   // ---------------------------------------
 
   // Drop a table if it exists and pipe the results to a stream
-  //exports.sqlDrop = function(credentials, tableName) {
   exports.sqlDrop = function(options) {
     var self = this;
     mysqlBase.call(this, options.credentials);
@@ -290,7 +290,6 @@ log.debug('SQL: '+sql);
   // ====================================
 
   // Admin constructor
-  //exports.sqlAdmin = function(credentials, accountId) {
   exports.sqlAdmin = function(options) {
     var self = this;
     self.options = options;

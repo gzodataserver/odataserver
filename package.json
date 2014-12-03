@@ -28,7 +28,8 @@
   "devDependencies": {
     "docco": "*",
     "nodeunit": "*",
-    "travis-lint": "0.0.4"
+    "travis-lint": "0.0.4",
+    "tape": "^3.0.3"
   },
   "engines": {
     "node": ">=0.10.x",
