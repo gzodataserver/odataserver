@@ -17,30 +17,8 @@
 // Install dependencies first: `npm install`
 
 
-/*
-  ======== A Handy Little Nodeunit Reference ========
-  https://github.com/caolan/nodeunit
 
-  Test methods:
-    test.expect(numAssertions)
-    test.done()
-  Test assertions:
-    test.ok(value, [message])
-    test.equal(actual, expected, [message])
-    test.notEqual(actual, expected, [message])
-    test.deepEqual(actual, expected, [message])
-    test.notDeepEqual(actual, expected, [message])
-    test.strictEqual(actual, expected, [message])
-    test.notStrictEqual(actual, expected, [message])
-    test.throws(block, [error], [message])
-    test.doesNotThrow(block, [error], [message])
-    test.ifError(value)
-*/
-
-
-// Nodeunit test
-// -------------
-
+var test = require('tape');
 
 var h = require('../src/helpers.js');
 var CONFIG = require('../src/config.js');
@@ -48,154 +26,149 @@ var CONFIG = require('../src/config.js');
 var defaultPort = CONFIG.ODATA.PORT;
 var log = new h.log0(CONFIG.testLoggerOptions);
 
-exports['test.leveldb'] = {
+var server;
 
-  setUp: function(done) {
-    var self=this;
+test('setUp', function(test) {
+  var http = require("http");
+  var level = require('./../src/leveldb.js');
 
-    var http = require("http");
-    var level = require('./../src/leveldb.js');
+  server = http.createServer(function(request, response) {
 
-    self.server = http.createServer(function(request, response) {
+    log.log("Processing request: " +
+      JSON.stringify(request.method) + " - " +
+      JSON.stringify(request.url) + " - " +
+      JSON.stringify(request.headers));
 
-      log.log("Processing request: " +
-        JSON.stringify(request.method) + " - " +
-        JSON.stringify(request.url) + " - " +
-        JSON.stringify(request.headers));
+    // handle request with leveldb
+    var leveldb = new level.LevelDBHttpServer();
+    leveldb.main(request, response);
 
-      // handle request with leveldb
-      var leveldb = new level.LevelDBHttpServer();
-      leveldb.main(request, response);
+  });
 
-    });
+  server.listen(defaultPort);
 
-    self.server.listen(defaultPort);
+  log.log("Server is listening on port " + defaultPort);
 
-    log.log("Server is listening on port " + defaultPort);
+  // setup finished
+  test.end();
+});
 
-    // setup finished
-    done();
-  },
 
-  tearDown: function(done) {
-    var self=this;
-    self.server.close();
-    done();
-  },
+test('testing POST', function(test) {
+  test.plan(2);
 
-  'testing POST': function(test) {
-    var self = this;
-    test.expect(2);
+  var h = require('../src/helpers.js');
+  h.debug = true;
 
-    var h = require('../src/helpers.js');
-    h.debug = true;
+  log.debug('Start of testing POST');
 
-    log.debug('Start of testing POST');
+  fs = require('fs');
+  var readStream = fs.createReadStream(__dirname + '/projektledning_w767.png');
 
-    fs = require('fs');
-    var readStream = fs.createReadStream(__dirname+'/projektledning_w767.png');
+  readStream.on('open', function() {
+    log.debug('in readStream on open');
 
-    readStream.on('open', function() {
-      log.debug('in readStream on open');
+    var http = require('http');
 
-      var http = require('http');
+    // path and method is set in each test
+    this.options = {
+      hostname: CONFIG.ODATA.HOST,
+      port: defaultPort,
+      headers: {
+        user: 'wp',
+        password: 'wp',
+        //					'content-type': 'application/octet-stream'
+      }
+    };
 
-      // path and method is set in each test
-      this.options = {
-        hostname: CONFIG.ODATA.HOST,
-        port: defaultPort,
-        headers: {
-          user: 'wp',
-          password: 'wp',
-          //					'content-type': 'application/octet-stream'
-        }
-      };
+    this.options.method = 'POST';
+    this.options.path = '/image1';
 
-      this.options.method = 'POST';
-      this.options.path = '/image1';
+    var data = '';
 
-      var data = '';
+    var req = http.request(this.options, function(res) {
+      log.debug('in http.request');
+      res.setEncoding('utf8');
 
-      var req = http.request(this.options, function(res) {
-        log.debug('in http.request');
-        res.setEncoding('utf8');
+      test.ok(true, 'Did not receive what we expected.');
 
-        test.ok(true, 'Did not receive what we expected.');
+      res.on('data', function(chunk) {
+        log.debug('in http.request on data: ' + chunk);
+        data += chunk;
+      });
 
-        res.on('data', function(chunk) {
-          log.debug('in http.request on data: ' + chunk);
-          data += chunk;
-        });
+      res.on('end', function() {
+        log.debug('in http.response end for POST');
 
-        res.on('end', function() {
-          log.debug('in http.response end for POST');
+        req.end();
 
-          req.end();
+        var data = '',
+          counter = 0;
 
-          var data = '',
-            counter = 0;
+        // path and method is set in each test
+        var options2 = {
+          hostname: CONFIG.ODATA.HOST,
+          port: defaultPort,
+          method: 'GET',
+          path: '/image1',
+          headers: {
+            user: 'wp',
+            password: 'wp'
+          }
+        };
 
-          // path and method is set in each test
-          var options2 = {
-            hostname: CONFIG.ODATA.HOST,
-            port: defaultPort,
-            method: 'GET',
-            path: '/image1',
-            headers: {
-              user: 'wp',
-              password: 'wp'
-            }
-          };
+        var req2 = http.request(options2, function(res) {
+          res.setEncoding('utf8');
 
-          var req2 = http.request(options2, function(res) {
-            res.setEncoding('utf8');
+          test.ok(true, 'Did not receive what we expected.');
 
-            test.ok(true, 'Did not receive what we expected.');
-
-            res.on('data', function(chunk) {
-              data += chunk;
-              counter++;
-              log.debug('in response for GET request: counter=' + counter);
-            });
-
-            res.on('end', function() {
-              log.debug('Number of chunks received: ' + counter + ' calling test.done');
-              test.done();
-            });
+          res.on('data', function(chunk) {
+            data += chunk;
+            counter++;
+            log.debug('in response for GET request: counter=' + counter);
           });
 
-          req2.on('error', function(e) {
-            console.log('problem with request: ' + e.message);
+          res.on('end', function() {
+            log.debug('Number of chunks received: ' + counter + ' calling test.done');
+            test.end();
           });
-
-          req2.end();
-
         });
 
+        req2.on('error', function(e) {
+          console.log('problem with request: ' + e.message);
+        });
+
+        req2.end();
 
       });
 
-      req.on('error', function(e) {
-        console.log('problem with request: ' + e.message);
-      });
-
-
-      // This just pipes the read stream to the response object (which goes to the client)
-      log.debug('will now pipe readStream with http request');
-      readStream.pipe(req);
 
     });
 
-    // This catches any errors that happen while creating the readable stream (usually invalid names)
-    readStream.on('error', function(err) {
-      console.log('Error: ' + err);
+    req.on('error', function(e) {
+      console.log('problem with request: ' + e.message);
     });
 
-    // This catches any errors that happen while creating the readable stream (usually invalid names)
-    readStream.on('end', function() {
-      log.debug('readStream on end - nothing more to read');
-    });
 
-  }
+    // This just pipes the read stream to the response object (which goes to the client)
+    log.debug('will now pipe readStream with http request');
+    readStream.pipe(req);
 
-};
+  });
+
+  // This catches any errors that happen while creating the readable stream (usually invalid names)
+  readStream.on('error', function(err) {
+    console.log('Error: ' + err);
+  });
+
+  // This catches any errors that happen while creating the readable stream (usually invalid names)
+  readStream.on('end', function() {
+    log.debug('readStream on end - nothing more to read');
+  });
+
+});
+
+test('tearDown', function(test) {
+  server.close();
+  test.end();
+});

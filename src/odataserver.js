@@ -566,7 +566,7 @@
               var mysqlRead = new odataBackend.sqlRead(options);
               mysqlRead.fetchAll(function(res){
                 response.write(JSON.stringify(res));
-                res.end();
+                response.end();
               });
               //mysqlRead.pipe(response);
               break;
