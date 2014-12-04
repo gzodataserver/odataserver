@@ -31,6 +31,8 @@
 //   processRowFunc: '',
 //   closeStream: true | false,
 //   resultStream: process.stdout etc.
+//   processRowFunc: function used in sqlRead to manipulate each row read, used
+//                   for add eTags etc.
 // };
 //
 //
@@ -150,6 +152,7 @@
 
     mysqlBase.call(this, options.credentials);
 
+    self.processRowFunc = options.processRowFunc;
     self.options = options;
     self.sql = options.sql;
     self.result = [];
@@ -223,8 +226,6 @@
     }
 
     var sql = h.json2insert(self.options.credentials.database, self.options.tableName, json);
-
-log.debug('SQL: '+sql);
 
     runQuery(self.connection, sql,
       function(row) {

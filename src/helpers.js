@@ -117,11 +117,31 @@
     leveldb.pipeReadStream(hash);
   };
 
-
   h.hashString = function(alg, enc, data) {
     var hashSum = crypto.createHash(alg);
     hashSum.update(data);
     return hashSum.digest(enc);
+  };
+
+  h.calcHash2 = function(obj, alg, enc) {
+    var func  = crypto.createHash(alg);
+
+    for (var key in obj) {
+      func.update( ''+obj[key] );
+    }
+
+    return func.digest(enc);
+  };
+
+  // calculate the MD5 etag for a JSON object
+  h.addEtag = function(obj) {
+    // return a clone
+    //var o = u.clone(obj),
+    e = h.calcHash2(obj, 'md5', 'hex');
+
+    obj['@odata.etag'] = e;
+
+    return obj;
   };
 
   //

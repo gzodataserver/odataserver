@@ -60,13 +60,10 @@ test('testing POST', function(test) {
   var h = require('../src/helpers.js');
   h.debug = true;
 
-  log.debug('Start of testing POST');
-
   fs = require('fs');
   var readStream = fs.createReadStream(__dirname + '/projektledning_w767.png');
 
   readStream.on('open', function() {
-    log.debug('in readStream on open');
 
     var http = require('http');
 
@@ -87,19 +84,15 @@ test('testing POST', function(test) {
     var data = '';
 
     var req = http.request(this.options, function(res) {
-      log.debug('in http.request');
       res.setEncoding('utf8');
 
       test.ok(true, 'Did not receive what we expected.');
 
       res.on('data', function(chunk) {
-        log.debug('in http.request on data: ' + chunk);
         data += chunk;
       });
 
       res.on('end', function() {
-        log.debug('in http.response end for POST');
-
         req.end();
 
         var data = '',
@@ -125,17 +118,15 @@ test('testing POST', function(test) {
           res.on('data', function(chunk) {
             data += chunk;
             counter++;
-            log.debug('in response for GET request: counter=' + counter);
           });
 
           res.on('end', function() {
-            log.debug('Number of chunks received: ' + counter + ' calling test.done');
             test.end();
           });
         });
 
         req2.on('error', function(e) {
-          console.log('problem with request: ' + e.message);
+          log.log('problem with request: ' + e.message);
         });
 
         req2.end();
@@ -146,19 +137,18 @@ test('testing POST', function(test) {
     });
 
     req.on('error', function(e) {
-      console.log('problem with request: ' + e.message);
+      log.log('problem with request: ' + e.message);
     });
 
 
     // This just pipes the read stream to the response object (which goes to the client)
-    log.debug('will now pipe readStream with http request');
     readStream.pipe(req);
 
   });
 
   // This catches any errors that happen while creating the readable stream (usually invalid names)
   readStream.on('error', function(err) {
-    console.log('Error: ' + err);
+    log.log('Error: ' + err);
   });
 
   // This catches any errors that happen while creating the readable stream (usually invalid names)

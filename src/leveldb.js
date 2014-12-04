@@ -55,7 +55,7 @@
   exports.LevelDBReadStream.prototype.init = function(key, cb) {
 
     var self = this;
-    log.log('LevelDB.init: key=' + key);
+    log.debug('LevelDB.init: key=' + key);
 
     // Open the LevelDB database
     if (moduleSelf.levelup === null)
@@ -75,7 +75,7 @@
   exports.LevelDBReadStream.prototype.pipeReadStream = function(writeStream) {
 
     var self = this;
-    log.log('LevelDB.pipeReadStream: key=' + self._key + ', rev=' + self._currentRevision);
+    log.debug('LevelDB.pipeReadStream: key=' + self._key + ', rev=' + self._currentRevision);
 
     var _revision = h.pad(self._currentRevision, 9);
 
@@ -131,7 +131,7 @@
   exports.LevelDBWriteStream.prototype.init = function(key, cb) {
 
     var self = this;
-    log.log('LevelDB.init: key=' + key);
+    log.debug('LevelDB.init: key=' + key);
 
     // Open the LevelDB database
     if (moduleSelf.levelup === null)
@@ -167,7 +167,7 @@
         // save the number of the last successful chunk
         --self._noSavedChunks;
         var _msg = 'LevelDB stream write: error saving chunk! '+err;
-        log.log(_msg);
+        log.debug(_msg);
         self.emit('error', _msg);
       }
 

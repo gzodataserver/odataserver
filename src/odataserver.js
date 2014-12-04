@@ -16,14 +16,14 @@
 (function(self_, undefined) {
 
   var h = require('./helpers.js');
-  var log = new h.log0({debug: true, filename: __filename});
+  var CONFIG = require('./config.js');
+  var log = new h.log0(CONFIG.odataServerLoggerOptions);
 
   var u = require('underscore');
 
   // Default no of rows to return
   var defaultRowCount = 100;
 
-  var CONFIG = require('./config.js');
 
   //
   // Parse OData URI
@@ -561,11 +561,13 @@
 
             case 'select':
               options.sql = odataRequest.sql;
-              log.debug('Pipe values of the mysql stream to the response - options: '
-                          +JSON.stringify(options));
+              options.processRowFunc = h.addEtag;
+              log.debug('Pipe values of the mysql stream to the response - options: '+
+                          JSON.stringify(options));
               var mysqlRead = new odataBackend.sqlRead(options);
               mysqlRead.fetchAll(function(res){
-                response.write(JSON.stringify(res));
+                data = {value: res};
+                response.write(JSON.stringify(data));
                 response.end();
               });
               //mysqlRead.pipe(response);

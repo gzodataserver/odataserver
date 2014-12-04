@@ -23,7 +23,7 @@
  *
  */
 
- var http = require("http");
+var http = require("http");
 
 var test = require('tape');
 
@@ -34,15 +34,12 @@ var CONFIG = require('../src/config.js');
 var odata = require('./../src/odataserver.js');
 
 var h = require('../src/helpers.js');
-var log = new h.log0({
-  debug: true,
-  filename: __filename
-});
+var log = new h.log0(CONFIG.testLoggerOptions);
 
 
 var o2s = require('../src/odataserver.js');
 
-var ic,c, server;
+var ic, c, server;
 
 //
 // Some Uris to test with
@@ -133,7 +130,7 @@ test('testing odatauri2sql.ODataUri2Sql GET', function(test) {
 test('testing odatauri2sql.ODataUri2Sql POST', function(test) {
   var uriParser = new o2s.ODataUri2Sql();
 
-  test.plan(6);
+  test.plan(5);
 
   for (var i = 0; i < ic.length; i++) {
     test.throws(function() {
@@ -142,9 +139,12 @@ test('testing odatauri2sql.ODataUri2Sql POST', function(test) {
   }
 
   for (i = 0; i < c.length; i++) {
-    test.throws(function() {
-      uriParser.parseUri(c[i], 'POST');
-    });
+    // URL #2 is ok for POST
+    if(i !== 1) {
+      test.throws(function() {
+        uriParser.parseUri(c[i], 'POST');
+      });
+    }
   }
 
   test.end();
@@ -194,110 +194,110 @@ test('testing simple GET', function(test) {
 
   var expected = {
     value: [{
+      '@odata.etag': 'c7e19e5018a42885e0a84925e3d2aec8',
+      link_description: '',
       link_id: 1,
-      link_url: "http://codex.wordpress.org/",
-      link_name: "Documentation",
-      link_image: "",
-      link_target: "",
-      link_description: "",
-      link_visible: "Y",
+      link_image: '',
+      link_name: 'Documentation',
+      link_notes: '',
       link_owner: 1,
       link_rating: 0,
-      link_updated: "0000-00-00 00:00:00",
-      link_rel: "",
-      link_notes: "",
-      link_rss: "",
-      "@odata.etag": "75a79d6b59e17fb4c11a04c4b9187644"
+      link_rel: '',
+      link_rss: '',
+      link_target: '',
+      link_updated: '0000-00-00 00:00:00',
+      link_url: 'http://codex.wordpress.org/',
+      link_visible: 'Y'
     }, {
+      '@odata.etag': 'ed72dc5274fc377332892108ea6287c5',
+      link_description: '',
       link_id: 2,
-      link_url: "http://wordpress.org/news/",
-      link_name: "WordPress Blog",
-      link_image: "",
-      link_target: "",
-      link_description: "",
-      link_visible: "Y",
+      link_image: '',
+      link_name: 'WordPress Blog',
+      link_notes: '',
       link_owner: 1,
       link_rating: 0,
-      link_updated: "0000-00-00 00:00:00",
-      link_rel: "",
-      link_notes: "",
-      link_rss: "http://wordpress.org/news/feed/",
-      "@odata.etag": "6da53c8dffc1e367d0f8d16111f77c27"
+      link_rel: '',
+      link_rss: 'http://wordpress.org/news/feed/',
+      link_target: '',
+      link_updated: '0000-00-00 00:00:00',
+      link_url: 'http://wordpress.org/news/',
+      link_visible: 'Y'
     }, {
+      '@odata.etag': '9479d4b1e98bd01b848d9ed0776aaf0e',
+      link_description: '',
       link_id: 3,
-      link_url: "http://wordpress.org/support/",
-      link_name: "Support Forums",
-      link_image: "",
-      link_target: "",
-      link_description: "",
-      link_visible: "Y",
+      link_image: '',
+      link_name: 'Support Forums',
+      link_notes: '',
       link_owner: 1,
       link_rating: 0,
-      link_updated: "0000-00-00 00:00:00",
-      link_rel: "",
-      link_notes: "",
-      link_rss: "",
-      "@odata.etag": "6b6e932a73230d4cd6e1a4c357d31e22"
+      link_rel: '',
+      link_rss: '',
+      link_target: '',
+      link_updated: '0000-00-00 00:00:00',
+      link_url: 'http://wordpress.org/support/',
+      link_visible: 'Y'
     }, {
+      '@odata.etag': 'a6d05cfb42f2b98a4f1e493251e9d309',
+      link_description: '',
       link_id: 4,
-      link_url: "http://wordpress.org/extend/plugins/",
-      link_name: "Plugins",
-      link_image: "",
-      link_target: "",
-      link_description: "",
-      link_visible: "Y",
+      link_image: '',
+      link_name: 'Plugins',
+      link_notes: '',
       link_owner: 1,
       link_rating: 0,
-      link_updated: "0000-00-00 00:00:00",
-      link_rel: "",
-      link_notes: "",
-      link_rss: "",
-      "@odata.etag": "d2bb724531ec90db4e930a2b2d93b50d"
+      link_rel: '',
+      link_rss: '',
+      link_target: '',
+      link_updated: '0000-00-00 00:00:00',
+      link_url: 'http://wordpress.org/extend/plugins/',
+      link_visible: 'Y'
     }, {
+      '@odata.etag': '83cc01e1cbd1810281a9d3d41e86e8ea',
+      link_description: '',
       link_id: 5,
-      link_url: "http://wordpress.org/extend/themes/",
-      link_name: "Themes",
-      link_image: "",
-      link_target: "",
-      link_description: "",
-      link_visible: "Y",
+      link_image: '',
+      link_name: 'Themes',
+      link_notes: '',
       link_owner: 1,
       link_rating: 0,
-      link_updated: "0000-00-00 00:00:00",
-      link_rel: "",
-      link_notes: "",
-      link_rss: "",
-      "@odata.etag": "9f2eb495901f729108964b217d251faa"
+      link_rel: '',
+      link_rss: '',
+      link_target: '',
+      link_updated: '0000-00-00 00:00:00',
+      link_url: 'http://wordpress.org/extend/themes/',
+      link_visible: 'Y'
     }, {
+      '@odata.etag': 'b0c2f191c14cf21531a0a4724edb5d8d',
+      link_description: '',
       link_id: 6,
-      link_url: "http://wordpress.org/support/forum/requests-and-feedback",
-      link_name: "Feedback",
-      link_image: "",
-      link_target: "",
-      link_description: "",
-      link_visible: "Y",
+      link_image: '',
+      link_name: 'Feedback',
+      link_notes: '',
       link_owner: 1,
       link_rating: 0,
-      link_updated: "0000-00-00 00:00:00",
-      link_rel: "",
-      link_notes: "",
-      link_rss: "",
-      "@odata.etag": "b89f78b689f88d835a9ebd2d98f0525d"
+      link_rel: '',
+      link_rss: '',
+      link_target: '',
+      link_updated: '0000-00-00 00:00:00',
+      link_url: 'http://wordpress.org/support/forum/requests-and-feedback',
+      link_visible: 'Y'
     }, {
+      '@odata.etag': '535377d732cabe4c215c196eda6e9d06',
+      link_description: '',
       link_id: 7,
-      link_url: "http://planet.wordpress.org/",
-      link_name: "WordPress Planet",
-      link_image: "",
-      link_target: "",
-      link_description: "",
-      link_visible: "Y",
+      link_image: '',
+      link_name: 'WordPress Planet',
+      link_notes: '',
       link_owner: 1,
       link_rating: 0,
-      link_updated: "0000-00-00 00:00:00",
-      link_rel: "",
-      link_notes: "",
-      link_rss: "",
-      "@odata.etag": "422422e0f45f69272825fa878a12816c"
+      link_rel: '',
+      link_rss: '',
+      link_target: '',
+      link_updated: '0000-00-00 00:00:00',
+      link_url: 'http://planet.wordpress.org/',
+      link_visible: 'Y'
     }]
   };
 
@@ -305,29 +305,24 @@ test('testing simple GET', function(test) {
   test.plan(1);
 
   var data = '';
-  log.debug('in testing simple GET: ' + JSON.stringify(options));
 
   var req = http.request(options, function(res) {
     res.setEncoding('utf8');
 
-    log.debug('IN HTTP.REQUEST');
-
     res.on('data', function(chunk) {
-      log.debug('IN HTTP.REQUEST DATA');
       data += chunk;
     });
 
     res.on('end', function() {
-      log.debug('IN HTTP.REQUEST END. JSON: ' + data);
       var jsonData = h.jsonParse(data);
 
-      test.deepEqual(expected, jsonData, 'GET did not return what was expected');
+      test.deepEqual(jsonData, expected, 'GET did not return what was expected');
       test.end();
     });
   });
 
   req.on('error', function(e) {
-    console.log('problem with request: ' + e.message);
+    log.log('problem with request: ' + e.message);
   });
 
   req.end();
