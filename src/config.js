@@ -15,14 +15,16 @@
   // OData server configuration
   // --------------------------
   //
-  // Use in the tests
-
 
   c.ODATA = {
+    // The IP/DNS of the OData server (used by the tests to connect)
     HOST: 'localhost',
-    PORT: '8080'
-
+    // The port that the server should bind to
+    PORT: '9000',
+    // Number of rows to return if nothing else is specified
+    DEFAULT_ROW_COUNT: 100
   };
+
 
   // Account IDs are based email adresses
   // -------------------------------------
@@ -101,6 +103,7 @@
   c.mysqlLoggerOptions = {debug: false, filename: 'mysql.js'};
   c.leveldbLoggerOptions = {debug: false, filename: 'leveldb.js'};
   c.odataServerLoggerOptions = {debug: false, filename: 'odataserver.js'};
+  c.mainLoggerOptions = {debug: false, filename: 'main.js'};
 
 
 

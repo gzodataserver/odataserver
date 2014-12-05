@@ -73,7 +73,7 @@ Development
 
 Load some test data with the script `./src-sql/init-mysql2.sh`
 
-Generate the documentation: `npm run-script docs`
+Generate the documentation: `npm run-script docco`
 
 
 MS SQL Server - WORK IN PROGRESS

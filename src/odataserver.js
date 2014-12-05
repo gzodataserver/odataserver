@@ -22,7 +22,7 @@
   var u = require('underscore');
 
   // Default no of rows to return
-  var defaultRowCount = 100;
+  var defaultRowCount = CONFIG.ODATA.DEFAULT_ROW_COUNT;
 
 
   //

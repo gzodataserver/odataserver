@@ -86,7 +86,7 @@ test('testing POST', function(test) {
     var req = http.request(this.options, function(res) {
       res.setEncoding('utf8');
 
-      test.ok(true, 'Did not receive what we expected.');
+      test.ok(true, 'In POST operation.');
 
       res.on('data', function(chunk) {
         data += chunk;
@@ -113,7 +113,7 @@ test('testing POST', function(test) {
         var req2 = http.request(options2, function(res) {
           res.setEncoding('utf8');
 
-          test.ok(true, 'Did not receive what we expected.');
+          test.ok(true, 'In GET operation fetching what we just POSTed');
 
           res.on('data', function(chunk) {
             data += chunk;

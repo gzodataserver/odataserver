@@ -8,8 +8,8 @@ var http = require('http');
 var argv = require('minimist')(process.argv.slice(2));
 var pd   = require('pretty-data').pd;
 
-var options = null, 
-    resultType = '', 
+var options = null,
+    resultType = '',
     usage='usage: node spec_example.js --help|--prodcuts|--metadata|--service [--ignore_status]';
 
 // Same as: `curl: http://services.odata.org/V3/OData/OData.svc/Products\?\$format=json`
@@ -62,14 +62,14 @@ if(argv.service) {
 
 if(argv.help) {
   console.log(usage);
-  return;  
+  return;
 }
 
-if (options == null) {
+if (options === null) {
   //console.dir(argv);
 
   console.log(usage);
-  return;  
+  return;
 }
 
 // Print the resutls

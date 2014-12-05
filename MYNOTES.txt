@@ -35,9 +35,12 @@ Columns:
  * URL for the HTML/JS code - in the form /accountid/b/[UUID]
 
 
-Apps needs to be loaded by JavaScript loaders, HeadJS, RequireJS, yepnope.js, LABjs, LAzyLoad,  AMD etc.
+Apps needs to be loaded by JavaScript loaders, HeadJS, RequireJS, yepnope.js,
+LABjs, LAzyLoad,  AMD etc.
 
- Data model updates needs to managed with special care for apps that are shared. Perhaps require the developers to build this into the apps. Probably easier if users are required to upgrade step by step for all major versions.
+ Data model updates needs to managed with special care for apps that are shared.
+ Perhaps require the developers to build this into the apps. Probably easier if
+ users are required to upgrade step by step for all major versions.
     - version X.1.0 -> X.1.1 minor update without data model changes
     - version X.1.y -> X.2.0 major update where data model changes are allowed
     - version 1.x.y -> 2.0.0 new generation, everything allowed
@@ -46,18 +49,22 @@ Apps needs to be loaded by JavaScript loaders, HeadJS, RequireJS, yepnope.js, LA
 Service Operations
 ==================
 
-Reserve /accountid/s/XXX for service operations. This can be anything but will mainly be used for calling
-stored procedures. GET and POST is allowed and GET should not have any side effects. Paramters should be included in the URL and should not begin with a $.
+Reserve /accountid/s/XXX for service operations. This can be anything but will
+mainly be used for calling stored procedures. GET and POST is allowed and GET
+should not have any side effects. Paramters should be included in the URL and
+should not begin with a $.
 
 
 Account ID:s
 ============
 
-Account ID:s are computed by taking the first 12 characters of a SHA-1 hash of the email adress. A secret random salt is added to make it a little harder to crack. The salt can also be used in case of collisions.
+Account ID:s are computed by taking the first 12 characters of a SHA-1 hash of
+the email adress. A secret random salt is added to make it a little harder to
+crack.
 
-The account ID is not secret but should be handled with care to avoid hacking attempts. It is only
-12 characters so it is possible to guess using brute force. Good passwords are the main protection
-against attacks.
+The account ID is not secret but should be handled with care to avoid hacking
+attempts. It is only 12 characters so it is possible to guess using brute
+force. Good passwords are the main protection against attacks.
 
     npm install jssha
 
@@ -171,13 +178,14 @@ CALL mysql.show_privs3();
 User model
 ==========
 
-All users needs to register with their email adress. An activation mail will be sent and
-an account id assigned. The account id is the schema name in MySQL. Apps allows users to collaborate.
-It is possible to invite friends and colegues to your app. These users will then
-get the activation mail and an account once the accept the invitation.
+All users needs to register with their email adress. An activation mail will be
+sent andan account id assigned. The account id is the schema name in MySQL.
+Apps allows users to collaborate. It is possible to invite friends and colegues
+to your app. These users will then get the activation mail and an account once
+  the accept the invitation.
 
-Each account has its own apps. These works on top of the database schema for the account.
-The apps are managed with a table _gz_sys_apps
+Each account has its own apps. These works on top of the database schema for the
+account. The apps are managed with a table _gz_sys_apps
 
 It will be possible to share apps between accounts (probaly a compiled version).
 A common app exchange will be developed. Apps will then be shared/published to this excahnge.

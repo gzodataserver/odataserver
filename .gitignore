@@ -1,5 +1,5 @@
-node_modules
-docs
 .DS_Store
+node_modules
+docco
 setenv
 mydb
