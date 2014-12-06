@@ -288,12 +288,12 @@ test('testing suite of functions, from create user to CRUD', function(test) {
   setTimeout(function() {
     var mysqlAdmin = new mysql.sqlAdmin(adminOptions);
     options.credentials.password = mysqlAdmin.resetPassword(accountId);
-    mysqlAdmin.pipe(process.stdout);
+    mysqlAdmin.pipe(bucket);
     log.debug('Password set to: ' + options.credentials.password);
 
     var mysqlAdmin2 = new mysql.sqlAdmin(adminOptions);
     options2.credentials.password = mysqlAdmin2.resetPassword(accountId2);
-    mysqlAdmin2.pipe(process.stdout);
+    mysqlAdmin2.pipe(bucket);
     log.debug('Password #2 set to: ' + options2.credentials.password);
 
     test.ok(true, 'set passwords');

@@ -1,5 +1,5 @@
 //
-// spec_example.js
+// odataSpec.js
 //
 // Run with: `npm install minimist pretty-data; node spec_example.js`
 //
