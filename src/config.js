@@ -103,7 +103,7 @@
   c.mysqlLoggerOptions = {debug: false, filename: 'mysql.js'};
   c.leveldbLoggerOptions = {debug: false, filename: 'leveldb.js'};
   c.odataServerLoggerOptions = {debug: false, filename: 'odataserver.js'};
-  c.mainLoggerOptions = {debug: false, filename: 'main.js'};
+  c.mainLoggerOptions = {debug: true, filename: 'main.js'};
 
 
 
