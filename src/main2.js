@@ -30,6 +30,7 @@ var log = new h.log0(CONFIG.mainLoggerOptions);
 // NOTE - Should also add leveldb
 var mysql = require('./mysql.js');
 
+var server;
 
 //
 // Start the OData server
@@ -81,4 +82,13 @@ exports.start = function() {
 
   log.log("Server is listening on port " + CONFIG.ODATA.PORT);
 
+};
+
+
+//
+// Stop the OData server
+// ---------------------
+
+exports.stop = function() {
+  server.close();
 };

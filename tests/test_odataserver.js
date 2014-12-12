@@ -24,20 +24,18 @@
  */
 
 var http = require("http");
-
 var test = require('tape');
 
-
-var defaultPort = 8080;
 var mysql = require('./../src/mysql.js');
 var CONFIG = require('../src/config.js');
 var odata = require('./../src/odataserver.js');
+var o2s = require('../src/odataserver.js');
 
 var h = require('../src/helpers.js');
 var log = new h.log0(CONFIG.testLoggerOptions);
 
+var defaultPort = CONFIG.ODATA.PORT;
 
-var o2s = require('../src/odataserver.js');
 
 var ic, c, server;
 

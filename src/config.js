@@ -22,7 +22,9 @@
     // The port that the server should bind to
     PORT: '9000',
     // Number of rows to return if nothing else is specified
-    DEFAULT_ROW_COUNT: 100
+    DEFAULT_ROW_COUNT: 100,
+    // Url for system operations - http(s)://HOST:PORT/SYS_PATH/[operation]
+    SYS_PATH: 's'
   };
 
 
