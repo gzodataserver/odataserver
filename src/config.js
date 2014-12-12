@@ -17,16 +17,30 @@
   //
 
   c.ODATA = {
-    // The IP/DNS of the OData server (used by the tests to connect)
-    HOST: 'localhost',
     // The port that the server should bind to
     PORT: '9000',
     // Number of rows to return if nothing else is specified
     DEFAULT_ROW_COUNT: 100,
     // Url for system operations - http(s)://HOST:PORT/SYS_PATH/[operation]
-    SYS_PATH: 's'
+    SYS_PATH: 's',
+    // Make sure that the backend works like sqlBase.js outlines if you change this
+    RDBMS_BACKEND: './mysql.js',
   };
 
+  // Some parameters user in the tests
+  // ---------------------------------
+  //
+
+  c.TEST = {
+    // The IP/DNS of the OData server
+    HOST: 'localhost',
+    // odata admin username - used in the tests (typically equals the admin user for the database)
+    ADMIN_USER: process.env.ADMIN_USER,
+    // odata admin password - used in the tests (typically equals the admin password for the database)
+    ADMIN_PASSWORD: process.env.ADMIN_PASSWORD,
+    // The IP/DNS of the OData server
+    EMAIL: 'test@gizur.com',
+  };
 
   // Account IDs are based email adresses
   // -------------------------------------
@@ -48,54 +62,37 @@
   };
 
 
-  // MySQL configuration
-  // -------------------
+  // RDBMS (MySQL and MSSQL) configuration
+  // ------------------------------------
 
   // These credentials are use to create new users. It can for instance be
   // the admin/root user, or you can also create a new user with only exactly
   // the needed priviledges for extra security
-  c.MYSQL = {
+  c.RDBMS = {
 
-    // MySQL admin/root username
+    // DB admin/root username
     ADMIN_USER: process.env.ADMIN_USER,
 
     // MySQL admin/root password
     ADMIN_PASSWORD: process.env.ADMIN_PASSWORD,
 
-    // MySQL host
+    // DB host
     DB_HOST: 'localhost',
 
     // MySQL port
-    DB_PORT: '3306'
+    DB_PORT: '3306',
 
-  };
+    // schema/database
+    DATABASE: 'mysql',
 
-
-  // MSSQL configuration
-  // -------------------
-
-  // These credentials are use to create new users. It can for instance use
-  // the sysadmin role, or you can also create a new user/role with only exactly
-  // the needed priviledges for extra security
-  c.MSSQL = {
-
-    // MySQL admin/root username
-    ADMIN_USER: process.env.ADMIN_USER,
-
-    // MySQL admin/root password
-    ADMIN_PASSWORD: process.env.ADMIN_PASSWORD,
-
-    DATABASE: 'XXX',
-
-    // MS SQL host
-    DB_HOST: 'localhost',
-
-    // options for mssql module
+    // used by mssql only - options for mssql module
     OPTIONS: {
       encrypt: false // Use this if you're on Windows Azure
     }
 
   };
+
+
 
 
   // Logging setup

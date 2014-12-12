@@ -26,6 +26,10 @@ var log = new h.log0(CONFIG.testLoggerOptions);
 var main = require('../src/main2.js');
 
 
+//
+// Helper for making http requests
+// -------------------------------
+
 var httpRequest = function(options, input, done) {
   var _data = '';
 
@@ -65,9 +69,50 @@ tap('setUp', function(test) {
 });
 
 
+// 1. Create a new account. An account ID will be returned, please note this:
+// `curl -X POST -v --data "{email: 'joe@example.com'}" http://[IP]:[PORT]/s/create_account`
 //
-// Test the arrayBucketStream
+// 2. Get a password for joe (this password will be sent by mail in the future):
+// `curl -X POST -v --data "{accountId: '3ea8f06baf64'}" http://[IP]:[PORT]/s/reset_password`
+
+//
+// Test create account
 // -----------------------
+
+tap('testing create_account', function(test) {
+
+  // operation to test
+  var options = {
+    hostname: CONFIG.ODATA.HOST,
+    port: CONFIG.ODATA.PORT,
+    method: 'POST',
+    path: '/'+CONFIG.ODATA.SYS_PATH+'/create_account',
+  };
+
+  var jsonInput = JSON.stringify({email: CONFIG.TEST.EMAIL});
+
+  test.plan(2);
+
+  httpRequest(options, jsonInput, function(data) {
+    //var jsonData = h.jsonParse(data);
+    test.assert(true, 'create_account');
+    test.end();
+  });
+
+  options.path = '/'+CONFIG.ODATA.SYS_PATH+'/reset_password';
+  jsonInput = JSON.stringify({});
+
+  httpRequest(options, jsonInput, function(data) {
+    //var jsonData = h.jsonParse(data);
+    test.assert(true, 'reset_password');
+    test.end();
+  });
+
+});
+
+//
+// Test create_table
+// ------------------
 
 tap('testing create_table', function(test) {
 
@@ -78,8 +123,8 @@ tap('testing create_table', function(test) {
     method: 'POST',
     path: '/'+CONFIG.ODATA.SYS_PATH+'/create_table',
     headers: {
-      user: 'userXX',
-      password: 'pwdXX'
+      user: CONFIG.RDBMS.ADMIN_USER,
+      password: CONFIG.RDBMS.ADMIN_PASSWORD
     }
   };
 
@@ -91,7 +136,6 @@ tap('testing create_table', function(test) {
     //var jsonData = h.jsonParse(data);
 
     test.assert(true, 'create_table');
-    //test.assert(jsonData === expected, 'create_table did not return what was expected');
     test.end();
 
   });

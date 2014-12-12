@@ -28,7 +28,7 @@ var h = require('./helpers.js');
 var log = new h.log0(CONFIG.mainLoggerOptions);
 
 // NOTE - Should also add leveldb
-var mysql = require('./mysql.js');
+var rdbms = require(CONFIG.ODATA.RDBMS_BACKEND);
 
 var server;
 
@@ -37,6 +37,10 @@ var server;
 // ---------------------
 
 exports.start = function() {
+
+
+  // handle request with odata server
+  var odataServer = new odata.ODataServer();
 
 
   // start http server
@@ -52,24 +56,23 @@ exports.start = function() {
               JSON.stringify(request.url) + " - " +
               JSON.stringify(request.headers) + ' - ' + a);
 
-    // handle request with odata server
-    //var odataServer = new odata.ODataServer();
-    //odataServer.main(request, response, mysql);
+    // Handle system operations
+    if(a[1] === CONFIG.ODATA.SYS_PATH) {
 
+      mysqlOps = ['create_account', 'reset_password', 'delete_account',
+                 'create_table', 'create_privs', 'drop_table', 'create_bucket',
+                  'drop_bucket' ]
 
+      // check if the request should be handled by the rdbms backend
+      if(mysqlOps.indexOf(a[2]) !== -1 ) {
+        log.debug(a[2]);
+        response.write(a[2]);
 
-    if(a[1] === 's') {
-
-      switch(a[2]) {
-
-        case 'create_table':
-          log.debug('create_table');
-          response.write('create_table');
-          break;
-
-        default:
-          log.debug('unknow operation: '+a[2]);
-          response.write('unknow operation: '+a[2]);
+        odataServer.main(request, response, rdbms);
+      }
+      else {
+        log.debug('unknow operation: '+a[2]);
+        response.write('unknow operation: '+a[2]);
       }
 
       response.end();

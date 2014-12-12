@@ -11,8 +11,11 @@ Copy `src/setenv.template` to `src/setenv` and update with the database
 credentials. An admin user with privileges to create tables, users etc. is
 needed for these features to work.
 
+Run the tests to make sure everything is ok: `npm install; npm test`.
+
 The simplest way to start the server is: `npm start`. First you need install
-the node modules though: `npm install` A MySQL server needs to be running on
+the node modules though: `npm install` (if you didn't run the tests above).
+A MySQL server needs to be running on
 the same host and port 80 must not be in use. Also the `ADMIN_USER` and
 `ADMIN_PASSWORD` environment variables needs to be set.
 

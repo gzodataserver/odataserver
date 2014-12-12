@@ -493,8 +493,8 @@
 
           var adminOptions = {
             credentials: {
-              user: CONFIG.MYSQL.ADMIN_USER,
-              password: CONFIG.MYSQL.ADMIN_PASSWORD
+              user: CONFIG.RDBMS.ADMIN_USER,
+              password: CONFIG.RDBMS.ADMIN_PASSWORD
             },
             closeStream: true
           };

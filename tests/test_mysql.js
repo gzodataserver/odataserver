@@ -63,9 +63,9 @@ var options2 = {
 // user for admin operatioons (creating/deleting user etc.)
 var adminOptions = {
   credentials: {
-    user: CONFIG.MYSQL.ADMIN_USER,
-    password: CONFIG.MYSQL.ADMIN_PASSWORD,
-    database: 'mysql'
+    user: CONFIG.RDBMS.ADMIN_USER,
+    password: CONFIG.RDBMS.ADMIN_PASSWORD,
+    database: CONFIG.RDBMS.DATABASE
   },
   closeStream: false
 };
