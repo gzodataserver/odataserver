@@ -166,7 +166,7 @@ test('testing etag', function(test) {
     'key1': 'val1',
     'key2': 'val2'
   });
-  test.deepEqual(o, expected, 'ETAG not what we expected');
+  test.deepEqual(o, expected, 'Check ETAG');
   test.end();
 });
 
@@ -314,7 +314,7 @@ test('testing simple GET', function(test) {
     res.on('end', function() {
       var jsonData = h.jsonParse(data);
 
-      test.deepEqual(jsonData, expected, 'GET did not return what was expected');
+      test.deepEqual(jsonData, expected, 'Check JSON from GET ');
       test.end();
     });
   });
