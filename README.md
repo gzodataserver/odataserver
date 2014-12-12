@@ -7,7 +7,7 @@ Simple OData server for MySQL
 Usage
 ======
 
-Copy `src/config.template.js` to `src/config.js` and update with the database
+Copy `src/setenv.template` to `src/setenv` and update with the database
 credentials. An admin user with privileges to create tables, users etc. is
 needed for these features to work.
 
