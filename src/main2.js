@@ -59,14 +59,13 @@ exports.start = function() {
     // Handle system operations
     if(a[1] === CONFIG.ODATA.SYS_PATH) {
 
-      mysqlOps = ['create_account', 'reset_password', 'delete_account',
+      adminOps = ['create_account', 'reset_password', 'delete_account',
                  'create_table', 'create_privs', 'drop_table', 'create_bucket',
-                  'drop_bucket' ]
+                  'drop_bucket' ];
 
       // check if the request should be handled by the rdbms backend
-      if(mysqlOps.indexOf(a[2]) !== -1 ) {
-        log.debug(a[2]);
-        response.write(a[2]);
+      if(adminOps.indexOf(a[2]) !== -1 ) {
+        log.debug('Processing operation: '+a[2]);
 
         odataServer.main(request, response, rdbms);
       }

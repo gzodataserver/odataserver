@@ -289,6 +289,17 @@
       throw new Error('Pathname should be in the form /schema/table, not ' + parsedURL.pathname);
     }
 
+
+    // check for admin operations
+    adminOps = ['create_account', 'reset_password', 'delete_account',
+    'create_table', 'create_privs', 'drop_table', 'create_bucket',
+    'drop_bucket' ];
+
+    if(adminOps.indexOf(a[2]) !== -1 ) {
+      result.query_type = a[2];
+      return result;
+    }
+
     // indexing with table(x) not supported
     if (result.table.indexOf('(') > -1) {
       throw new Error('The form /schema/entity(key) is not supported. Use $filter instead.');
@@ -439,11 +450,19 @@
   exports.ODataServer.prototype.main = function(request, response, odataBackend) {
     log.debug('In main ...');
 
-    // Check the MySQL credentials have been supplied
-    if (!checkCredentials(request, response)) {
+    // Parse the Uri
+    var uriParser = new exports.ODataUri2Sql();
+    var odataRequest = uriParser.parseUri(request.url, request.method);
 
-      writeError(response, "Invalid credentials, user or password missing " +
-        JSON.stringify(request.headers));
+    // Check the MySQL credentials have been supplied, not required when
+    // creating a new account though
+    if (odataRequest.query_type != 'create_account' &&
+        odataRequest.query_type != 'reset_password' &&
+        !checkCredentials(request, response)) {
+
+      writeError(response, "Invalid credentials, user or password missing. "+
+                           "URL: "+request.url+
+                           ", headers: "+JSON.stringify(request.headers) + " TYPE:"+odataRequest.query_type);
 
       return;
     }
@@ -475,8 +494,6 @@
           var jsonData = null;
           if (data !== '') jsonData = h.jsonParse(data);
 
-          var uriParser = new exports.ODataUri2Sql();
-          var odataRequest = uriParser.parseUri(request.url, request.method);
           var mysqlAdmin,
             accountId = request.headers.user,
             password = request.headers.password;
@@ -509,10 +526,15 @@
 
           switch (odataRequest.query_type) {
 
-            case 'create_user':
+            case 'create_account':
               mysqlAdmin = new odataBackend.sqlAdmin(adminOptions);
-              log.log('Create new user...');
-              mysqlAdmin.new(accountId);
+
+              // calculate accountId from email
+              var newAccountId = h.email2accountId(jsonData.email);
+
+              log.debug('Create new account: '+newAccountId+', data: '+data);
+
+              mysqlAdmin.new(newAccountId);
               mysqlAdmin.pipe(response);
               break;
 

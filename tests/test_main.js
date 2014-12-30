@@ -37,6 +37,7 @@ var httpRequest = function(options, input, done) {
     res.setEncoding('utf8');
 
     res.on('data', function(chunk) {
+      log.debug('httpRequest:data:'+chunk);
       _data += chunk;
     });
 
@@ -91,14 +92,16 @@ tap('testing create_account', function(test) {
 
   var jsonInput = JSON.stringify({email: CONFIG.TEST.EMAIL});
 
-  test.plan(2);
+  test.plan(1);
 
   httpRequest(options, jsonInput, function(data) {
     //var jsonData = h.jsonParse(data);
+    log.debug('Received: '+data);
     test.assert(true, 'create_account');
     test.end();
   });
 
+/*
   options.path = '/'+CONFIG.ODATA.SYS_PATH+'/reset_password';
   jsonInput = JSON.stringify({});
 
@@ -107,6 +110,7 @@ tap('testing create_account', function(test) {
     test.assert(true, 'reset_password');
     test.end();
   });
+*/
 
 });
 
@@ -114,6 +118,7 @@ tap('testing create_account', function(test) {
 // Test create_table
 // ------------------
 
+/*
 tap('testing create_table', function(test) {
 
   // operation to test
@@ -141,11 +146,13 @@ tap('testing create_table', function(test) {
   });
 
 });
+*/
 
 //
 // Stop the odata server
 // -----------------------------
 
+/*
 tap('tearDown', function(test) {
   // setup here
 
@@ -154,3 +161,5 @@ tap('tearDown', function(test) {
   // setup finished
   test.end();
 });
+
+*/

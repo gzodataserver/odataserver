@@ -66,22 +66,34 @@
 
   // helper for running SQL queries. `resultFunc` determines what should happen
   // with the result
-  var runQuery = function(conn, sql, resultFunc, endFunc) {
+  var runQuery = function(conn, sql, resultFunc, endFunc, errFunc) {
     var self = this;
     log.debug('runQuery sql ('+conn.config.user+'): ' + sql);
 
+    conn.on('error', function(err) {
+      log.log('runQuery error in MySQL connection: '+err.code); // 'ER_BAD_DB_ERROR'
+    });
+
     // connect to the mysql server using the connection created in init
     conn.connect();
-    // pipe the result to hte result stream provided
+    // pipe the result to the result stream provided
+
+    log.debug('conn.query(sql);');
     var query = conn.query(sql);
+    log.debug('after conn.query(sql);');
 
     query
+      .on('fields', function(fields) {
+        log.debug('fields: ' + JSON.stringify(fields));
+      })
       .on('result', function(row) {
         resultFunc(row);
         log.debug('runQuery result: ' + JSON.stringify(row));
       })
       .on('error', function(err) {
         log.log('runQuery error: ' + err);
+        if(errFunc !== undefined) errFunc(err);
+        log.debug('after errFunc(err)');
       })
       .on('end', function() {
         log.debug('runQuery end.');
@@ -94,7 +106,7 @@
   var mysqlBase = function(credentials) {
     var self = this;
     log.debug('mysqlBase constructor');
-    credentials.host = CONFIG.MYSQL.DB_HOST;
+    credentials.host = CONFIG.RDBMS.DB_HOST;
     self.connection = mysql.createConnection(credentials);
     self.sql = null;
     log.debug('mysqlBase options:'+JSON.stringify(credentials)+
@@ -107,10 +119,18 @@
     log.debug('mysqlBase.pipe: '+self.sql);
     runQuery(self.connection, self.sql,
       function(row) {
+        log.debug('pipe result: '+JSON.stringify(self.options));
         writeStream.write(JSON.stringify(row));
       },
       function() {
+        log.debug('pipe end: '+JSON.stringify(self.options));
         self.connection.end();
+        if (self.options.closeStream) writeStream.end();
+      },
+      function(err) {
+        log.debug('pipe error: '+JSON.stringify(self.options));
+        writeStream.write(JSON.stringify({error:err}));
+        //self.connection.end();
         if (self.options.closeStream) writeStream.end();
       }
     );
@@ -190,7 +210,7 @@
     Writable.call(this);
 
     self.options = options;
-    self.options.credentials.host = CONFIG.MYSQL.DB_HOST;
+    self.options.credentials.host = CONFIG.RDBMS.DB_HOST;
 
     self.connection = mysql.createConnection(self.options.credentials);
 //    self.database = options.database;
@@ -311,7 +331,7 @@
   // get MySQL credentials for the object
   exports.sqlAdmin.prototype.getCredentials = function(password) {
     return {
-      host: CONFIG.MYSQL.HOST,
+      host: CONFIG.RDBMS.HOST,
       database: self.options.accountId,
       user: self.options.accountId,
       password: password
