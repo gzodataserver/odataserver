@@ -118,17 +118,20 @@
     var self = this;
     log.debug('mysqlBase.pipe: '+self.sql);
     runQuery(self.connection, self.sql,
+      // result func
       function(row) {
-        log.debug('pipe result: '+JSON.stringify(self.options));
+        log.debug('pipe result: '+JSON.stringify(self.options.credentials));
         writeStream.write(JSON.stringify(row));
       },
+      // end func
       function() {
-        log.debug('pipe end: '+JSON.stringify(self.options));
+        log.debug('pipe end: '+JSON.stringify(self.options.credentials));
         self.connection.end();
         if (self.options.closeStream) writeStream.end();
       },
+      // error func
       function(err) {
-        log.debug('pipe error: '+JSON.stringify(self.options));
+        log.debug('pipe error: '+JSON.stringify(self.options.credentials));
         writeStream.write(JSON.stringify({error:err}));
         //self.connection.end();
         if (self.options.closeStream) writeStream.end();
