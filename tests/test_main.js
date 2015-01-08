@@ -34,6 +34,8 @@ var httpRequest = function(options, input, done) {
   var _data = '';
 
   var req = http.request(options, function(res) {
+    log.debug('status code:' + res.statusCode + ', headers: '+ JSON.stringify(res.headers));
+
     res.setEncoding('utf8');
 
     res.on('data', function(chunk) {

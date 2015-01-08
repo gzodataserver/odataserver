@@ -79,6 +79,7 @@
     // pipe the result to the result stream provided
 
     log.debug('conn.query(sql);');
+
     var query = conn.query(sql);
     log.debug('after conn.query(sql);');
 
@@ -117,6 +118,7 @@
   mysqlBase.prototype.pipe = function(writeStream) {
     var self = this;
     log.debug('mysqlBase.pipe: '+self.sql);
+
     runQuery(self.connection, self.sql,
       // result func
       function(row) {
