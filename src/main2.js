@@ -32,12 +32,13 @@ var rdbms = require(CONFIG.ODATA.RDBMS_BACKEND);
 
 var server;
 
+
+
 //
 // Start the OData server
 // ---------------------
 
 exports.start = function() {
-
 
   // handle request with odata server
   var odataServer = new odata.ODataServer();
@@ -51,10 +52,13 @@ exports.start = function() {
     var parsedURL = url.parse(request.url, true, false);
     var a = parsedURL.pathname.split("/");
 
-    log.log("Processing request: " +
-              JSON.stringify(request.method) + " - " +
-              JSON.stringify(request.url) + " - " +
-              JSON.stringify(request.headers) + ' - ' + a);
+    var str = "Processing request: " +
+      JSON.stringify(request.method) + " - " +
+      JSON.stringify(request.url) + " - " +
+      JSON.stringify(request.headers) + ' - ' + a;
+
+    log.log(str);
+    h.fireProbe(str);
 
     // Handle system operations
     if(a[1] === CONFIG.ODATA.SYS_PATH) {
@@ -74,9 +78,9 @@ exports.start = function() {
         response.write('unknow operation: '+a[2]);
       }
 
-      response.end();
-
     }
+
+    // NOTE: The response object should not be closed explicitly here
 
   });
 

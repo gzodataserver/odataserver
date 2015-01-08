@@ -101,3 +101,19 @@ mysql*:::*row-done
     "-",
     strtok("-","?"), probeprov, probemod, probefunc, probename );
 }
+
+
+// The odataserver probe will emit JOSN formatted data
+nodeapp*:::probe{
+	printf("[%3d.%06d] %6d %-6s -- %4d.%-03dms %-6s %-20s %s\n",
+		(timestamp-start)/NANOSEC,
+		(timestamp-start)%NANOSEC/1000,
+		pid,
+		"odata",
+		(timestamp-last_rqstarts)/MICROSEC,
+		((timestamp-last_rqstarts)%MICROSEC)/1000,
+		"-",
+		strtok("-","?"), copyinstr(arg0) );
+
+
+}

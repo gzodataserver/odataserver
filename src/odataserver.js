@@ -18,6 +18,7 @@
   var h = require('./helpers.js');
   var CONFIG = require('./config.js');
   var log = new h.log0(CONFIG.odataServerLoggerOptions);
+  var StringDecoder = require('string_decoder').StringDecoder;
 
   var u = require('underscore');
 
@@ -417,14 +418,28 @@
   //  * CRUD operations
   //
 
+  var writeResponse = function(response, jsonData) {
+
+    response.writeHead(200, {
+      "Content-Type": "application/json"
+    });
+
+    odataResult = { d: {results: jsonData} };
+    response.write(JSON.stringify(odataResult));
+    response.end();
+  }
+
   // Respond with 406 and end the connection
   var writeError = function(response, err) {
     // Should return 406 when failing
     // http://www.odata.org/documentation/odata-version-2-0/operations/
+
+    odataResult = { d: {error: err.toString() } };
+
     response.writeHead(406, {
       "Content-Type": "application/json"
     });
-    response.write(err.toString() + '\n');
+    response.write(JSON.stringify(odataResult));
     response.end();
 
     log.log(err.toString());
@@ -450,12 +465,13 @@
   exports.ODataServer.prototype.main = function(request, response, odataBackend) {
     log.debug('In main ...');
 
+
     // Parse the Uri
     var uriParser = new exports.ODataUri2Sql();
     var odataRequest = uriParser.parseUri(request.url, request.method);
 
     // Check the MySQL credentials have been supplied, not required when
-    // creating a new account though
+    // creating a new account ore resetting password though
     if (odataRequest.query_type != 'create_account' &&
         odataRequest.query_type != 'reset_password' &&
         !checkCredentials(request, response)) {
@@ -478,21 +494,43 @@
     // save input from POST and PUT here
     var data = '';
 
+
     request
+      // read the data in the stream, if there is any
+      .on('error', function(err) {
+
+        var str ="Error in http input stream: "+err+
+          ", URL: "+request.url+
+          ", headers: "+JSON.stringify(request.headers) + " TYPE:"+odataRequest.query_type;
+
+        log.log(str);
+        writeError(response, str);
+      })
+
       // read the data in the stream, if there is any
       .on('data', function(chunk) {
         log.debug('Receiving data');
         data += chunk;
       })
+
+      // request closed,
+      .on('close', function() {
+        log.debug('http request closed.');
+      })
+
       // request closed, process it
       .on('end', function() {
+
         log.debug('End of data');
 
         try {
 
           // parse odata payload into JSON object
           var jsonData = null;
-          if (data !== '') jsonData = h.jsonParse(data);
+          if (data !== '') {
+            jsonData = h.jsonParse(data);
+            log.debug('Data received: ' + JSON.stringify(jsonData) );
+          }
 
           var mysqlAdmin,
             accountId = request.headers.user,
@@ -524,7 +562,13 @@
           // query_type: create_user | set_password | delete_user
           // query_type: service_def | create_table | delete_table | select | insert | delete,
 
+          var decoder = new StringDecoder('utf8');
+          var bucket = new h.arrayBucketStream();
+          var odataResult = {};
+
           switch (odataRequest.query_type) {
+
+//  NOTE: should check request.method
 
             case 'create_account':
               mysqlAdmin = new odataBackend.sqlAdmin(adminOptions);
@@ -532,29 +576,43 @@
               // calculate accountId from email
               var newAccountId = h.email2accountId(jsonData.email);
 
-              log.debug('Create new account: '+newAccountId+', data: '+data);
-
               mysqlAdmin.new(newAccountId);
-              mysqlAdmin.pipe(response);
+              mysqlAdmin.pipe(bucket,
+                function() {
+                  odataResult.email = jsonData.email;
+                  odataResult.accountId = newAccountId.accountId;
+                  odataResult.rdbms_response = decoder.write(bucket.get());
+                  writeResponse(response, odataResult);
+                },
+                function(err) {
+                  writeError(response, err);
+                }
+              );
+
               break;
 
-            case 'set_password':
+            case 'reset_password':
               mysqlAdmin = new odataBackend.sqlAdmin(adminOptions);
-              var password2 = mysqlAdmin.resetPassword(accountId);
-              mysqlAdmin.pipe(response);
+              var password = mysqlAdmin.resetPassword(jsonData.accountId);
 
-              log.log('Password set to: ' + password2);
+              mysqlAdmin.pipe(bucket, function() {
+                odataResult.accountId = jsonData.accountId;
+                odataResult.password = password;
+                odataResult.rdbms_response = decoder.write(bucket.get());
+                writeResponse(response, odataResult);
+              });
+
+              log.log('Password for '+jsonData.accountId+' is set to ' + password);
               break;
 
-            case 'delete_user':
+            case 'delete_account':
               mysqlAdmin = new odataBackend.sqlAdmin(adminOptions);
-              log.log('Drop the new user...');
               mysqlAdmin.delete(accountId);
+
               mysqlAdmin.pipe(response);
               break;
 
             case 'grant':
-              log.debug('Grant privs to table1 to user #2');
               mysqlAdmin = new odataBackend.sqlAdmin(options);
               mysqlAdmin.grant('table1', accountId2);
               mysqlAdmin.pipe(response);
@@ -610,12 +668,13 @@
               break;
 
             default:
-              response.write('Internal error, query_type: ' + odataRequest.query_type);
+              writeError(response, 'Error, unknown query_type: ' + odataRequest.query_type);
           }
 
         } catch (e) {
           writeError(response, e);
         }
+
 
       });
 

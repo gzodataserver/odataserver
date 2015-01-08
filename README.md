@@ -79,6 +79,17 @@ Load some test data with the script `./src-sql/init-mysql2.sh`
 Generate the documentation: `npm run-script docco`
 
 
+
+dtrace
+======
+
+The excellent tool `dtrace` can be used for tracing and debugging purposes.
+Node and mysql has built in probes, see [howto use](tests/DTRACE.md).
+
+The odata probes are viewed like this:
+`sudo dtrace -Z -n 'nodeapp*:::probe{ trace(copyinstr(arg0)); }'``
+
+
 MS SQL Server - WORK IN PROGRESS
 =================================
 

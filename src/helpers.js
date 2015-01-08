@@ -387,6 +387,29 @@
     }
   };
 
+
+  //
+  // Setup dtrace
+  // -------------
+  // View probe: `sudo dtrace -Z -n 'nodeapp*:::probe{ trace(copyinstr(arg0)); }'`
+
+
+  if (CONFIG.enableDtrace) {
+    var dtrace = require('dtrace-provider');
+    var dtp = dtrace.createDTraceProvider("nodeapp");
+    var p1 = dtp.addProbe("probe", "char *");
+    dtp.enable();
+  }
+
+  h.fireProbe = function(data) {
+    if (CONFIG.enableDtrace) {
+      dtp.fire("probe", function(p) {
+        return [data, "odataserver"];
+      });
+    }
+  }
+
+
   // Exports
   // =======
 

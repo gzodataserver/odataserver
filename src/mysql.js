@@ -66,7 +66,7 @@
 
   // helper for running SQL queries. `resultFunc` determines what should happen
   // with the result
-  var runQuery = function(conn, sql, resultFunc, endFunc, errFunc) {
+  var runQuery = function(conn, sql, resultFunc, endFunc, errFunc, fieldsFunc) {
     var self = this;
     log.debug('runQuery sql ('+conn.config.user+'): ' + sql);
 
@@ -86,6 +86,7 @@
     query
       .on('fields', function(fields) {
         log.debug('fields: ' + JSON.stringify(fields));
+        if(fieldsFunc !== undefined) fieldsFunc(fields);
       })
       .on('result', function(row) {
         resultFunc(row);
@@ -115,7 +116,7 @@
   };
 
   // Write results into a stream
-  mysqlBase.prototype.pipe = function(writeStream) {
+  mysqlBase.prototype.pipe = function(writeStream, endFunc, errFunc) {
     var self = this;
     log.debug('mysqlBase.pipe: '+self.sql);
 
@@ -130,15 +131,29 @@
         log.debug('pipe end: '+JSON.stringify(self.options.credentials));
         self.connection.end();
         if (self.options.closeStream) writeStream.end();
+        if(endFunc !== undefined) endFunc();
       },
       // error func
       function(err) {
         log.debug('pipe error: '+JSON.stringify(self.options.credentials));
+
+        if (writeStream.writeHead !== undefined)
+          writeStream.writeHead(406, {"Content-Type": "application/json"});
+
         writeStream.write(JSON.stringify({error:err}));
         //self.connection.end();
         if (self.options.closeStream) writeStream.end();
-      }
-    );
+        if(errFunc !== undefined) errFunc(err);
+      },
+      // fields (header) func
+      function(fields) {
+        log.debug('fields: '+JSON.stringify(fields));
+
+        if (writeStream.writeHead !== undefined)
+          writeStream.writeHead(200, {"Content-Type": "application/json"});
+
+        }
+      );
   };
 
   // Close the MySQL connection
