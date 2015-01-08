@@ -46,7 +46,7 @@ var httpRequest = function(options, input, done) {
     });
 
     res.on('end', function() {
-      done(_data);
+      done(_data, res.statusCode);
     });
   });
 
@@ -83,8 +83,8 @@ tap('setUp', function(test) {
 // `curl -X POST -v --data "{accountId: '3ea8f06baf64'}" http://[IP]:[PORT]/s/reset_password`
 
 //
-// Test create account
-// -----------------------
+// Test create account and reset password
+// --------------------------------------
 
 tap('testing create_account and reset_password', function(test) {
 
@@ -100,16 +100,15 @@ tap('testing create_account and reset_password', function(test) {
 
   test.plan(2);
 
-  httpRequest(options, jsonInput, function(data) {
+  httpRequest(options, jsonInput, function(data, statusCode) {
     var jsonData = h.jsonParse(data);
     log.debug('Received: '+data);
-    test.assert(true, 'create_account');
-
+    test.assert(statusCode === 200, 'create_account');
 
     options.path = '/'+CONFIG.ODATA.SYS_PATH+'/reset_password';
     jsonInput = JSON.stringify({accountId: accountId});
 
-    httpRequest(options, jsonInput, function(data) {
+    httpRequest(options, jsonInput, function(data, statusCode) {
       var jsonData = h.jsonParse(data);
       log.debug('Received: '+data);
 
@@ -118,7 +117,7 @@ tap('testing create_account and reset_password', function(test) {
         log.debug('Received password:'+password);
       }
 
-      test.assert(true, 'reset_password');
+      test.assert(statusCode === 200, 'reset_password');
       test.end();
     });
 
@@ -126,6 +125,74 @@ tap('testing create_account and reset_password', function(test) {
 
 
 });
+
+
+
+//
+// Test tables
+// ------------------
+
+
+tap('testing create_table', function(test) {
+
+  // operation to test
+  var options = {
+    hostname: CONFIG.ODATA.HOST,
+    port: CONFIG.ODATA.PORT,
+    method: 'POST',
+    path: '/'+CONFIG.ODATA.SYS_PATH+'/create_table',
+    headers: {
+      user: accountId,
+      password: password
+    }
+  };
+
+  var tableDef = JSON.stringify({tableDef: {table_name: 'mytable', columns: ['col1 int','col2 varchar(255)']}});
+
+  test.plan(1);
+
+  httpRequest(options, tableDef, function(data, statusCode) {
+    var jsonData = h.jsonParse(data);
+    log.debug('Received: '+data);
+    test.assert(statusCode === 200, 'create_table');
+    test.end();
+
+  });
+
+});
+
+
+
+tap('testing service_def', function(test) {
+
+  // operation to test
+  var options = {
+    hostname: CONFIG.ODATA.HOST,
+    port: CONFIG.ODATA.PORT,
+    method: 'GET',
+    path: '/'+CONFIG.ODATA.SYS_PATH+'/service_def',
+    headers: {
+      user: accountId,
+      password: password
+    }
+  };
+
+  test.plan(1);
+
+  httpRequest(options, null, function(data, statusCode) {
+    var jsonData = h.jsonParse(data);
+    log.debug('Received: '+data);
+    test.assert(true, 'service_def');
+    test.end();
+
+  });
+
+});
+
+
+//
+// Cleanup
+// ------------------
 
 
 tap('testing delete_account', function(test) {
@@ -146,51 +213,14 @@ tap('testing delete_account', function(test) {
 
   test.plan(1);
 
-  httpRequest(options, jsonInput, function(data) {
+  httpRequest(options, jsonInput, function(data, statusCode) {
     //var jsonData = h.jsonParse(data);
     log.debug('Received: '+data);
-    test.assert(true, 'delete_account');
+    test.assert(statusCode === 200, 'delete_account');
     test.end();
   });
 
 });
-
-
-
-//
-// Test create_table
-// ------------------
-
-/*
-tap('testing create_table', function(test) {
-
-  // operation to test
-  var options = {
-    hostname: CONFIG.ODATA.HOST,
-    port: CONFIG.ODATA.PORT,
-    method: 'POST',
-    path: '/'+CONFIG.ODATA.SYS_PATH+'/create_table',
-    headers: {
-      user: CONFIG.RDBMS.ADMIN_USER,
-      password: CONFIG.RDBMS.ADMIN_PASSWORD
-    }
-  };
-
-  var tableDef = JSON.stringify({table_name: 'mytable', columns: ['col1 int','col2 varchar(255)']});
-
-  test.plan(1);
-
-  httpRequest(options, tableDef, function(data) {
-    //var jsonData = h.jsonParse(data);
-
-    test.assert(true, 'create_table');
-    test.end();
-
-  });
-
-});
-*/
-
 //
 // Stop the odata server
 // -----------------------------

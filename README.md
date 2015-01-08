@@ -76,8 +76,10 @@ Development
 
 Load some test data with the script `./src-sql/init-mysql2.sh`
 
-Generate the documentation: `npm run-script docco`
+Run the extended test suite that depends on the data loaded above:
+`npm run-script test2`
 
+Generate the documentation: `npm run-script docco`
 
 
 dtrace

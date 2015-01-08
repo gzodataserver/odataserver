@@ -410,6 +410,52 @@
   }
 
 
+  //
+  // HTTP response
+  // -------------
+
+  // Respond with 200 and the result
+  h.writeResponse = function(response, jsonData) {
+
+    response.writeHead(200, {
+      "Content-Type": "application/json"
+    });
+
+    odataResult = { d: {results: jsonData} };
+    response.write(JSON.stringify(odataResult));
+    response.end();
+  }
+
+  // Respond with 406 and end the connection
+  h.writeError = function(response, err) {
+    // Should return 406 when failing
+    // http://www.odata.org/documentation/odata-version-2-0/operations/
+
+    odataResult = { d: {error: err.toString() } };
+
+    response.writeHead(406, {
+      "Content-Type": "application/json"
+    });
+    response.write(JSON.stringify(odataResult));
+    response.end();
+
+    log.log(err.toString());
+  };
+
+  // check that the request contains user and password headers
+  h.checkCredentials = function(request, response) {
+
+    log.debug('Checking credentials: ' + JSON.stringify(request.headers));
+
+    // Check that the request is ok
+    return !( !request.headers.hasOwnProperty('user') ||
+    !request.headers.hasOwnProperty('password') ) ;
+
+  };
+
+
+
+
   // Exports
   // =======
 

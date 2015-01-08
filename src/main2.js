@@ -64,7 +64,7 @@ exports.start = function() {
     if(a[1] === CONFIG.ODATA.SYS_PATH) {
 
       adminOps = ['create_account', 'reset_password', 'delete_account',
-                 'create_table', 'create_privs', 'drop_table', 'create_bucket',
+                 'create_table', 'service_def', 'create_privs', 'drop_table', 'create_bucket',
                   'drop_bucket' ];
 
       // check if the request should be handled by the rdbms backend
@@ -75,7 +75,8 @@ exports.start = function() {
       }
       else {
         log.debug('unknow operation: '+a[2]);
-        response.write('unknow operation: '+a[2]);
+        h.writeError(response,'unknow operation: '+a[2]);
+        response.end();
       }
 
     }

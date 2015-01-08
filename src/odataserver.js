@@ -293,7 +293,7 @@
 
     // check for admin operations
     adminOps = ['create_account', 'reset_password', 'delete_account',
-    'create_table', 'create_privs', 'drop_table', 'create_bucket',
+    'create_table', 'service_def', 'create_privs', 'drop_table', 'create_bucket',
     'drop_bucket' ];
 
     if(adminOps.indexOf(a[2]) !== -1 ) {
@@ -418,44 +418,6 @@
   //  * CRUD operations
   //
 
-  var writeResponse = function(response, jsonData) {
-
-    response.writeHead(200, {
-      "Content-Type": "application/json"
-    });
-
-    odataResult = { d: {results: jsonData} };
-    response.write(JSON.stringify(odataResult));
-    response.end();
-  }
-
-  // Respond with 406 and end the connection
-  var writeError = function(response, err) {
-    // Should return 406 when failing
-    // http://www.odata.org/documentation/odata-version-2-0/operations/
-
-    odataResult = { d: {error: err.toString() } };
-
-    response.writeHead(406, {
-      "Content-Type": "application/json"
-    });
-    response.write(JSON.stringify(odataResult));
-    response.end();
-
-    log.log(err.toString());
-  };
-
-  // check that the request contains user and password headers
-  var checkCredentials = function(request, response) {
-
-    log.debug('Checking credentials: ' + JSON.stringify(request.headers));
-
-    // Check that the request is ok
-    return !( !request.headers.hasOwnProperty('user') ||
-              !request.headers.hasOwnProperty('password') ) ;
-
-  };
-
   // empty constructor
   exports.ODataServer = function() {
     log.debug('new ODataServer');
@@ -474,9 +436,9 @@
     // creating a new account ore resetting password though
     if (odataRequest.query_type != 'create_account' &&
         odataRequest.query_type != 'reset_password' &&
-        !checkCredentials(request, response)) {
+        !h.checkCredentials(request, response)) {
 
-      writeError(response, "Invalid credentials, user or password missing. "+
+      h.writeError(response, "Invalid credentials, user or password missing. "+
                            "URL: "+request.url+
                            ", headers: "+JSON.stringify(request.headers) + " TYPE:"+odataRequest.query_type);
 
@@ -488,7 +450,7 @@
         request.method == 'POST' ||
         request.method == 'DELETE')) {
 
-      writeError(response, request.method + ' not supported.');
+      h.writeError(response, request.method + ' not supported.');
     }
 
     // save input from POST and PUT here
@@ -566,51 +528,67 @@
           var bucket = new h.arrayBucketStream();
           var odataResult = {};
 
+          // operations performed with the sqlAdmin object
+          if( adminOps.indexOf(odataRequest.query_type) !== -1) {
+
+            log.debug('Performing sqlAdmin operation');
+
+             mysqlAdmin = new odataBackend.sqlAdmin(adminOptions);
+
+            var email = '';
+            if (odataRequest.query_type === 'create_account') {
+              // calculate accountId from email
+              accountId = h.email2accountId(jsonData.email);
+              email = jsonData.email;
+              mysqlAdmin.new(accountId);
+            }
+
+            var password;
+            if (odataRequest.query_type === 'reset_password') {
+              password = mysqlAdmin.resetPassword(jsonData.accountId);
+            }
+
+            if (odataRequest.query_type === 'delete_account') {
+              mysqlAdmin.delete(accountId);
+            }
+
+            if (odataRequest.query_type === 'service_def') {
+              mysqlAdmin.serviceDef(accountId);
+            }
+
+            mysqlAdmin.pipe(bucket,
+              function() {
+                odataResult.email = email;
+                odataResult.accountId = accountId;
+
+                if (odataRequest.query_type === 'reset_password')
+                  odataResult.password = password;
+
+                // The RDBMS response is JSON but it is not parsed since that
+                // sometimes fails (reason unknown)
+                odataResult.rdbms_response = decoder.write(bucket.get());
+
+                h.writeResponse(response, odataResult);
+              },
+              function(err) {
+                h.writeError(response, err);
+              }
+            );
+
+
+          }
+
           switch (odataRequest.query_type) {
 
 //  NOTE: should check request.method
 
+            // Moved out of switch
             case 'create_account':
-              mysqlAdmin = new odataBackend.sqlAdmin(adminOptions);
-
-              // calculate accountId from email
-              var newAccountId = h.email2accountId(jsonData.email);
-
-              mysqlAdmin.new(newAccountId);
-              mysqlAdmin.pipe(bucket,
-                function() {
-                  odataResult.email = jsonData.email;
-                  odataResult.accountId = newAccountId.accountId;
-                  odataResult.rdbms_response = decoder.write(bucket.get());
-                  writeResponse(response, odataResult);
-                },
-                function(err) {
-                  writeError(response, err);
-                }
-              );
-
-              break;
-
             case 'reset_password':
-              mysqlAdmin = new odataBackend.sqlAdmin(adminOptions);
-              var password = mysqlAdmin.resetPassword(jsonData.accountId);
-
-              mysqlAdmin.pipe(bucket, function() {
-                odataResult.accountId = jsonData.accountId;
-                odataResult.password = password;
-                odataResult.rdbms_response = decoder.write(bucket.get());
-                writeResponse(response, odataResult);
-              });
-
-              log.log('Password for '+jsonData.accountId+' is set to ' + password);
-              break;
-
             case 'delete_account':
-              mysqlAdmin = new odataBackend.sqlAdmin(adminOptions);
-              mysqlAdmin.delete(accountId);
+            case 'service_def':
+                break;
 
-              mysqlAdmin.pipe(response);
-              break;
 
             case 'grant':
               mysqlAdmin = new odataBackend.sqlAdmin(options);
@@ -621,16 +599,20 @@
             //case 'revoke':
               //  break;
 
-            case 'service_def':
-              // no args - gets all tables in account's schema
-              odataBackend.serviceDef();
-              break;
-
             case 'create_table':
               options.tableDef = jsonData.tableDef;
 
               var create = new odataBackend.sqlCreate(options);
-              create.pipe(response);
+              create.pipe(bucket,
+                function() {
+                  odataResult.rdbms_response = decoder.write(bucket.get());
+                  h.writeResponse(response, odataResult);
+                },
+                function(err) {
+                  h.writeError(response, err);
+                }
+              );
+
               break;
 
             case 'delete_table':
@@ -668,11 +650,11 @@
               break;
 
             default:
-              writeError(response, 'Error, unknown query_type: ' + odataRequest.query_type);
+              h.writeError(response, 'Error, unknown query_type: ' + odataRequest.query_type);
           }
 
         } catch (e) {
-          writeError(response, e);
+          h.writeError(response, e);
         }
 
 

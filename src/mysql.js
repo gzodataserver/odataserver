@@ -78,10 +78,7 @@
     conn.connect();
     // pipe the result to the result stream provided
 
-    log.debug('conn.query(sql);');
-
     var query = conn.query(sql);
-    log.debug('after conn.query(sql);');
 
     query
       .on('fields', function(fields) {
@@ -400,11 +397,11 @@
 
   // Get the service definition, e.g database model
   // sql:'select table_name, (data_length+index_length)/1024/1024 as mb from information_schema.tables where table_schema="'+ schema + '"'};
-  exports.sqlAdmin.prototype.serviceDef = function() {
+  exports.sqlAdmin.prototype.serviceDef = function(accountId) {
     var self = this;
     self.sql = 'select table_name, (data_length+index_length)/1024/1024 as mb '+
             'from information_schema.tables where table_schema="'+
-            self.options.accountID + '"';
+            accountId + '"';
   };
 
 })(this);
