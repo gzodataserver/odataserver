@@ -192,6 +192,62 @@ tap('testing insert', function(test) {
 
 });
 
+tap('testing select', function(test) {
+
+  // operation to test
+  var options = {
+    hostname: CONFIG.ODATA.HOST,
+    port: CONFIG.ODATA.PORT,
+    method: 'GET',
+    path: '/'+accountId+'/mytable',
+    headers: {
+      user: accountId,
+      password: password
+    }
+  };
+
+  test.plan(1);
+
+  httpRequest(options, null, function(data, statusCode) {
+    var jsonData = h.jsonParse(data);
+    log.debug('Received: '+data);
+    test.assert(statusCode === 200, 'insert');
+    test.end();
+  });
+
+});
+
+
+tap('testing delete', function(test) {
+
+  var filter = require("querystring").stringify({
+    $filter: 'col1 eq 22'
+  });
+
+  // operation to test
+  var options = {
+    hostname: CONFIG.ODATA.HOST,
+    port: CONFIG.ODATA.PORT,
+    method: 'DELETE',
+    path: '/'+accountId+'/mytable?' + filter,
+    headers: {
+      user: accountId,
+      password: password
+    }
+  };
+
+  test.plan(1);
+
+  httpRequest(options, null, function(data, statusCode) {
+    var jsonData = h.jsonParse(data);
+    log.debug('Received: '+data);
+    test.assert(statusCode === 200, 'insert');
+    test.end();
+  });
+
+});
+
+
 tap('testing service_def', function(test) {
 
   // operation to test

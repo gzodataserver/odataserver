@@ -37,8 +37,8 @@
     "npm": "1.1.x"
   },
   "scripts": {
-    "test": "node tests/test_main.js",
-    "test2": "node tests/test_leveldb.js && node tests/test_mysql.js && node tests/test_odataserver.js",
+    "test": "node tests/test_main.js && node tests/test_leveldb.js && node tests/test_mysql.js ",
+    "test2": "node tests/test_odataserver.js",
     "start": "sudo node -e 'require(\"./src/main2.js\").start();'",
     "docco": "docco -o docco src/*.js tests/*.js",
     "clean": "rm -rf docco; rm -rf mydb; rm -rf tests/mydb"

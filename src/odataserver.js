@@ -540,7 +540,7 @@
           if( adminCredentialOps.indexOf(odataRequest.query_type) !== -1) {
 
             log.debug('Performing operation '+odataRequest.query_type+' with admin/root credentials');
-            log.debug('odataRequest: '+odataRequest);
+            log.debug('odataRequest: '+JSON.stringify(odataRequest));
 
              mysqlAdmin = new odataBackend.sqlAdmin(adminOptions);
 
@@ -589,47 +589,50 @@
           }
 
           log.debug('Performing operation '+odataRequest.query_type+' with '+accountId+' credentials');
+          odataResult.accountId = accountId;
 
-          switch (odataRequest.query_type) {
+          // operations performed with objects inheriting from the the rdbms base object
+          if( ['grant', 'create_table', 'delete_table', 'delete'].indexOf(odataRequest.query_type) !== -1) {
 
-            // Moved out of switch
-            case 'create_account':
-            case 'reset_password':
-            case 'delete_account':
-            case 'service_def':
-                break;
+            var rdbms;
 
+            if (odataRequest.query_type === 'grant') {
+              rdbms = new odataBackend.sqlAdmin(options);
+              rdbms.grant('table1', accountId2);
+            }
 
-            case 'grant':
-              mysqlAdmin = new odataBackend.sqlAdmin(options);
-              mysqlAdmin.grant('table1', accountId2);
-              mysqlAdmin.pipe(response);
-              break;
-
-            //case 'revoke':
-              //  break;
-
-            case 'create_table':
+            if (odataRequest.query_type === 'create_table') {
               options.tableDef = jsonData.tableDef;
+              rdbms = new odataBackend.sqlCreate(options);
+            }
 
-              var create = new odataBackend.sqlCreate(options);
-              create.pipe(bucket,
-                function() {
-                  odataResult.rdbms_response = decoder.write(bucket.get());
-                  h.writeResponse(response, odataResult);
-                },
-                function(err) {
-                  h.writeError(response, err);
-                }
-              );
-
-              break;
-
-            case 'delete_table':
+            if (odataRequest.query_type === 'delete_table') {
               options.tableName = jsonData.tableName;
-              var drop = new odataBackend.sqlDrop(options);
-              drop.pipe(response);
-              break;
+              rdbms = new odataBackend.sqlDrop(options);
+            }
+
+            if (odataRequest.query_type === 'delete') {
+              options.tableName = odataRequest.table;
+              options.where = odataRequest.where;
+              rdbms = new odataBackend.sqlDelete(options);
+            }
+
+            rdbms.pipe(bucket,
+              function() {
+                odataResult.rdbms_response = decoder.write(bucket.get());
+                h.writeResponse(response, odataResult);
+              },
+              function(err) {
+                h.writeError(response, err);
+              }
+            );
+
+            return;
+          }
+
+
+          // Handle select, insert and unknow query types
+          switch (odataRequest.query_type) {
 
             case 'select':
               options.sql = odataRequest.sql;
@@ -638,19 +641,22 @@
                           JSON.stringify(options));
               var mysqlRead = new odataBackend.sqlRead(options);
               mysqlRead.fetchAll(function(res){
-                data = {value: res};
-                response.write(JSON.stringify(data));
-                response.end();
+                odataResult.value = res;
+                h.writeResponse(response, odataResult);
               });
-              //mysqlRead.pipe(response);
               break;
 
             // NOTE: Could move this out of end event and pipe request into mysql
             case 'insert':
               options.tableName = odataRequest.table;
-              options.resultStream = response;
+              options.resultStream = bucket;
               options.closeStream = true;
-              var writeStream = new odataBackend.sqlWriteStream(options);
+              var writeStream = new odataBackend.sqlWriteStream(options,
+                function() {
+                  odataResult.rdbms_response = decoder.write(bucket.get());
+                  h.writeResponse(response, odataResult);
+                }
+              );
 
               // create stream that writes json into rdbms
               var jsonStream = new require('stream');
@@ -659,13 +665,6 @@
               };
 
               jsonStream.pipe(writeStream);
-              break;
-
-            case 'delete':
-              options.tableName = odataRequest.tableName;
-              options.where = odataRequest.where;
-              var del = new odataBackend.mysqlDelete(options);
-              del.pipe(response);
               break;
 
             default:

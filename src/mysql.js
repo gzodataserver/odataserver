@@ -221,7 +221,7 @@
   // Mysql writable stream
   // ----------------------
 
-  exports.sqlWriteStream = function(options) {
+  exports.sqlWriteStream = function(options, endFunc) {
     var self = this;
     // call stream.Writeable constructor
     Writable.call(this);
@@ -230,11 +230,9 @@
     self.options.credentials.host = CONFIG.RDBMS.DB_HOST;
 
     self.connection = mysql.createConnection(self.options.credentials);
-//    self.database = options.database;
-//    self.tableName = options.tableName;
     self.data = '';
     self.jsonOK = false;
-//    self.resultStream = options.resultStream;
+    self.endFunc = endFunc;
   };
 
 
@@ -272,6 +270,7 @@
       function() {
         self.connection.end();
         if (self.options.closeStream) self.options.resultStream.end();
+        if (self.endFunc) self.endFunc();
       }
     );
 
