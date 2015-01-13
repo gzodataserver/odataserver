@@ -25,6 +25,19 @@
   // Default no of rows to return
   var defaultRowCount = CONFIG.ODATA.DEFAULT_ROW_COUNT;
 
+  // check for admin operations
+  var urlAdminOps = ['create_account', 'reset_password', 'delete_account',
+  'create_table', 'service_def', 'create_privs', 'drop_table', 'create_bucket',
+  'drop_bucket' ];
+
+  // These operations require admin/root privs in the db
+  var adminCredentialOps = ['create_account', 'reset_password', 'delete_account',
+   'service_def' ];
+
+  // These operations are performed with the sqlAdmin object
+  //var sqlAdminOps = ['create_account', 'reset_password', 'delete_account',
+  //, 'service_def', 'create_privs' ];
+
 
   //
   // Parse OData URI
@@ -291,12 +304,7 @@
     }
 
 
-    // check for admin operations
-    adminOps = ['create_account', 'reset_password', 'delete_account',
-    'create_table', 'service_def', 'create_privs', 'drop_table', 'create_bucket',
-    'drop_bucket' ];
-
-    if(adminOps.indexOf(a[2]) !== -1 ) {
+    if(urlAdminOps.indexOf(a[2]) !== -1 ) {
       result.query_type = a[2];
       return result;
     }
@@ -528,10 +536,11 @@
           var bucket = new h.arrayBucketStream();
           var odataResult = {};
 
-          // operations performed with the sqlAdmin object
-          if( adminOps.indexOf(odataRequest.query_type) !== -1) {
+          // operations performed with admin/root credentials
+          if( adminCredentialOps.indexOf(odataRequest.query_type) !== -1) {
 
-            log.debug('Performing sqlAdmin operation');
+            log.debug('Performing operation '+odataRequest.query_type+' with admin/root credentials');
+            log.debug('odataRequest: '+odataRequest);
 
              mysqlAdmin = new odataBackend.sqlAdmin(adminOptions);
 
@@ -575,12 +584,13 @@
               }
             );
 
+            return;
 
           }
 
-          switch (odataRequest.query_type) {
+          log.debug('Performing operation '+odataRequest.query_type+' with '+accountId+' credentials');
 
-//  NOTE: should check request.method
+          switch (odataRequest.query_type) {
 
             // Moved out of switch
             case 'create_account':
@@ -635,11 +645,20 @@
               //mysqlRead.pipe(response);
               break;
 
+            // NOTE: Could move this out of end event and pipe request into mysql
             case 'insert':
-              options.tableName = odataRequest.tableName;
+              options.tableName = odataRequest.table;
               options.resultStream = response;
-              var mysqlStream = new odataBackend.sqlWriteStream(options);
-              request.pipe(mysqlStream);
+              options.closeStream = true;
+              var writeStream = new odataBackend.sqlWriteStream(options);
+
+              // create stream that writes json into rdbms
+              var jsonStream = new require('stream');
+              jsonStream.pipe = function(dest) {
+                dest.write(JSON.stringify(jsonData));
+              };
+
+              jsonStream.pipe(writeStream);
               break;
 
             case 'delete':

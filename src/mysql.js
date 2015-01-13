@@ -271,6 +271,7 @@
       },
       function() {
         self.connection.end();
+        if (self.options.closeStream) self.options.resultStream.end();
       }
     );
 
