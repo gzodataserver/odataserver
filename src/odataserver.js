@@ -25,9 +25,9 @@
   // Default no of rows to return
   var defaultRowCount = CONFIG.ODATA.DEFAULT_ROW_COUNT;
 
-  // check for admin operations
+  // check for admin operations, where the url start with /s/...
   var urlAdminOps = ['create_account', 'reset_password', 'delete_account',
-  'create_table', 'service_def', 'grant', 'drop_table', 'create_bucket',
+  'create_table', 'service_def', 'grant', 'revoke', 'drop_table', 'create_bucket',
   'drop_bucket' ];
 
   // These operations require admin/root privs in the db
@@ -592,13 +592,19 @@
           odataResult.accountId = accountId;
 
           // operations performed with objects inheriting from the the rdbms base object
-          if( ['grant', 'create_table', 'delete_table', 'delete'].indexOf(odataRequest.query_type) !== -1) {
+          if( ['grant', 'revoke', 'create_table', 'delete_table',
+               'delete'].indexOf(odataRequest.query_type) !== -1) {
 
             var rdbms;
 
             if (odataRequest.query_type === 'grant') {
               rdbms = new odataBackend.sqlAdmin(options);
               rdbms.grant(jsonData.tableName, jsonData.accountId);
+            }
+
+            if (odataRequest.query_type === 'revoke') {
+              rdbms = new odataBackend.sqlAdmin(options);
+              rdbms.revoke(jsonData.tableName, jsonData.accountId);
             }
 
             if (odataRequest.query_type === 'create_table') {

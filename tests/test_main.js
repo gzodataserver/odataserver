@@ -340,6 +340,62 @@ tap('testing select with user #2 after grant', function(test) {
 
 });
 
+tap('testing revoke', function(test) {
+
+  // operation to test
+  var options = {
+    hostname: CONFIG.ODATA.HOST,
+    port: CONFIG.ODATA.PORT,
+    method: 'POST',
+    path: '/'+CONFIG.ODATA.SYS_PATH+'/revoke',
+    headers: {
+      user: accountId,
+      password: password
+    }
+  };
+
+  var input = JSON.stringify({
+    tableName: 'mytable',
+    accountId: accountId2
+  });
+
+  test.plan(1);
+
+  httpRequest(options, input, function(data, statusCode) {
+    var jsonData = h.jsonParse(data);
+    log.debug('Received: '+data);
+    test.assert(statusCode === 200, 'grant');
+    test.end();
+  });
+
+});
+
+tap('testing select with user #2 after revoke', function(test) {
+
+  // operation to test
+  var options = {
+    hostname: CONFIG.ODATA.HOST,
+    port: CONFIG.ODATA.PORT,
+    method: 'GET',
+    path: '/'+accountId+'/mytable',
+    headers: {
+      user: accountId2,
+      password: password2
+    }
+  };
+
+  test.plan(2);
+
+  httpRequest(options, null, function(data, statusCode) {
+    var jsonData = h.jsonParse(data);
+    log.debug('Received: '+data);
+    test.assert(statusCode === 200, 'select with user #2 after revoke');
+    test.assert(jsonData.d.results.value.length == 0, 'select with user #2 after revoke');
+    test.end();
+  });
+
+});
+
 
 tap('testing delete', function(test) {
 

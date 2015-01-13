@@ -191,7 +191,7 @@ test('testing_fetchAll', function(test) {
 
 test('testing suite of functions, from create user to CRUD', function(test) {
 
-  test.plan(13);
+  test.plan(16);
 
   var expected1 = [{
     "fieldCount": 0,
@@ -385,6 +385,37 @@ test('testing suite of functions, from create user to CRUD', function(test) {
     log.debug('BUCKET CONTENTS after insert (decoded):' + decoder.write(bucket.get()));
     test.ok(true, 'wait four seconds and write results');
   }.bind(this), (delay++) * intervall);
+
+
+
+  // X. Revoke privs from user #2
+  setTimeout(function() {
+    log.debug('Revoke privs to table1 to user #2');
+
+    var mysqlAdmin = new mysql.sqlAdmin(options);
+    mysqlAdmin.revoke('table1', accountId2);
+    mysqlAdmin.pipe(bucket);
+
+    test.ok(true, 'Revoke privs from user #2');
+  }.bind(this), (delay++) * intervall);
+
+  // Y. select from table
+  setTimeout(function() {
+    log.debug('Read values of the mysql stream with user #2:');
+    options.sql = 'select * from '+accountId+'.table1';
+    var mysqlRead = new mysql.sqlRead(options);
+    bucket.empty();
+    mysqlRead.pipe(bucket);
+    test.ok(true, 'select from '+accountId+'.table1');
+  }.bind(this), (delay++) * intervall);
+
+  // Z. wait four seconds and write results
+  setTimeout(function() {
+    var decoder = new StringDecoder('utf8');
+    log.debug('BUCKET CONTENTS after insert (decoded):' + decoder.write(bucket.get()));
+    test.ok(true, 'wait four seconds and write results');
+  }.bind(this), (delay++) * intervall);
+
 
   // 9. delete from table
   setTimeout(function() {

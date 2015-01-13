@@ -390,7 +390,7 @@
   // Revoke
   exports.sqlAdmin.prototype.revoke = function(tableName, accountId) {
     var self = this;
-    self.sql = "revoke insert, delete, update, delete on "+tableName+" to '"+
+    self.sql = "revoke insert, select, update, delete on "+tableName+" from '"+
             accountId+"'@'localhost';";
   };
 
