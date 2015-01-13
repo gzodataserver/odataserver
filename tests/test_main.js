@@ -25,9 +25,10 @@ var log = new h.log0(CONFIG.testLoggerOptions);
 
 var main = require('../src/main2.js');
 
-// used acroess tests
-var password;
-var accountId = h.email2accountId(CONFIG.TEST.EMAIL);
+// used across tests
+var password, password2;
+var accountId = h.email2accountId(CONFIG.TEST.EMAIL),
+    accountId2 = h.email2accountId(CONFIG.TEST.EMAIL2);
 
 //
 // Helper for making http requests
@@ -126,7 +127,45 @@ tap('testing create_account and reset_password', function(test) {
 
 });
 
+tap('testing create_account and reset_password for test user #2', function(test) {
 
+  // operation to test
+  var options = {
+    hostname: CONFIG.ODATA.HOST,
+    port: CONFIG.ODATA.PORT,
+    method: 'POST',
+    path: '/'+CONFIG.ODATA.SYS_PATH+'/create_account'
+  };
+
+  var jsonInput = JSON.stringify({email: CONFIG.TEST.EMAIL2});
+
+  test.plan(2);
+
+  httpRequest(options, jsonInput, function(data, statusCode) {
+    var jsonData = h.jsonParse(data);
+    log.debug('Received: '+data);
+    test.assert(statusCode === 200, 'create_account #2');
+
+    options.path = '/'+CONFIG.ODATA.SYS_PATH+'/reset_password';
+    jsonInput = JSON.stringify({accountId: accountId2});
+
+    httpRequest(options, jsonInput, function(data, statusCode) {
+      var jsonData = h.jsonParse(data);
+      log.debug('Received: '+data);
+
+      if (jsonData.d.results.password !== undefined) {
+        password2 = jsonData.d.results.password;
+        log.debug('Received password:'+password);
+      }
+
+      test.assert(statusCode === 200, 'reset_password #2');
+      test.end();
+    });
+
+  });
+
+
+});
 
 //
 // Test tables
@@ -211,7 +250,91 @@ tap('testing select', function(test) {
   httpRequest(options, null, function(data, statusCode) {
     var jsonData = h.jsonParse(data);
     log.debug('Received: '+data);
-    test.assert(statusCode === 200, 'insert');
+    test.assert(statusCode === 200, 'select');
+    test.end();
+  });
+
+});
+
+tap('testing select with user #2 before grant', function(test) {
+
+  // operation to test
+  var options = {
+    hostname: CONFIG.ODATA.HOST,
+    port: CONFIG.ODATA.PORT,
+    method: 'GET',
+    path: '/'+accountId+'/mytable',
+    headers: {
+      user: accountId2,
+      password: password2
+    }
+  };
+
+  test.plan(2);
+
+  httpRequest(options, null, function(data, statusCode) {
+    var jsonData = h.jsonParse(data);
+    log.debug('Received: '+data);
+    test.assert(statusCode === 200, 'select with user #2 before grant');
+    test.assert(jsonData.d.results.value.length == 0, 'select with user #2 before grant');
+    test.end();
+  });
+
+});
+
+
+tap('testing grant', function(test) {
+
+  // operation to test
+  var options = {
+    hostname: CONFIG.ODATA.HOST,
+    port: CONFIG.ODATA.PORT,
+    method: 'POST',
+    path: '/'+CONFIG.ODATA.SYS_PATH+'/grant',
+    headers: {
+      user: accountId,
+      password: password
+    }
+  };
+
+  var input = JSON.stringify({
+    tableName: 'mytable',
+    accountId: accountId2
+  });
+
+  test.plan(1);
+
+  httpRequest(options, input, function(data, statusCode) {
+    var jsonData = h.jsonParse(data);
+    log.debug('Received: '+data);
+    test.assert(statusCode === 200, 'grant');
+    test.end();
+  });
+
+});
+
+
+tap('testing select with user #2 after grant', function(test) {
+
+  // operation to test
+  var options = {
+    hostname: CONFIG.ODATA.HOST,
+    port: CONFIG.ODATA.PORT,
+    method: 'GET',
+    path: '/'+accountId+'/mytable',
+    headers: {
+      user: accountId2,
+      password: password2
+    }
+  };
+
+  test.plan(2);
+
+  httpRequest(options, null, function(data, statusCode) {
+    var jsonData = h.jsonParse(data);
+    log.debug('Received: '+data);
+    test.assert(statusCode === 200, 'select with user #2 after grant');
+    test.assert(jsonData.d.results.value.length != 0, 'select with user #2 after grant');
     test.end();
   });
 
@@ -241,11 +364,38 @@ tap('testing delete', function(test) {
   httpRequest(options, null, function(data, statusCode) {
     var jsonData = h.jsonParse(data);
     log.debug('Received: '+data);
-    test.assert(statusCode === 200, 'insert');
+    test.assert(statusCode === 200, 'delete');
     test.end();
   });
 
 });
+
+tap('testing select after delete', function(test) {
+
+  // operation to test
+  var options = {
+    hostname: CONFIG.ODATA.HOST,
+    port: CONFIG.ODATA.PORT,
+    method: 'GET',
+    path: '/'+accountId+'/mytable',
+    headers: {
+      user: accountId,
+      password: password
+    }
+  };
+
+  test.plan(2);
+
+  httpRequest(options, null, function(data, statusCode) {
+    var jsonData = h.jsonParse(data);
+    log.debug('Received: '+data);
+    test.assert(statusCode === 200, 'select after delete');
+    test.assert(jsonData.d.results.value.length == 0, 'select after delete');
+    test.end();
+  });
+
+});
+
 
 
 tap('testing service_def', function(test) {
@@ -306,6 +456,35 @@ tap('testing delete_account', function(test) {
   });
 
 });
+
+
+tap('testing delete_account #2', function(test) {
+
+  // operation to test
+  var options = {
+    hostname: CONFIG.ODATA.HOST,
+    port: CONFIG.ODATA.PORT,
+    method: 'POST',
+    path: '/'+CONFIG.ODATA.SYS_PATH+'/delete_account',
+    headers: {
+      user: accountId2,
+      password: password2
+    }
+  };
+
+  var jsonInput = JSON.stringify({email: CONFIG.TEST.EMAIL2});
+
+  test.plan(1);
+
+  httpRequest(options, jsonInput, function(data, statusCode) {
+    //var jsonData = h.jsonParse(data);
+    log.debug('Received: '+data);
+    test.assert(statusCode === 200, 'delete_account #2');
+    test.end();
+  });
+
+});
+
 //
 // Stop the odata server
 // -----------------------------

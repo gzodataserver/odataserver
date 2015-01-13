@@ -27,7 +27,7 @@
 
   // check for admin operations
   var urlAdminOps = ['create_account', 'reset_password', 'delete_account',
-  'create_table', 'service_def', 'create_privs', 'drop_table', 'create_bucket',
+  'create_table', 'service_def', 'grant', 'drop_table', 'create_bucket',
   'drop_bucket' ];
 
   // These operations require admin/root privs in the db
@@ -542,30 +542,30 @@
             log.debug('Performing operation '+odataRequest.query_type+' with admin/root credentials');
             log.debug('odataRequest: '+JSON.stringify(odataRequest));
 
-             mysqlAdmin = new odataBackend.sqlAdmin(adminOptions);
+           sqlAdmin = new odataBackend.sqlAdmin(adminOptions);
 
             var email = '';
             if (odataRequest.query_type === 'create_account') {
               // calculate accountId from email
               accountId = h.email2accountId(jsonData.email);
               email = jsonData.email;
-              mysqlAdmin.new(accountId);
+              sqlAdmin.new(accountId);
             }
 
             var password;
             if (odataRequest.query_type === 'reset_password') {
-              password = mysqlAdmin.resetPassword(jsonData.accountId);
+              password = sqlAdmin.resetPassword(jsonData.accountId);
             }
 
             if (odataRequest.query_type === 'delete_account') {
-              mysqlAdmin.delete(accountId);
+              sqlAdmin.delete(accountId);
             }
 
             if (odataRequest.query_type === 'service_def') {
-              mysqlAdmin.serviceDef(accountId);
+              sqlAdmin.serviceDef(accountId);
             }
 
-            mysqlAdmin.pipe(bucket,
+            sqlAdmin.pipe(bucket,
               function() {
                 odataResult.email = email;
                 odataResult.accountId = accountId;
@@ -598,7 +598,7 @@
 
             if (odataRequest.query_type === 'grant') {
               rdbms = new odataBackend.sqlAdmin(options);
-              rdbms.grant('table1', accountId2);
+              rdbms.grant(jsonData.tableName, jsonData.accountId);
             }
 
             if (odataRequest.query_type === 'create_table') {
@@ -650,7 +650,6 @@
             case 'insert':
               options.tableName = odataRequest.table;
               options.resultStream = bucket;
-              options.closeStream = true;
               var writeStream = new odataBackend.sqlWriteStream(options,
                 function() {
                   odataResult.rdbms_response = decoder.write(bucket.get());

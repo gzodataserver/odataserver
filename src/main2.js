@@ -55,37 +55,15 @@ exports.start = function() {
     var str = "Processing request: " +
       JSON.stringify(request.method) + " - " +
       JSON.stringify(request.url) + " - " +
-      JSON.stringify(request.headers) + ' - ' + a;
+      JSON.stringify(request.headers);
 
     // log and fire dtrace probe
     log.log(str);
     h.fireProbe(str);
 
-    // Handle system operations
-    if(a[1] === CONFIG.ODATA.SYS_PATH) {
+    // Handle the request
+    odataServer.main(request, response, rdbms);
 
-      ops = ['create_account', 'reset_password', 'delete_account',
-                 'create_table', 'service_def', 'create_privs', 'drop_table',
-                 'create_bucket', 'drop_bucket' ];
-
-      // check if the request should be handled by the rdbms backend
-      if(ops.indexOf(a[2]) !== -1 ) {
-        log.debug('Processing system operation: '+a[2]);
-
-        odataServer.main(request, response, rdbms);
-      }
-      else {
-        log.debug('unknow operation: '+a[2]);
-        h.writeError(response,'unknow operation: '+a[2]);
-        response.end();
-      }
-
-    }
-    // Handle all other operations
-    else {
-      log.debug('Processing operation: '+request.method+' on '+a[1]+'/'+a[2]);
-      odataServer.main(request, response, rdbms);
-    }
 
     // NOTE: The response object should not be closed explicitly here
 

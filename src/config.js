@@ -40,6 +40,7 @@
     ADMIN_PASSWORD: process.env.ADMIN_PASSWORD,
     // The IP/DNS of the OData server
     EMAIL: 'test@gizur.com',
+    EMAIL2: 'test2@gizur.com',
   };
 
   // Account IDs are based email adresses
@@ -96,11 +97,11 @@
   // Logging setup
   // -------------
 
-  c.testLoggerOptions = {debug: false, filename: 'test_XXX.js'};
-  c.mysqlLoggerOptions = {debug: false, filename: 'mysql.js'};
-  c.leveldbLoggerOptions = {debug: false, filename: 'leveldb.js'};
-  c.odataServerLoggerOptions = {debug: false, filename: 'odataserver.js'};
-  c.mainLoggerOptions = {debug: false, filename: 'main.js'};
+  c.testLoggerOptions = {debug: true, filename: 'test_XXX.js', noLogging: false};
+  c.mysqlLoggerOptions = {debug: false, filename: 'mysql.js', noLogging: false};
+  c.leveldbLoggerOptions = {debug: false, filename: 'leveldb.js', noLogging: false};
+  c.odataServerLoggerOptions = {debug: false, filename: 'odataserver.js', noLogging: false};
+  c.mainLoggerOptions = {debug: false, filename: 'main.js', noLogging: false};
 
 
 
