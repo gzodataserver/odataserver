@@ -56,6 +56,8 @@ When developing using docker, it is usefull to connect to the containers shell:
     # Check that all processes are up
     ps -ef
 
+    # Tun the tests
+    npm test
 
 Login to MySQL using phpMyAdmin at: `http://[IP]:PORT/phpMyAdmin-4.0.8-all-languages`
 
@@ -66,7 +68,7 @@ Production
 The included MySQL server should not be used for production. Disable it by commenting out the
 `[program:mysql]` parts with `#` in supervisord.conf
 
-MySQL credentials for external server should be passed as environment variables that are set when starting the container.
+MySQL credentials for an external server should be passed as environment variables that are set when starting the container.
 
 Here is an example: `docker run -d -p 80:80 -p 443:443 -e ADMIN_USER="admin", ADMIN_PASSWORD="secret", HOSTNAME="hostname" base /bin/bash`
 
