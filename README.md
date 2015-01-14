@@ -48,7 +48,7 @@ using the `-p` flag.
 When developing using docker, it is usefull to connect to the containers shell:
 
     # Start a container and connect to the shell (remove when stopped)
-    docker run -t -i --rm -p 80:80 -p 81:81 -p 443:443 odatamysql /bin/bash
+    docker run -t -i --rm -p 80:80 -p 81:81 -p 443:443 -e ADMIN_USER="root" -e ADMIN_PASSWORD="secret" odataserver /bin/bash
 
     # Start the services
     supervisord &> /tmp/out.txt &
@@ -68,7 +68,7 @@ The included MySQL server should not be used for production. Disable it by comme
 
 MySQL credentials for external server should be passed as environment variables that are set when starting the container.
 
-Here is an example: `docker run -d -p 80:80 -p 443:443 -e USERNAME="admin", PASSWORD="secret", HOSTNAME="hostname" base /bin/bash`
+Here is an example: `docker run -d -p 80:80 -p 443:443 -e ADMIN_USER="admin", ADMIN_PASSWORD="secret", HOSTNAME="hostname" base /bin/bash`
 
 
 Development

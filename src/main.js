@@ -5,7 +5,23 @@
 //
 //------------------------------
 //
-// Template for tests
+// Top file in the hierarchy. The architedture looks like this:
+//
+//      +-------------+
+//      | odataserver |
+//      +------+------+
+//             |
+//     +-------+----+
+//     |            |
+//     |     +--------------+
+//     |     | bucketserver |
+//     |     +------+-------+
+//     |            |
+//     | +----------+
+//     | |          |
+//  +--+-+--+  +---------+
+//  | mysql |  | leveldb |
+//  +-------+  +---------+
 //
 //
 // Using Google JavaScript Style Guide:
@@ -27,8 +43,8 @@ var h = require('./helpers.js');
 
 var log = new h.log0(CONFIG.mainLoggerOptions);
 
-// NOTE - Should also add leveldb
 var rdbms = require(CONFIG.ODATA.RDBMS_BACKEND);
+//var buckets = require(CONFIG.ODATA.BUCKET_BACKEND);
 
 var server;
 
@@ -61,8 +77,34 @@ exports.start = function() {
     log.log(str);
     h.fireProbe(str);
 
+    // Parse the Uri
+    var uriParser = new odata.ODataUri2Sql();
+    var odataRequest = uriParser.parseUri(request.url, request.method);
+
+    // Check the MySQL credentials have been supplied, not required when
+    // creating a new account ore resetting password though
+    if (odataRequest.query_type != 'create_account' &&
+      odataRequest.query_type != 'reset_password' &&
+      !h.checkCredentials(request, response)) {
+
+      h.writeError(response, "Invalid credentials, user or password missing. " +
+        "URL: " + request.url +
+        ", headers: " + JSON.stringify(request.headers) + " TYPE:" + odataRequest.query_type);
+
+      return;
+    }
+
+    // Only GET, POST, PUT and DELTE supported
+    if (!(request.method == 'GET' ||
+        request.method == 'POST' ||
+        request.method == 'DELETE')) {
+
+      h.writeError(response, request.method + ' not supported.');
+    }
+
+
     // Handle the request
-    odataServer.main(request, response, rdbms);
+    odataServer.main(request, response, rdbms, odataRequest);
 
 
     // NOTE: The response object should not be closed explicitly here

@@ -1,7 +1,7 @@
 //
 // odataSpec.js
 //
-// Run with: `npm install minimist pretty-data; node spec_example.js`
+// Run with: `npm install minimist pretty-data; node odataSpec.js`
 //
 
 var http = require('http');

@@ -50,6 +50,8 @@ ADD ./src-phpmyadmin/config.inc.php /var/www/html/phpMyAdmin-4.0.8-all-languages
 # Install NodeJS
 # --------------
 
+RUN apt-get install -y build-essential g++
+
 RUN curl https://raw.githubusercontent.com/creationix/nvm/v0.13.1/install.sh | bash
 # RUN echo "[ -s $HOME/.nvm/nvm.sh ] && . $HOME/.nvm/nvm.sh" >> $HOME/.profile
 RUN /bin/bash -c "source $HOME/.profile && nvm install v0.10.33"
@@ -81,10 +83,11 @@ RUN /src/init-mysql.sh
 # Add source for the odatamysql server
 # ------------------------------------
 
-ADD ./package.json /src/
+ADD ./package.json /
+ADD ./run_tests.sh /
 ADD ./src /src
-RUN cd /src; npm install
-ADD ./src-docker/start-node.sh /
+ADD ./tests /tests
+RUN cd /; npm install
 
 # Add batches here since it changes often (use cache when building)
 ADD ./src-docker/batches.py /
@@ -105,5 +108,5 @@ VOLUME /volume
 
 EXPOSE 80 81 443 3306
 
-ADD ./start.sh /
+ADD ./src-docker/start.sh /start.sh
 CMD ["/start.sh"]

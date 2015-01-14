@@ -23,8 +23,12 @@
     DEFAULT_ROW_COUNT: 100,
     // Url for system operations - http(s)://HOST:PORT/SYS_PATH/[operation]
     SYS_PATH: 's',
-    // Make sure that the backend works like sqlBase.js outlines if you change this
+    // Make sure that the RDBMS backend works like sqlBase.js outlines if you change this
     RDBMS_BACKEND: './mysql.js',
+    // The prefix used in the name of buckets
+    BUCKET_PREFIX: 'b_',
+    // Make sure that the bucket backend works like leveldb.js if you change this
+    BUCKET_BACKEND: './leveldb.js',
   };
 
   // Some parameters user in the tests
@@ -100,7 +104,8 @@
   // The # before test_XXX is necessary for the test TAP protocol
   c.testLoggerOptions = {debug: false, filename: '# test_XXX.js', noLogging: false};
 
-  // NOTE: should turn logging on in production. 
+  // NOTE: should turn logging on in production. Turned off here in order for
+  // the tests output to comply with the TAP protocol
   c.mysqlLoggerOptions = {debug: false, filename: 'mysql.js', noLogging: true};
 
   c.leveldbLoggerOptions = {debug: false, filename: 'leveldb.js', noLogging: false};

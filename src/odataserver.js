@@ -432,34 +432,8 @@
   };
 
   // HTTP REST Server that
-  exports.ODataServer.prototype.main = function(request, response, odataBackend) {
+  exports.ODataServer.prototype.main = function(request, response, odataBackend, odataRequest) {
     log.debug('In main ...');
-
-
-    // Parse the Uri
-    var uriParser = new exports.ODataUri2Sql();
-    var odataRequest = uriParser.parseUri(request.url, request.method);
-
-    // Check the MySQL credentials have been supplied, not required when
-    // creating a new account ore resetting password though
-    if (odataRequest.query_type != 'create_account' &&
-        odataRequest.query_type != 'reset_password' &&
-        !h.checkCredentials(request, response)) {
-
-      h.writeError(response, "Invalid credentials, user or password missing. "+
-                           "URL: "+request.url+
-                           ", headers: "+JSON.stringify(request.headers) + " TYPE:"+odataRequest.query_type);
-
-      return;
-    }
-
-    // Only GET, POST, PUT and DELTE supported
-    if (!(request.method == 'GET' ||
-        request.method == 'POST' ||
-        request.method == 'DELETE')) {
-
-      h.writeError(response, request.method + ' not supported.');
-    }
 
     // save input from POST and PUT here
     var data = '';
