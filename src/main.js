@@ -18,6 +18,7 @@
 
 
 var http = require("http");
+var url = require('url');
 var test = require('tape');
 
 var CONFIG = require('./config.js');
@@ -27,7 +28,10 @@ var h = require('./helpers.js');
 var log = new h.log0(CONFIG.mainLoggerOptions);
 
 // NOTE - Should also add leveldb
-var mysql = require('./mysql.js');
+var rdbms = require(CONFIG.ODATA.RDBMS_BACKEND);
+
+var server;
+
 
 
 //
@@ -36,20 +40,32 @@ var mysql = require('./mysql.js');
 
 exports.start = function() {
 
+  // handle request with odata server
+  var odataServer = new odata.ODataServer();
+
 
   // start http server
   // -----------------
 
   server = http.createServer(function(request, response) {
 
-    log.log("Processing request: " +
-    JSON.stringify(request.method) + " - " +
-    JSON.stringify(request.url) + " - " +
-    JSON.stringify(request.headers));
+    var parsedURL = url.parse(request.url, true, false);
+    var a = parsedURL.pathname.split("/");
 
-    // handle request with odata server
-    var odataServer = new odata.ODataServer();
-    odataServer.main(request, response, mysql);
+    var str = "Processing request: " +
+      JSON.stringify(request.method) + " - " +
+      JSON.stringify(request.url) + " - " +
+      JSON.stringify(request.headers);
+
+    // log and fire dtrace probe
+    log.log(str);
+    h.fireProbe(str);
+
+    // Handle the request
+    odataServer.main(request, response, rdbms);
+
+
+    // NOTE: The response object should not be closed explicitly here
 
   });
 
@@ -57,4 +73,13 @@ exports.start = function() {
 
   log.log("Server is listening on port " + CONFIG.ODATA.PORT);
 
+};
+
+
+//
+// Stop the OData server
+// ---------------------
+
+exports.stop = function() {
+  server.close();
 };

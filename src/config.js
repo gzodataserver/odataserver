@@ -97,11 +97,15 @@
   // Logging setup
   // -------------
 
-  c.testLoggerOptions = {debug: true, filename: 'test_XXX.js', noLogging: false};
-  c.mysqlLoggerOptions = {debug: true, filename: 'mysql.js', noLogging: false};
+  // The # before test_XXX is necessary for the test TAP protocol
+  c.testLoggerOptions = {debug: false, filename: '# test_XXX.js', noLogging: false};
+
+  // NOTE: should turn logging on in production. 
+  c.mysqlLoggerOptions = {debug: false, filename: 'mysql.js', noLogging: true};
+
   c.leveldbLoggerOptions = {debug: false, filename: 'leveldb.js', noLogging: false};
   c.odataServerLoggerOptions = {debug: false, filename: 'odataserver.js', noLogging: false};
-  c.mainLoggerOptions = {debug: false, filename: 'main.js', noLogging: false};
+  c.mainLoggerOptions = {debug: false, filename: 'main.js', noLogging: true};
 
 
 

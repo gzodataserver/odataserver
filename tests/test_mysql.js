@@ -25,11 +25,9 @@ var h = require('../src/helpers.js');
 
 var CONFIG = require('../src/config.js');
 
-// The full path to the tested file
-//CONFIG.testLoggerOptions.filename = __filename;
 var log = new h.log0(CONFIG.testLoggerOptions);
 
-console.log('IMPORTANT!!! Make sure that the ADMIN_USER and ADMIN_PASSWORD environment variables are set.');
+var resultStream = process.stderr;
 
 var delay = 0,
   // milliseconds between async tests, 10 is the minimum that works on
@@ -79,6 +77,8 @@ var bucket = new h.arrayBucketStream(),
 // Cleanup database in case previous tests failed
 test('setUp', function(test) {
   var self = this;
+
+  log.log('NOTE: Streams are used in these tests and process.stderr is as output stream.');
 
   // drop table
   setTimeout(function() {
@@ -335,7 +335,7 @@ test('testing suite of functions, from create user to CRUD', function(test) {
   setTimeout(function() {
 
     options.tableName = 'table1';
-    options.resultStream = process.stdout;
+    options.resultStream = resultStream;
     options.closeStream = false;
     var mysqlStream = new mysql.sqlWriteStream(options);
 
@@ -351,7 +351,7 @@ test('testing suite of functions, from create user to CRUD', function(test) {
     jsonStream.pipe(mysqlStream);
 
     options2.tableName = 'table1';
-    options2.resultStream = process.stdout;
+    options2.resultStream = resultStream;
     options2.closeStream = false;
     var mysqlStream2 = new mysql.sqlWriteStream(options2);
 
@@ -421,7 +421,7 @@ test('testing suite of functions, from create user to CRUD', function(test) {
   setTimeout(function() {
     options.tableName = 'table1';
     var del = new mysql.sqlDelete(options);
-    del.pipe(process.stdout);
+    del.pipe(resultStream);
 
     test.ok(true, 'delete from table');
   }.bind(this), (delay++) * intervall);
@@ -447,7 +447,7 @@ test('testing suite of functions, from create user to CRUD', function(test) {
   setTimeout(function() {
     options.tableName = 'table1';
     var drop = new mysql.sqlDrop(options);
-    drop.pipe(process.stdout);
+    drop.pipe(resultStream);
 
     test.ok(true, 'drop table');
   }.bind(this), (delay++) * intervall);

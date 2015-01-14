@@ -23,7 +23,7 @@ var decoder = new StringDecoder('utf8');
 var CONFIG = require('../src/config.js');
 var log = new h.log0(CONFIG.testLoggerOptions);
 
-var main = require('../src/main2.js');
+var main = require('../src/main.js');
 
 // used across tests
 var password, password2;
