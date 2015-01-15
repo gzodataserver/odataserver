@@ -88,11 +88,13 @@
     log.debug('LevelDB.init: key=' + key);
 
     // Open the LevelDB database
-    if (moduleSelf.levelup === null)
+    if (moduleSelf.levelup === null) {
       moduleSelf.levelup = require('level');
+    }
 
-    if (moduleSelf.leveldb === null)
+    if (moduleSelf.leveldb === null) {
       moduleSelf.leveldb = moduleSelf.levelup('./mydb');
+    }
 
     // save for later use
     self._key = key;
@@ -120,7 +122,6 @@
     //log.debug('LevelDB.pipeReadStream: key=' + self._key + ', rev=' + self._currentRevision);
     log.debug('LevelDB.pipeReadStream: ' + JSON.stringify(_options));
 
-
     // create stream that reads all chunks
     var _valueStream = moduleSelf.leveldb.createReadStream(_options);
 
@@ -132,7 +133,6 @@
     // pipe the created stream into the provided write stream
     _valueStream.pipe(writeStream);
   };
-
 
   //
   // Leveldb writable stream
@@ -157,7 +157,6 @@
 
   };
 
-
   // inherit stream.Writeable
   //LevelDBWriteStream.prototype = Object.create(writable.prototype);
   util.inherits(exports.BucketWriteStream, writable);
@@ -169,11 +168,13 @@
     log.debug('LevelDB.init: key=' + key);
 
     // Open the LevelDB database
-    if (moduleSelf.levelup === null)
+    if (moduleSelf.levelup === null) {
       moduleSelf.levelup = require('level');
+    }
 
-    if (moduleSelf.leveldb === null)
+    if (moduleSelf.leveldb === null) {
       moduleSelf.leveldb = moduleSelf.levelup('./mydb');
+    }
 
     // save for later use
     self._key = key;
@@ -199,7 +200,7 @@
     moduleSelf.leveldb.put(_k, chunk, function(err) {
 
       log.debug('LevelDBWriteStream.pipe wrote: ' + _k +
-                ', no saved chunks: ' + self._noSavedChunks);
+        ', no saved chunks: ' + self._noSavedChunks);
 
       if (err) {
         // save the number of the last successful chunk
@@ -235,9 +236,8 @@
     //self.super_.end.apply(arguments);
   };
 
-
-  exports.BucketWriteStream.prototype.end = exports.BucketWriteStream.prototype.close;
-
+  exports.BucketWriteStream.prototype.end =
+    exports.BucketWriteStream.prototype.close;
 
   //
   // HTTP Server
@@ -248,15 +248,14 @@
     var self = this;
   };
 
-
   // handle both read and write requests
-  exports.BucketHttpServer.prototype.handleRequest = function(request, response) {
+  exports.BucketHttpServer.prototype.handleRequest =
+    function(request, response) {
 
     var rs = exports.BucketReadStream;
     var ws = exports.BucketWriteStream;
 
     var leveldb = null;
-
 
     // Just for debugging
     request.on('end', function() {
@@ -274,14 +273,15 @@
         leveldb = new rs();
         leveldb.init(request.url, function() {
           h.calcHash(leveldb, 'sha1', 'hex', function(hash) {
-            log.debug('Finish event in leveldb write. Last chunk: ' + lastChunk);
+            log.debug('Finish event in leveldb write. Last chunk: ' +
+                      lastChunk);
 
             response.writeHead(200, {
               'Content-Type': 'application/json'
             });
             response.write(JSON.stringify({
               status: 'ok',
-              last_chunk: lastChunk,
+              lastChunk: lastChunk,
               etag: hash
             }));
             response.end();
@@ -289,7 +289,6 @@
         });
 
       });
-
 
       // fetch any errors writing to database
       leveldb.on('error', function(err) {
@@ -304,8 +303,8 @@
         });
         response.write(JSON.stringify({
           status: 'error',
-          error_message: err,
-          last_chunk: lastChunk
+          errorMessage: err,
+          lastChunk: lastChunk
         }));
         response.end();
 
@@ -324,8 +323,6 @@
       });
     }
   };
-
-
 
   //
   // Manage LevelDB users - admin functions
@@ -346,16 +343,12 @@
   };
 
   // create a new bucket
-  exports.bucketAdmin.prototype.dropBucket = function(bucketPath) {
-  };
+  exports.bucketAdmin.prototype.dropBucket = function(bucketPath) {};
 
   // create a new bucket
-  exports.bucketAdmin.prototype.checkGet = function(bucketPath) {
-  };
+  exports.bucketAdmin.prototype.checkGet = function(bucketPath) {};
 
   // create a new bucket
-  exports.bucketAdmin.prototype.checkPost = function(bucketPath) {
-  };
-
+  exports.bucketAdmin.prototype.checkPost = function(bucketPath) {};
 
 })(this);

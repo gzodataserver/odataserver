@@ -83,6 +83,14 @@ Run the extended test suite that depends on the data loaded above:
 
 Generate the documentation: `npm run-script docco`
 
+Check the code: `npm run-script style`
+
+I'm using editor Atom with the following addons:
+
+  apm install atom-beautify
+  apm install linter
+  apm install linter-jscs
+
 
 dtrace
 ======

@@ -558,11 +558,12 @@
 
           }
 
-          log.debug('Performing operation '+odataRequest.query_type+' with '+accountId+' credentials');
+          log.debug('Performing operation ' + odataRequest.query_type +
+                    ' with ' + accountId+' credentials');
           odataResult.accountId = accountId;
 
           // operations performed with objects inheriting from the the rdbms base object
-          if( ['grant', 'revoke', 'create_table', 'delete_table',
+          if(['grant', 'revoke', 'create_table', 'delete_table',
                'delete'].indexOf(odataRequest.query_type) !== -1) {
 
             var rdbms;
@@ -606,17 +607,17 @@
             return;
           }
 
-
           // Handle select, insert and unknow query types
           switch (odataRequest.query_type) {
 
             case 'select':
               options.sql = odataRequest.sql;
               options.processRowFunc = h.addEtag;
-              log.debug('Pipe values of the mysql stream to the response - options: '+
+              log.debug('Pipe values of the mysql stream to the response ' +
+                        '- options: ' +
                           JSON.stringify(options));
               var mysqlRead = new odataBackend.sqlRead(options);
-              mysqlRead.fetchAll(function(res){
+              mysqlRead.fetchAll(function(res) {
                 odataResult.value = res;
                 h.writeResponse(response, odataResult);
               });
@@ -643,13 +644,13 @@
               break;
 
             default:
-              h.writeError(response, 'Error, unknown query_type: ' + odataRequest.query_type);
+              h.writeError(response, 'Error, unknown query_type: ' +
+                          odataRequest.query_type);
           }
 
         } catch (e) {
           h.writeError(response, e);
         }
-
 
       });
 

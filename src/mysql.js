@@ -44,7 +44,6 @@
 //------------------------------
 //
 
-
 (function(moduleSelf, undefined) {
 
   var Readable = require('stream').Readable;
@@ -68,10 +67,10 @@
   // with the result
   var runQuery = function(conn, sql, resultFunc, endFunc, errFunc, fieldsFunc) {
     var self = this;
-    log.debug('runQuery sql ('+conn.config.user+'): ' + sql);
+    log.debug('runQuery sql (' + conn.config.user + '): ' + sql);
 
     conn.on('error', function(err) {
-      log.log('runQuery error in MySQL connection: '+err.code); // 'ER_BAD_DB_ERROR'
+      log.log('runQuery error in MySQL connection: ' + err.code); // 'ER_BAD_DB_ERROR'
     });
 
     // connect to the mysql server using the connection created in init
@@ -83,7 +82,9 @@
     query
       .on('fields', function(fields) {
         log.debug('fields: ' + JSON.stringify(fields));
-        if(fieldsFunc !== undefined) fieldsFunc(fields);
+        if (fieldsFunc !== undefined) {
+          fieldsFunc(fields);
+        }
       })
       .on('result', function(row) {
         resultFunc(row);
@@ -91,12 +92,16 @@
       })
       .on('error', function(err) {
         log.log('runQuery error: ' + err);
-        if(errFunc !== undefined) errFunc(err);
+        if (errFunc !== undefined) {
+          errFunc(err);
+        }
         log.debug('after errFunc(err)');
       })
       .on('end', function() {
         log.debug('runQuery end.');
-        if(endFunc !== undefined) endFunc();
+        if (endFunc !== undefined) {
+          endFunc();
+        }
       });
 
   };
@@ -108,49 +113,65 @@
     credentials.host = CONFIG.RDBMS.DB_HOST;
     self.connection = mysql.createConnection(credentials);
     self.sql = null;
-    log.debug('mysqlBase options:'+JSON.stringify(credentials)+
-              ',conn.config:'+JSON.stringify(self.connection.config));
+    log.debug('mysqlBase options:' + JSON.stringify(credentials) +
+      ',conn.config:' + JSON.stringify(self.connection.config));
   };
 
   // Write results into a stream
   mysqlBase.prototype.pipe = function(writeStream, endFunc, errFunc) {
     var self = this;
-    log.debug('mysqlBase.pipe: '+self.sql);
+    log.debug('mysqlBase.pipe: ' + self.sql);
 
     runQuery(self.connection, self.sql,
       // result func
       function(row) {
-        log.debug('pipe result: '+JSON.stringify(self.options.credentials));
+        log.debug('pipe result: ' + JSON.stringify(self.options.credentials));
         writeStream.write(JSON.stringify(row));
       },
       // end func
       function() {
-        log.debug('pipe end: '+JSON.stringify(self.options.credentials));
+        log.debug('pipe end: ' + JSON.stringify(self.options.credentials));
         self.connection.end();
-        if (self.options.closeStream) writeStream.end();
-        if(endFunc !== undefined) endFunc();
+        if (self.options.closeStream) {
+          writeStream.end();
+        }
+        if (endFunc !== undefined) {
+          endFunc();
+        }
       },
       // error func
       function(err) {
-        log.debug('pipe error: '+JSON.stringify(self.options.credentials));
+        log.debug('pipe error: ' + JSON.stringify(self.options.credentials));
 
-        if (writeStream.writeHead !== undefined)
-          writeStream.writeHead(406, {"Content-Type": "application/json"});
+        if (writeStream.writeHead !== undefined) {
+          writeStream.writeHead(406, {
+            "Content-Type": "application/json"
+          });
+        }
 
-        writeStream.write(JSON.stringify({error:err}));
+        writeStream.write(JSON.stringify({
+          error: err
+        }));
         //self.connection.end();
-        if (self.options.closeStream) writeStream.end();
-        if(errFunc !== undefined) errFunc(err);
+        if (self.options.closeStream) {
+          writeStream.end();
+        }
+        if (errFunc !== undefined) {
+          errFunc(err);
+        }
       },
       // fields (header) func
       function(fields) {
-        log.debug('fields: '+JSON.stringify(fields));
+        log.debug('fields: ' + JSON.stringify(fields));
 
-        if (writeStream.writeHead !== undefined)
-          writeStream.writeHead(200, {"Content-Type": "application/json"});
-
+        if (writeStream.writeHead !== undefined) {
+          writeStream.writeHead(200, {
+            "Content-Type": "application/json"
+          });
         }
-      );
+
+      }
+    );
   };
 
   // Close the MySQL connection
@@ -158,7 +179,6 @@
     var self = this;
     self.connection.end();
   };
-
 
   // Functions for Mysql users (non-admin)
   // ====================================
@@ -173,10 +193,11 @@
 
   // private helper function
   var processRow = function(self, row) {
-    if (self.processRowFunc !== undefined) return self.processRowFunc(row);
+    if (self.processRowFunc !== undefined) {
+      return self.processRowFunc(row);
+    }
     return row;
   };
-
 
   // options: {
   //  * sql - the sql select statement to run
@@ -205,7 +226,7 @@
 
     runQuery(self.connection, self.sql,
       function(row) {
-        log.debug('processRow(self, row): '+processRow(self, row));
+        log.debug('processRow(self, row): ' + processRow(self, row));
         self.result.push(processRow(self, row));
       },
       function() {
@@ -215,7 +236,6 @@
     );
 
   };
-
 
   //
   // Mysql writable stream
@@ -235,7 +255,6 @@
     self.endFunc = endFunc;
   };
 
-
   // inherit stream.Writeable
   exports.sqlWriteStream.prototype = Object.create(Writable.prototype);
 
@@ -253,14 +272,16 @@
       self.jsonOK = true;
       log.debug('_write parsed this JSON: ' + JSON.stringify(json));
     } catch (error) {
-      log.debug('_write could not parse this JSON (waiting for next chunk and trying again): ' +
+      log.debug('_write could not parse this JSON' +
+        ' (waiting for next chunk and trying again): ' +
         self.data);
       // just wait for the next chunk
       self.jsonOK = false;
       done();
     }
 
-    var sql = h.json2insert(self.options.credentials.database, self.options.tableName, json);
+    var sql = h.json2insert(self.options.credentials.database,
+      self.options.tableName, json);
 
     runQuery(self.connection, sql,
       function(row) {
@@ -269,8 +290,12 @@
       },
       function() {
         self.connection.end();
-        if (self.options.closeStream) self.options.resultStream.end();
-        if (self.endFunc) self.endFunc();
+        if (self.options.closeStream) {
+          self.options.resultStream.end();
+        }
+        if (self.endFunc) {
+          self.endFunc();
+        }
       }
     );
 
@@ -284,13 +309,15 @@
     var self = this;
     mysqlBase.call(this, options.credentials);
     self.options = options;
-    self.sql = 'delete from '+ options.credentials.database + '.' + options.tableName;
-    if (options.where !== undefined) self.sql += 'where' + options.where;
+    self.sql = 'delete from ' + options.credentials.database + '.' +
+      options.tableName;
+    if (options.where !== undefined) {
+      self.sql += 'where' + options.where;
+    }
   };
 
   // inherit mysqlBase prototype
   exports.sqlDelete.prototype = Object.create(mysqlBase.prototype);
-
 
   //
   // Create table and write result to stream
@@ -299,13 +326,13 @@
     var self = this;
     mysqlBase.call(this, options.credentials);
     self.options = options;
-    self.sql = 'create table '+options.tableDef.table_name + ' (' + options.tableDef.columns.join(',') + ')';
-    log.debug('exports.sqlCreate: '+self.sql);
+    self.sql = 'create table ' + options.tableDef.table_name + ' (' +
+      options.tableDef.columns.join(',') + ')';
+    log.debug('exports.sqlCreate: ' + self.sql);
   };
 
   // inherit mysqlBase prototype
   exports.sqlCreate.prototype = Object.create(mysqlBase.prototype);
-
 
   //
   // Drop table and write result to stream
@@ -316,12 +343,11 @@
     var self = this;
     mysqlBase.call(this, options.credentials);
     self.options = options;
-    self.sql = 'drop table if exists '+options.tableName+';';
+    self.sql = 'drop table if exists ' + options.tableName + ';';
   };
 
   // inherit mysqlBase prototype
   exports.sqlDrop.prototype = Object.create(mysqlBase.prototype);
-
 
   //
   // Manage MySQL users - admin functions
@@ -341,7 +367,6 @@
 
   };
 
-
   // inherit mysqlBase prototype
   exports.sqlAdmin.prototype = Object.create(mysqlBase.prototype);
 
@@ -358,50 +383,50 @@
   // create new user
   exports.sqlAdmin.prototype.new = function(accountId) {
     var self = this;
-    self.sql  = 'create database '+accountId+';';
-    self.sql += "create user '"+accountId+"'@'localhost';";
-    self.sql += "grant all privileges on "+accountId+".* to '"+
-                    accountId+"'@'localhost' with grant option;";
+    self.sql = 'create database ' + accountId + ';';
+    self.sql += "create user '" + accountId + "'@'localhost';";
+    self.sql += "grant all privileges on " + accountId + ".* to '" +
+      accountId + "'@'localhost' with grant option;";
   };
 
   // Delete user
   exports.sqlAdmin.prototype.delete = function(accountId) {
     var self = this;
-    self.sql  = "drop user '"+accountId+"'@'localhost';";
-    self.sql += 'drop database '+accountId+';';
+    self.sql = "drop user '" + accountId + "'@'localhost';";
+    self.sql += 'drop database ' + accountId + ';';
   };
 
   // Set password for user
   exports.sqlAdmin.prototype.resetPassword = function(accountId) {
     var self = this;
     var password = h.randomString(12);
-    self.sql = "set password for '"+accountId+"'@'localhost' = password('"+
-            password+"');";
+    self.sql = "set password for '" + accountId + "'@'localhost' = password('" +
+      password + "');";
     return password;
   };
 
   // Grant
   exports.sqlAdmin.prototype.grant = function(tableName, accountId) {
     var self = this;
-    self.sql = "grant insert, select, update, delete on "+tableName+" to '"+
-            accountId+"'@'localhost';";
+    self.sql = "grant insert, select, update, delete on " + tableName +
+      " to '" + accountId + "'@'localhost';";
   };
 
   // Revoke
   exports.sqlAdmin.prototype.revoke = function(tableName, accountId) {
     var self = this;
-    self.sql = "revoke insert, select, update, delete on "+tableName+" from '"+
-            accountId+"'@'localhost';";
+    self.sql = "revoke insert, select, update, delete on " + tableName +
+      " from '" + accountId + "'@'localhost';";
   };
-
 
   // Get the service definition, e.g database model
   // sql:'select table_name, (data_length+index_length)/1024/1024 as mb from information_schema.tables where table_schema="'+ schema + '"'};
   exports.sqlAdmin.prototype.serviceDef = function(accountId) {
     var self = this;
-    self.sql = 'select table_name, (data_length+index_length)/1024/1024 as mb '+
-            'from information_schema.tables where table_schema="'+
-            accountId + '"';
+    self.sql =
+      'select table_name, (data_length+index_length)/1024/1024 as mb ' +
+      'from information_schema.tables where table_schema="' + accountId +
+      '"';
   };
 
 })(this);
