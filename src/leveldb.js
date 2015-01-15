@@ -1,13 +1,43 @@
+// leveldb.js
+//------------------------------
+//
+// 2015-01-15, Jonas Colmsjö
+//
+//------------------------------
+//
+// Simple bucket server on top of LevelDB.
+//
+// Classes:
+// * BucketHttpServer - handles both read and write through HTTP GET and POST
+// * BucketReadStream - internal class
+// * BucketWriteStream - internal class
+//
+// Some notes about this bucket server:
+// * Versions are supported. A new version is created each time data is written
+//   to a key
+// * Each chunk received in the stream is written as a separate value
+// * A key looks like this: `/image1~000000111~000000017` (version 111, 17 chunks)
+// * Access control is implemented using the RDBMS server. A table is created
+//   for each bucket. The `grant` and `revoke` are used in the same way as for
+//   RDBMS tables. Read and write is checked by by first doing a select and
+//   insert respectively
+//
+// Using Google JavaScript Style Guide
+// http://google-styleguide.googlecode.com/svn/trunk/javascriptguide.xml
+//
+//------------------------------
 
 (function(moduleSelf, undefined) {
 
-  var u        = require('underscore');
+  var u = require('underscore');
   var readable = require('stream').Readable;
   var writable = require('stream').Writable;
-  var util     = require('util');
+  var util = require('util');
 
-  var h        = require('./helpers.js');
-  var CONFIG   = require('./config.js');
+  var h = require('./helpers.js');
+  var CONFIG = require('./config.js');
+
+  var rdbms = require(CONFIG.ODATA.RDBMS_BACKEND);
 
   moduleSelf.levelup = null;
   moduleSelf.leveldb = null;
@@ -30,7 +60,7 @@
   // =======================
   //
 
-  exports.LevelDBReadStream = function() {
+  exports.BucketReadStream = function() {
 
     var self = this;
 
@@ -43,16 +73,16 @@
 
     // These are initialized in the init function
 
-    self._noReadChunks     = 0;
-    self._key             = null;
+    self._noReadChunks = 0;
+    self._key = null;
     self._currentRevision = null;
   };
 
   // inherit stream.Readable
-  exports.LevelDBReadStream.prototype = Object.create(readable.prototype);
+  exports.BucketReadStream.prototype = Object.create(readable.prototype);
 
   // Initialize leveldb object
-  exports.LevelDBReadStream.prototype.init = function(key, cb) {
+  exports.BucketReadStream.prototype.init = function(key, cb) {
 
     var self = this;
     log.debug('LevelDB.init: key=' + key);
@@ -65,29 +95,34 @@
       moduleSelf.leveldb = moduleSelf.levelup('./mydb');
 
     // save for later use
-    self._key               = key;
+    self._key = key;
 
     // get the current revision and then run the callback
     h.getCurrentRev(moduleSelf.leveldb, key, self, cb);
   };
 
   // create a leveldb stream and pipe it into a provided write stream
-  exports.LevelDBReadStream.prototype.pipeReadStream = function(writeStream) {
+  exports.BucketReadStream.prototype.pipeReadStream = function(writeStream) {
 
     var self = this;
-    log.debug('LevelDB.pipeReadStream: key=' + self._key + ', rev=' + self._currentRevision);
 
     var _revision = h.pad(self._currentRevision, 9);
 
-    // create stream that reads all chunks
-    var _valueStream = moduleSelf.leveldb.createReadStream({
-      start:   self._key + '~' + _revision + '~000000000',
-      end:     self._key + '~' + _revision + '~999999999',
-      limit:   999999999,
+    var _options = {
+      start: self._key + '~' + _revision + '~000000000',
+      end: self._key + '~' + _revision + '~999999999',
+      limit: 999999999,
       reverse: false,
-      keys:    false,
-      values:  true
-    });
+      keys: false,
+      values: true
+    };
+
+    //log.debug('LevelDB.pipeReadStream: key=' + self._key + ', rev=' + self._currentRevision);
+    log.debug('LevelDB.pipeReadStream: ' + JSON.stringify(_options));
+
+
+    // create stream that reads all chunks
+    var _valueStream = moduleSelf.leveldb.createReadStream(_options);
 
     _valueStream.on('end', function() {
       log.debug('End event in LevelDBReadStream.');
@@ -104,7 +139,7 @@
   // =======================
   //
 
-  exports.LevelDBWriteStream = function() {
+  exports.BucketWriteStream = function() {
 
     var self = this;
 
@@ -116,8 +151,8 @@
     // ---------------------
     // These are initialized in the init function
 
-    self._noSavedChunks   = 0;
-    self._key             = null;
+    self._noSavedChunks = 0;
+    self._key = null;
     self._currentRevision = null;
 
   };
@@ -125,10 +160,10 @@
 
   // inherit stream.Writeable
   //LevelDBWriteStream.prototype = Object.create(writable.prototype);
-  util.inherits(exports.LevelDBWriteStream, writable);
+  util.inherits(exports.BucketWriteStream, writable);
 
   // Initialize leveldb object
-  exports.LevelDBWriteStream.prototype.init = function(key, cb) {
+  exports.BucketWriteStream.prototype.init = function(key, cb) {
 
     var self = this;
     log.debug('LevelDB.init: key=' + key);
@@ -141,32 +176,35 @@
       moduleSelf.leveldb = moduleSelf.levelup('./mydb');
 
     // save for later use
-    self._key               = key;
+    self._key = key;
 
     // get the current revision and then run the callback
     h.getCurrentRev(moduleSelf.leveldb, key, self,
-      function(){ self._currentRevision++; cb();}
+      function() {
+        self._currentRevision++;
+        cb();
+      }
     );
 
   };
 
   // override the write function
-  exports.LevelDBWriteStream.prototype._write = function (chunk, encoding, done) {
+  exports.BucketWriteStream.prototype._write = function(chunk, encoding, done) {
 
     var self = this;
     var _k = h.formatKey(self._key,
-                             self._currentRevision,
-                             ++self._noSavedChunks);
+      self._currentRevision,
+      ++self._noSavedChunks);
 
     moduleSelf.leveldb.put(_k, chunk, function(err) {
-      log.debug('WROTE: chunk ('+self._key+','+
-                                      self._currentRevision+','+
-                                      self._noSavedChunks+')');
+
+      log.debug('LevelDBWriteStream.pipe wrote: ' + _k +
+                ', no saved chunks: ' + self._noSavedChunks);
 
       if (err) {
         // save the number of the last successful chunk
         --self._noSavedChunks;
-        var _msg = 'LevelDB stream write: error saving chunk! '+err;
+        var _msg = 'LevelDB stream write: error saving chunk! ' + err;
         log.debug(_msg);
         self.emit('error', _msg);
       }
@@ -178,12 +216,12 @@
 
   };
 
-  exports.LevelDBWriteStream.prototype.lastSucessfullChunk = function () {
+  exports.BucketWriteStream.prototype.lastSucessfullChunk = function() {
     return this._noSavedChunks;
   };
 
   // Finish up and close the stream
-  exports.LevelDBWriteStream.prototype.close = function () {
+  exports.BucketWriteStream.prototype.close = function() {
     var self = this;
 
     log.debug('LevelDBWriteStream close');
@@ -198,7 +236,7 @@
   };
 
 
-  exports.LevelDBWriteStream.prototype.end = exports.LevelDBWriteStream.prototype.close;
+  exports.BucketWriteStream.prototype.end = exports.BucketWriteStream.prototype.close;
 
 
   //
@@ -206,14 +244,16 @@
   // ============
   //
 
-  exports.LevelDBHttpServer = function() {
+  exports.BucketHttpServer = function() {
     var self = this;
   };
 
-  exports.LevelDBHttpServer.prototype.main = function(request, response) {
 
-    var rs = exports.LevelDBReadStream;
-    var ws = exports.LevelDBWriteStream;
+  // handle both read and write requests
+  exports.BucketHttpServer.prototype.handleRequest = function(request, response) {
+
+    var rs = exports.BucketReadStream;
+    var ws = exports.BucketWriteStream;
 
     var leveldb = null;
 
@@ -283,6 +323,38 @@
         leveldb.pipeReadStream(response);
       });
     }
+  };
+
+
+
+  //
+  // Manage LevelDB users - admin functions
+  // ====================================
+
+  // Admin constructor, credentials should be supplied
+  exports.bucketAdmin = function(options) {
+    var self_ = this;
+    self_.options = options;
+
+    // Use the RDBMS for access control
+    self.rdbms = require(CONFIG.ODATA.RDBMS_BACKEND);
+  };
+
+  // create a new bucket
+  exports.bucketAdmin.prototype.createBucket = function(bucketPath) {
+    var rdbmsOptions
+  };
+
+  // create a new bucket
+  exports.bucketAdmin.prototype.dropBucket = function(bucketPath) {
+  };
+
+  // create a new bucket
+  exports.bucketAdmin.prototype.checkGet = function(bucketPath) {
+  };
+
+  // create a new bucket
+  exports.bucketAdmin.prototype.checkPost = function(bucketPath) {
   };
 
 

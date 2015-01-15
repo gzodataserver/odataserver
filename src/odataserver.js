@@ -13,7 +13,7 @@
 //
 //------------------------------
 
-(function(self_, undefined) {
+(function(moduleSelf, undefined) {
 
   var h = require('./helpers.js');
   var CONFIG = require('./config.js');
@@ -33,10 +33,6 @@
   // These operations require admin/root privs in the db
   var adminCredentialOps = ['create_account', 'reset_password', 'delete_account',
    'service_def' ];
-
-  // These operations are performed with the sqlAdmin object
-  //var sqlAdminOps = ['create_account', 'reset_password', 'delete_account',
-  //, 'service_def', 'create_privs' ];
 
 
   //

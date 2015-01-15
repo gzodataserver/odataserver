@@ -5,7 +5,7 @@
 //
 //------------------------------
 //
-// Template for tests
+// Test for bucket server
 //
 //
 // Using Google JavaScript Style Guide:
@@ -30,7 +30,7 @@ var server;
 
 test('setUp', function(test) {
   var http = require("http");
-  var level = require('./../src/leveldb.js');
+  var level = require('./../src/'+CONFIG.ODATA.BUCKET_BACKEND);
 
   server = http.createServer(function(request, response) {
 
@@ -40,8 +40,8 @@ test('setUp', function(test) {
       JSON.stringify(request.headers));
 
     // handle request with leveldb
-    var leveldb = new level.LevelDBHttpServer();
-    leveldb.main(request, response);
+    var leveldb = new level.BucketHttpServer();
+    leveldb.handleRequest(request, response);
 
   });
 

@@ -45,7 +45,7 @@
 //
 
 
-(function(self_, undefined) {
+(function(moduleSelf, undefined) {
 
   var Readable = require('stream').Readable;
   var Writable = require('stream').Writable;
