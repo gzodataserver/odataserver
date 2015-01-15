@@ -16,8 +16,6 @@
 // Run like this: `./node_modules/.bin/nodeunit test_odataserver.js`
 // Install dependencies first: `npm install`
 
-
-
 /*
  * IN PROGRESS - THE ODATASERVER IS NOT COMPLETED, CHECK END OF odataaserver.js
  *
@@ -59,7 +57,6 @@ test('setUp', function(test) {
   c.push('http://localhost/schema/table?$select=col1,col2&$filter=Price add 5 gt 10&$orderby=col2');
   c.push('http://localhost/schema/table?$orderby=col2');
 
-
   // start http server
   // -----------------
 
@@ -84,8 +81,6 @@ test('setUp', function(test) {
   test.end();
 });
 
-
-
 //
 // Test GET/SELECT Uris
 // ---------------------
@@ -100,7 +95,6 @@ test('testing odatauri2sql.ODataUri2Sql GET', function(test) {
   expected.push('{"query_type":"select","schema":"schema","table":"table","sql":"select * from schema.table"}');
   expected.push('{"query_type":"select","schema":"schema","table":"table","sql":"select col1,col2 from schema.table where Price + 5 > 10 order by col2"}');
   expected.push('{"query_type":"select","schema":"schema","table":"table","sql":"select * from schema.table order by col2"}');
-
 
   for (var i = 0; i < c.length; i++) {
     var o = uriParser.parseUri(c[i], 'GET');
@@ -120,7 +114,6 @@ test('testing odatauri2sql.ODataUri2Sql GET', function(test) {
 
 });
 
-
 //
 // Test POST/INSERT Uris
 // ---------------------
@@ -138,7 +131,7 @@ test('testing odatauri2sql.ODataUri2Sql POST', function(test) {
 
   for (i = 0; i < c.length; i++) {
     // URL #2 is ok for POST
-    if(i !== 1) {
+    if (i !== 1) {
       test.throws(function() {
         uriParser.parseUri(c[i], 'POST');
       });
@@ -152,7 +145,6 @@ test('testing odatauri2sql.ODataUri2Sql POST', function(test) {
 //
 // Test the etag function
 // -----------------------
-
 
 test('testing etag', function(test) {
   var uriParser = new o2s.ODataUri2Sql();
@@ -169,7 +161,6 @@ test('testing etag', function(test) {
   test.deepEqual(o, expected, 'Check ETAG');
   test.end();
 });
-
 
 //
 // Test the etag function
@@ -188,7 +179,6 @@ test('testing simple GET', function(test) {
     method: 'GET',
     path: '/wp/wp_links?$orderby=link_id'
   };
-
 
   var expected = {
     value: [{
@@ -299,7 +289,6 @@ test('testing simple GET', function(test) {
     }]
   };
 
-
   test.plan(1);
 
   var data = '';
@@ -325,9 +314,7 @@ test('testing simple GET', function(test) {
 
   req.end();
 
-
 });
-
 
 test('tearDown', function(test) {
   var self = this;

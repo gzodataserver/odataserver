@@ -16,8 +16,6 @@
 // Run like this: `./node_modules/.bin/nodeunit test_leveldb.js`
 // Install dependencies first: `npm install`
 
-
-
 var test = require('tape');
 
 var h = require('../src/helpers.js');
@@ -30,7 +28,7 @@ var server;
 
 test('setUp', function(test) {
   var http = require("http");
-  var level = require('./../src/'+CONFIG.ODATA.BUCKET_BACKEND);
+  var level = require('./../src/' + CONFIG.ODATA.BUCKET_BACKEND);
 
   server = http.createServer(function(request, response) {
 
@@ -52,7 +50,6 @@ test('setUp', function(test) {
   // setup finished
   test.end();
 });
-
 
 test('testing POST', function(test) {
   test.plan(2);
@@ -95,8 +92,8 @@ test('testing POST', function(test) {
       res.on('end', function() {
         req.end();
 
-        var data = '',
-          counter = 0;
+        var data = '';
+        var counter = 0;
 
         // path and method is set in each test
         var options2 = {
@@ -133,13 +130,11 @@ test('testing POST', function(test) {
 
       });
 
-
     });
 
     req.on('error', function(e) {
       log.log('problem with request: ' + e.message);
     });
-
 
     // This just pipes the read stream to the response object (which goes to the client)
     readStream.pipe(req);

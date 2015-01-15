@@ -8,9 +8,7 @@
 
 (function(self_, undefined) {
 
-
   var c = self_.config || {};
-
 
   // OData server configuration
   // --------------------------
@@ -66,7 +64,6 @@
     HASH_ENCODING: 'hex'
   };
 
-
   // RDBMS (MySQL and MSSQL) configuration
   // ------------------------------------
 
@@ -97,28 +94,46 @@
 
   };
 
-
   // Logging setup
   // -------------
 
   // The # before test_XXX is necessary for the test TAP protocol
-  c.testLoggerOptions = {debug: false, filename: '# test_XXX.js', noLogging: false};
+  c.testLoggerOptions = {
+    debug: false,
+    filename: '# test_XXX.js',
+    noLogging: false
+  };
 
   // NOTE: should turn logging on in production. Turned off here in order for
   // the tests output to comply with the TAP protocol
-  c.mysqlLoggerOptions = {debug: false, filename: 'mysql.js', noLogging: true};
+  c.mysqlLoggerOptions = {
+    debug: false,
+    filename: 'mysql.js',
+    noLogging: true
+  };
 
-  c.leveldbLoggerOptions = {debug: false, filename: 'leveldb.js', noLogging: false};
-  c.odataServerLoggerOptions = {debug: false, filename: 'odataserver.js', noLogging: false};
-  c.mainLoggerOptions = {debug: false, filename: 'main.js', noLogging: true};
+  c.leveldbLoggerOptions = {
+    debug: false,
+    filename: 'leveldb.js',
+    noLogging: false
+  };
 
+  c.odataServerLoggerOptions = {
+    debug: false,
+    filename: 'odataserver.js',
+    noLogging: false
+  };
 
+  c.mainLoggerOptions = {
+    debug: false,
+    filename: 'main.js',
+    noLogging: true
+  };
 
   // dtrace setup
   // -------------
 
   c.enableDtrace = true;
-
 
   // Exports
   // =======

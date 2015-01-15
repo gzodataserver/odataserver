@@ -43,7 +43,7 @@
     "start": "sudo node -e 'require(\"./src/main.js\").start();'",
     "docco": "docco -o docco src/*.js tests/*.js",
     "clean": "rm -rf docco; rm -rf mydb; rm -rf tests/mydb",
-    "style": "./node_modules/.bin/jscs src/* tests/*"
+    "style": "./node_modules/.bin/jscs src/*.js tests/test_mysql.js tests/test_leveldb.js tests/test_main.js"
   },
   "keywords": [
     "odata",

@@ -32,7 +32,6 @@
 // Install with: `npm install`
 // Run with: `npm start`
 
-
 (function(moduleSelf, undefined) {
 
   var http = require("http");
@@ -50,7 +49,6 @@
 
   var server;
 
-
   //
   // Start the OData server
   // ---------------------
@@ -59,7 +57,6 @@
 
     // handle request with odata server
     var odataServer = new odata.ODataServer();
-
 
     // start http server
     // -----------------
@@ -84,13 +81,15 @@
 
       // Check the MySQL credentials have been supplied, not required when
       // creating a new account ore resetting password though
-      if (odataRequest.query_type != 'create_account' &&
-        odataRequest.query_type != 'reset_password' &&
+      if (odataRequest.queryType != 'create_account' &&
+        odataRequest.queryType != 'reset_password' &&
         !h.checkCredentials(request, response)) {
 
-        h.writeError(response, "Invalid credentials, user or password missing. " +
+        h.writeError(response,
+          "Invalid credentials, user or password missing. " +
           "URL: " + request.url +
-          ", headers: " + JSON.stringify(request.headers) + " TYPE:" + odataRequest.query_type);
+          ", headers: " + JSON.stringify(request.headers) + " TYPE:" +
+          odataRequest.queryType);
 
         return;
       }
@@ -103,10 +102,8 @@
         h.writeError(response, request.method + ' not supported.');
       }
 
-
       // Handle the request
       odataServer.main(request, response, rdbms, odataRequest);
-
 
       // NOTE: The response object should not be closed explicitly here
 
@@ -117,7 +114,6 @@
     log.log("Server is listening on port " + CONFIG.ODATA.PORT);
 
   };
-
 
   //
   // Stop the OData server

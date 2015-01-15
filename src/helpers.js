@@ -13,8 +13,6 @@
 //
 //------------------------------
 
-
-
 (function(self_, undefined) {
 
   var h = self_.helpers || {};
@@ -26,7 +24,6 @@
 
   var StringDecoder = require('string_decoder').StringDecoder;
   var decoder = new StringDecoder('utf8');
-
 
   // New enhanced logging class
   // Each instance has its own options for logging level
@@ -44,32 +41,53 @@
     self._info = true;
     self._noLogging = false;
     self._filename = null;
-    if (options !== undefined) self.logLevel(options);
+    if (options !== undefined) {
+      self.logLevel(options);
+    }
   };
 
   h.log0.prototype.debug = function(text) {
     var self = this;
-    if (self._debug && !self._noLogging) self.log('DEBUG:' + text);
+    if (self._debug && !self._noLogging) {
+      self.log('DEBUG:' + text);
+    }
   };
 
   h.log0.prototype.info = function(text) {
     var self = this;
-    if (self._info && !self._noLogging) self.log('INFO:' + text);
+    if (self._info && !self._noLogging) {
+      self.log('INFO:' + text);
+    }
   };
 
   h.log0.prototype.log = function(text) {
     var self = this;
-    if(self._filename !== undefined && self._filename !== null)
-      text  = self._filename +':'+text;
-    if (!self._noLogging) console.log(text);
+    if (self._filename !== undefined && self._filename !== null) {
+      text  = self._filename + ':' + text;
+    }
+
+    if (!self._noLogging) {
+      console.log(text);
+    }
   };
 
   h.log0.prototype.logLevel = function(options) {
     var self = this;
-    if (options.debug !== undefined) self._debug = options.debug;
-    if (options.info !== undefined) self._info = options.info;
-    if (options.noLogging !== undefined) self._noLogging = options.noLogging;
-    if (options.filename !== undefined) self._filename = options.filename;
+    if (options.debug !== undefined) {
+      self._debug = options.debug;
+    }
+
+    if (options.info !== undefined) {
+      self._info = options.info;
+    }
+
+    if (options.noLogging !== undefined) {
+      self._noLogging = options.noLogging;
+    }
+
+    if (options.filename !== undefined) {
+      self._filename = options.filename;
+    }
   };
 
   var log = new h.log0({debug: false});
@@ -82,15 +100,21 @@
   h.log = {
 
     debug: function(text) {
-      if (h.debug && !h.noLogging) console.log('DEBUG: ' + text);
+      if (h.debug && !h.noLogging) {
+        console.log('DEBUG: ' + text);
+      }
     },
 
     info: function(text) {
-      if (h.info && !h.noLogging) console.log('INFO: ' + text);
+      if (h.info && !h.noLogging) {
+        console.log('INFO: ' + text);
+      }
     },
 
     log: function(text) {
-      if (!h.noLogging) console.log(text);
+      if (!h.noLogging) {
+        console.log(text);
+      }
     }
   };
 
@@ -100,7 +124,6 @@
   h.pad = function(a, b) {
     return (1e15 + a + "").slice(-b);
   };
-
 
   // Calculate hash from a leveldb stream
   h.calcHash = function(leveldb, alg, enc, cb) {
@@ -127,7 +150,7 @@
     var func  = crypto.createHash(alg);
 
     for (var key in obj) {
-      func.update( ''+obj[key] );
+      func.update('' + obj[key]);
     }
 
     return func.digest(enc);
@@ -152,7 +175,6 @@
   // key~rev#~chunk#
   // rev# and chunk# are 9 digits key~000000001~000000001
   //
-
 
   // Read keys into an array and process with callback
   // maximum 999.999.999 revisions and 999.999.999 chunks
@@ -246,15 +268,15 @@
     return k + '~' + h.pad(revNum, 9) + '~' + h.pad(chunkNum, 9);
   };
 
-
   //
   // Stream that aggregates objects that are written into array
   // ---------------------------------------------------------
 
   h.arrayBucketStream = function(options) {
     // if new wasn't used, do it for them
-    if (!(this instanceof arrayBucketStream))
+    if (!(this instanceof arrayBucketStream)) {
       return new arrayBucketStream(options);
+    }
 
     // call stream.Writeable constructor
     Writable.call(this, options);
@@ -279,12 +301,11 @@
     this.data = [];
   };
 
-
   // calculate account id from email
   h.email2accountId = function(email) {
     return h.hashString(CONFIG.ACCOUNT_ID.HASH_ALG,
                            CONFIG.ACCOUNT_ID.HASH_ENCODING,
-                           CONFIG.ACCOUNT_ID.SECRET_SALT + email).slice(0,12);
+                           CONFIG.ACCOUNT_ID.SECRET_SALT + email).slice(0, 12);
 
   };
 
@@ -293,10 +314,10 @@
     try {
       var buf = crypto.randomBytes(256);
       var str = new Buffer(buf).toString('base64');
-      return str.slice(0,len);
+      return str.slice(0, len);
     } catch (ex) {
       // handle error, most likely are entropy sources drained
-      console.log('Error! '+ex);
+      console.log('Error! ' + ex);
       return null;
     }
   };
@@ -307,8 +328,9 @@
 
   h.arrayBucketStream = function(options) {
     // if new wasn't used, do it for them
-    if (!(this instanceof h.arrayBucketStream))
+    if (!(this instanceof h.arrayBucketStream)) {
       return new h.arrayBucketStream(options);
+    }
 
     // call stream.Writeable constructor
     Writable.call(this, options);
@@ -356,14 +378,15 @@
 
     // separate keys (columns names) and values into separate strings
     // values have quotes but column names don't
-    var k = u.keys(data).join(','),
-      v = JSON.stringify(u.values(data));
+    var k = u.keys(data).join(',');
+    var v = JSON.stringify(u.values(data));
 
     // Skip [ and ] characters in string
     v = v.substring(1, v.length - 1);
 
     // The insert query
-    var insert = 'insert into ' + database + '.' +tableName + '(' + k + ') values(' + v + ')';
+    var insert = 'insert into ' + database + '.' + tableName +
+                 '(' + k + ') values(' + v + ')';
     return insert;
   };
 
@@ -371,28 +394,25 @@
   h.json2update = function(database, tableName, data) {
 
     // {k1: v1, k2: v2} -> k1=v1,k2=v2
-    var str = u.map(data, function(k,v) {return v+'='+k;} ).join(',');
+    var str = u.map(data, function(k, v) {return v + '=' + k;}).join(',');
 
     // The update query
-    var update = 'update ' + database + '.' +tableName + ' set ' + str;
+    var update = 'update ' + database + '.' + tableName + ' set ' + str;
     return update;
   };
-
 
   h.jsonParse = function(data) {
     try {
       return JSON.parse(data);
     } catch (e) {
-      log.log('Error parsing JSON:'+e);
+      log.log('Error parsing JSON:' + e);
     }
   };
-
 
   //
   // Setup dtrace
   // -------------
   // View probe: `sudo dtrace -Z -n 'nodeapp*:::probe{ trace(copyinstr(arg0)); }'`
-
 
   if (CONFIG.enableDtrace) {
     var dtrace = require('dtrace-provider');
@@ -409,7 +429,6 @@
     }
   }
 
-
   //
   // HTTP response
   // -------------
@@ -421,7 +440,7 @@
       "Content-Type": "application/json"
     });
 
-    odataResult = { d: {results: jsonData} };
+    odataResult = {d: {results: jsonData}};
     response.write(JSON.stringify(odataResult));
     response.end();
   }
@@ -431,7 +450,7 @@
     // Should return 406 when failing
     // http://www.odata.org/documentation/odata-version-2-0/operations/
 
-    odataResult = { d: {error: err.toString() } };
+    odataResult = {d: {error: err.toString()}};
 
     response.writeHead(406, {
       "Content-Type": "application/json"
@@ -448,13 +467,10 @@
     log.debug('Checking credentials: ' + JSON.stringify(request.headers));
 
     // Check that the request is ok
-    return !( !request.headers.hasOwnProperty('user') ||
-    !request.headers.hasOwnProperty('password') ) ;
+    return !(!request.headers.hasOwnProperty('user') ||
+    !request.headers.hasOwnProperty('password')) ;
 
   };
-
-
-
 
   // Exports
   // =======

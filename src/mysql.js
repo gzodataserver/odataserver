@@ -326,7 +326,7 @@
     var self = this;
     mysqlBase.call(this, options.credentials);
     self.options = options;
-    self.sql = 'create table ' + options.tableDef.table_name + ' (' +
+    self.sql = 'create table ' + options.tableDef.tableName + ' (' +
       options.tableDef.columns.join(',') + ')';
     log.debug('exports.sqlCreate: ' + self.sql);
   };
@@ -420,7 +420,7 @@
   };
 
   // Get the service definition, e.g database model
-  // sql:'select table_name, (data_length+index_length)/1024/1024 as mb from information_schema.tables where table_schema="'+ schema + '"'};
+  // sql:'select tableName, (data_length+index_length)/1024/1024 as mb from information_schema.tables where table_schema="'+ schema + '"'};
   exports.sqlAdmin.prototype.serviceDef = function(accountId) {
     var self = this;
     self.sql =

@@ -31,7 +31,6 @@
 //------------------------------
 //
 
-
 (function(self_, undefined) {
 
   var Readable = require('stream').Readable;
@@ -52,7 +51,6 @@
   // helper for running SQL queries. `resultFunc` determines what should happen
   // with the result
   var runQuery = function(conn, sql, resultFunc, endFunc) {
-
   };
 
   var sqlBase = function(credentials) {
@@ -65,7 +63,6 @@
   // Close the RDBMS connection
   mysqlBase.prototype.end = function() {
   };
-
 
   // Functions for RDBMS users (non-admin)
   // ====================================
@@ -92,7 +89,6 @@
   exports.sqlRead.prototype.fetchAll = function(done) {
   };
 
-
   //
   // RDBMS writable stream
   // ----------------------
@@ -116,7 +112,8 @@
   //
   //
 
-  exports.sqlWriteStream = function(credentials, database, tableName, resultStream) {
+  exports.sqlWriteStream = function(credentials, database, tableName,
+                                    resultStream) {
   };
 
   // inherit stream.Writeable
@@ -135,7 +132,6 @@
 
   // inherit mysqlBase prototype
   exports.sqlDelete.prototype = Object.create(mysqlBase.prototype);
-
 
   //
   // Create table and write result to stream
@@ -159,7 +155,6 @@
   // inherit mysqlBase prototype
   exports.sqlCreate.prototype = Object.create(mysqlBase.prototype);
 
-
   //
   // Drop table and write result to stream
   // ---------------------------------------
@@ -171,7 +166,6 @@
   // inherit mysqlBase prototype
   exports.sqlDrop.prototype = Object.create(mysqlBase.prototype);
 
-
   //
   // Manage RDBMS users - admin functions
   // ====================================
@@ -179,7 +173,6 @@
   // Admin constructor
   exports.sqlAdmin = function(credentials, accountId) {
   };
-
 
   // inherit mysqlBase prototype
   exports.sqlAdmin.prototype = Object.create(mysqlBase.prototype);
@@ -207,7 +200,6 @@
   // Revoke
   exports.sqlAdmin.prototype.revoke = function(tableName, accountId) {
   };
-
 
   // Get the service definition, e.g database model
   // sql:'select table_name, (data_length+index_length)/1024/1024 as mb from

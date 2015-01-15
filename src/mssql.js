@@ -13,7 +13,6 @@
 //
 //------------------------------
 
-
 (function(self_, undefined) {
 
   var util = require('util');
@@ -32,10 +31,11 @@
 
     // Connect to db and run callback
     var conn = mssql.connect(config, function(err) {
-      h.log.debug('MSSQL runQuery sql ('+JSON.stringify(config)+'): ' + sql);
+      h.log.debug('MSSQL runQuery sql (' + JSON.stringify(config) + '): ' +
+                  sql);
 
-      if(err) {
-        h.log.log('MSSQL error'+err);
+      if (err) {
+        h.log.log('MSSQL error' + err);
         return;
       }
 
@@ -47,7 +47,7 @@
 
       request.on('recordset', function(columns) {
         // Emitted once for each recordset in a query
-        h.log.debug('MSSQL Recordset columns: '+columns);
+        h.log.debug('MSSQL Recordset columns: ' + columns);
       });
 
       request.on('row', function(row) {
@@ -57,17 +57,18 @@
 
       request.on('error', function(err) {
         // May be emitted multiple times
-        h.log.log('MSSQL error:'+err);
+        h.log.log('MSSQL error:' + err);
       });
 
       request.on('done', function(returnValue) {
         h.log.debug('MSSQL runQuery end.');
         conn.close();
-        if(endFunc !== undefined) endFunc();
+        if (endFunc !== undefined) {
+          endFunc();
+        }
       });
 
     });
-
 
   };
 
@@ -88,7 +89,6 @@
 
   };
 
-
   // Write results into a stream
   mssqlBase.prototype.pipe = function(writeStream) {
     var self = this;
@@ -105,7 +105,6 @@
     self.connection.end();
   };
 
-
   //
   // Mssql readable object
   // ---------------------
@@ -118,10 +117,11 @@
   var processRow = function(row) {
     var self = this;
 
-    if (self.processRowFunc !== undefined) return self.processRowFunc(row);
+    if (self.processRowFunc !== undefined) {
+      return self.processRowFunc(row);
+    }
     return row;
   };
-
 
   // * sql - the sql select statement to run
   // * processRowFunc - each row can be manipulated with this function before

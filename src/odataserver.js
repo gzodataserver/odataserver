@@ -27,13 +27,14 @@
 
   // check for admin operations, where the url start with /s/...
   var urlAdminOps = ['create_account', 'reset_password', 'delete_account',
-  'create_table', 'service_def', 'grant', 'revoke', 'drop_table', 'create_bucket',
-  'drop_bucket' ];
+    'create_table', 'service_def', 'grant', 'revoke', 'drop_table',
+    'create_bucket', 'drop_bucket'
+  ];
 
   // These operations require admin/root privs in the db
-  var adminCredentialOps = ['create_account', 'reset_password', 'delete_account',
-   'service_def' ];
-
+  var adminCredentialOps = ['create_account', 'reset_password',
+  'delete_account', 'service_def'
+  ];
 
   //
   // Parse OData URI
@@ -131,7 +132,6 @@
     return u.map(expr, translateOp).join(' ');
   };
 
-
   //
   // Parse Query strings
   // -------------------
@@ -225,11 +225,9 @@
     }
   };
 
-
   //
   // Parse OData  URI
   // ====================
-
 
   var reduce = function(sqlObjects) {
     // create a string from the objects
@@ -253,11 +251,11 @@
   // {
   //   schema: xxx,
   //   table: yyy,
-  //   query_type: service_def | create_table | delete_table | select | insert | delete,
+  //   queryType: service_def | create_table | delete_table | select | insert | delete,
   //   sql: 'select col1, col2, colN from table where col1="YY"'
   // }
   //
-  exports.ODataUri2Sql.prototype.parseUri = function(s, req_method) {
+  exports.ODataUri2Sql.prototype.parseUri = function(s, reqMethod) {
     var url = require('url');
     var parsedURL = url.parse(s, true, false);
 
@@ -272,23 +270,24 @@
     // Work on service definition, e.g. list of tables, for /schema/
     if (a.length == 2) {
 
-      switch (req_method) {
+      switch (reqMethod) {
         // return list of tables
         case 'GET':
-          result.query_type = 'service_def';
+          result.queryType = 'service_def';
           break;
 
         case 'POST':
-          result.query_type = 'create_table';
+          result.queryType = 'create_table';
           break;
 
         case 'DELETE':
-          result.query_type = 'delete_table';
+          result.queryType = 'delete_table';
           break;
 
           // POST etc. not supported here
         default:
-          throw new Error('Operation on /schema not supported for ' + req_method);
+          throw new Error('Operation on /schema not supported for ' +
+                          reqMethod);
       }
 
       return result;
@@ -296,29 +295,29 @@
 
     // URI should look like this: /schema/table
     if (a.length != 3) {
-      throw new Error('Pathname should be in the form /schema/table, not ' + parsedURL.pathname);
+      throw new Error('Pathname should be in the form /schema/table, not ' +
+                      parsedURL.pathname);
     }
 
-
-    if(urlAdminOps.indexOf(a[2]) !== -1 ) {
-      result.query_type = a[2];
+    if (urlAdminOps.indexOf(a[2]) !== -1) {
+      result.queryType = a[2];
       return result;
     }
 
     // indexing with table(x) not supported
     if (result.table.indexOf('(') > -1) {
-      throw new Error('The form /schema/entity(key) is not supported. Use $filter instead.');
+      throw new Error('The form /schema/entity(key) is not supported.' +
+                      ' Use $filter instead.');
     }
-
 
     // translate odata queries in URI to sql
     var sqlObjects = u.map(parsedURL.query, odata2sql);
 
     // parse GET requests
-    if (req_method == 'GET') {
+    if (reqMethod == 'GET') {
 
       // this is a select
-      result.query_type = 'select';
+      result.queryType = 'select';
 
       sqlObjects.push({
         id: 2,
@@ -340,10 +339,10 @@
     }
 
     // parse POST requests
-    if (req_method == 'POST') {
+    if (reqMethod == 'POST') {
 
       // this is a insert
-      result.query_type = 'insert';
+      result.queryType = 'insert';
 
       // check that there are no parameters
       if (!u.isEmpty(parsedURL.query)) {
@@ -354,10 +353,10 @@
     }
 
     // parse DELETE request
-    if (req_method == 'DELETE') {
+    if (reqMethod == 'DELETE') {
 
       // this is a delete
-      result.query_type = 'delete';
+      result.queryType = 'delete';
 
     }
 
@@ -380,8 +379,8 @@
 
   // calculate the MD5 etag for a JSON object
   var etag = function(obj) {
-    var crypto = require('crypto'),
-      md5 = crypto.createHash('md5');
+    var crypto = require('crypto');
+    var md5 = crypto.createHash('md5');
 
     for (var key in obj) {
       md5.update('' + obj[key]);
@@ -393,14 +392,13 @@
   // Add an etag property to an object
   exports.ODataUri2Sql.prototype.addEtag = function(obj) {
     // return a clone
-    var o = u.clone(obj),
-      e = etag(obj);
+    var o = u.clone(obj);
+    var e = etag(obj);
 
     o['@odata.etag'] = e;
 
     return o;
   };
-
 
   //
   // Operations
@@ -428,231 +426,234 @@
   };
 
   // HTTP REST Server that
-  exports.ODataServer.prototype.main = function(request, response, odataBackend, odataRequest) {
+  exports.ODataServer.prototype.main = function(request, response, odataBackend,
+                                                odataRequest) {
     log.debug('In main ...');
 
     // save input from POST and PUT here
     var data = '';
 
-
     request
-      // read the data in the stream, if there is any
+    // read the data in the stream, if there is any
       .on('error', function(err) {
 
-        var str ="Error in http input stream: "+err+
-          ", URL: "+request.url+
-          ", headers: "+JSON.stringify(request.headers) + " TYPE:"+odataRequest.query_type;
+      var str = "Error in http input stream: " + err +
+        ", URL: " + request.url +
+        ", headers: " + JSON.stringify(request.headers) + " TYPE:" +
+        odataRequest.queryType;
 
-        log.log(str);
-        writeError(response, str);
-      })
+      log.log(str);
+      writeError(response, str);
+    })
 
-      // read the data in the stream, if there is any
-      .on('data', function(chunk) {
-        log.debug('Receiving data');
-        data += chunk;
-      })
+    // read the data in the stream, if there is any
+    .on('data', function(chunk) {
+      log.debug('Receiving data');
+      data += chunk;
+    })
 
-      // request closed,
-      .on('close', function() {
-        log.debug('http request closed.');
-      })
+    // request closed,
+    .on('close', function() {
+      log.debug('http request closed.');
+    })
 
-      // request closed, process it
-      .on('end', function() {
+    // request closed, process it
+    .on('end', function() {
 
-        log.debug('End of data');
+      log.debug('End of data');
 
-        try {
+      try {
 
-          // parse odata payload into JSON object
-          var jsonData = null;
-          if (data !== '') {
-            jsonData = h.jsonParse(data);
-            log.debug('Data received: ' + JSON.stringify(jsonData) );
-          }
-
-          var mysqlAdmin,
-            accountId = request.headers.user,
-            password = request.headers.password;
-
-
-          var options = {
-            credentials: {
-              database: accountId,
-              user: accountId,
-              password: password
-            },
-            closeStream: true
-          };
-
-          var adminOptions = {
-            credentials: {
-              user: CONFIG.RDBMS.ADMIN_USER,
-              password: CONFIG.RDBMS.ADMIN_PASSWORD
-            },
-            closeStream: true
-          };
-
-
-          log.debug('Processing request - credentials: '+JSON.stringify(options)+
-                      ', odataRequest: '+JSON.stringify(odataRequest) +
-                      ', JSON: '+JSON.stringify(jsonData));
-
-          // query_type: create_user | set_password | delete_user
-          // query_type: service_def | create_table | delete_table | select | insert | delete,
-
-          var decoder = new StringDecoder('utf8');
-          var bucket = new h.arrayBucketStream();
-          var odataResult = {};
-
-          // operations performed with admin/root credentials
-          if( adminCredentialOps.indexOf(odataRequest.query_type) !== -1) {
-
-            log.debug('Performing operation '+odataRequest.query_type+' with admin/root credentials');
-            log.debug('odataRequest: '+JSON.stringify(odataRequest));
-
-           sqlAdmin = new odataBackend.sqlAdmin(adminOptions);
-
-            var email = '';
-            if (odataRequest.query_type === 'create_account') {
-              // calculate accountId from email
-              accountId = h.email2accountId(jsonData.email);
-              email = jsonData.email;
-              sqlAdmin.new(accountId);
-            }
-
-            var password;
-            if (odataRequest.query_type === 'reset_password') {
-              password = sqlAdmin.resetPassword(jsonData.accountId);
-            }
-
-            if (odataRequest.query_type === 'delete_account') {
-              sqlAdmin.delete(accountId);
-            }
-
-            if (odataRequest.query_type === 'service_def') {
-              sqlAdmin.serviceDef(accountId);
-            }
-
-            sqlAdmin.pipe(bucket,
-              function() {
-                odataResult.email = email;
-                odataResult.accountId = accountId;
-
-                if (odataRequest.query_type === 'reset_password')
-                  odataResult.password = password;
-
-                // The RDBMS response is JSON but it is not parsed since that
-                // sometimes fails (reason unknown)
-                odataResult.rdbms_response = decoder.write(bucket.get());
-
-                h.writeResponse(response, odataResult);
-              },
-              function(err) {
-                h.writeError(response, err);
-              }
-            );
-
-            return;
-
-          }
-
-          log.debug('Performing operation ' + odataRequest.query_type +
-                    ' with ' + accountId+' credentials');
-          odataResult.accountId = accountId;
-
-          // operations performed with objects inheriting from the the rdbms base object
-          if(['grant', 'revoke', 'create_table', 'delete_table',
-               'delete'].indexOf(odataRequest.query_type) !== -1) {
-
-            var rdbms;
-
-            if (odataRequest.query_type === 'grant') {
-              rdbms = new odataBackend.sqlAdmin(options);
-              rdbms.grant(jsonData.tableName, jsonData.accountId);
-            }
-
-            if (odataRequest.query_type === 'revoke') {
-              rdbms = new odataBackend.sqlAdmin(options);
-              rdbms.revoke(jsonData.tableName, jsonData.accountId);
-            }
-
-            if (odataRequest.query_type === 'create_table') {
-              options.tableDef = jsonData.tableDef;
-              rdbms = new odataBackend.sqlCreate(options);
-            }
-
-            if (odataRequest.query_type === 'delete_table') {
-              options.tableName = jsonData.tableName;
-              rdbms = new odataBackend.sqlDrop(options);
-            }
-
-            if (odataRequest.query_type === 'delete') {
-              options.tableName = odataRequest.table;
-              options.where = odataRequest.where;
-              rdbms = new odataBackend.sqlDelete(options);
-            }
-
-            rdbms.pipe(bucket,
-              function() {
-                odataResult.rdbms_response = decoder.write(bucket.get());
-                h.writeResponse(response, odataResult);
-              },
-              function(err) {
-                h.writeError(response, err);
-              }
-            );
-
-            return;
-          }
-
-          // Handle select, insert and unknow query types
-          switch (odataRequest.query_type) {
-
-            case 'select':
-              options.sql = odataRequest.sql;
-              options.processRowFunc = h.addEtag;
-              log.debug('Pipe values of the mysql stream to the response ' +
-                        '- options: ' +
-                          JSON.stringify(options));
-              var mysqlRead = new odataBackend.sqlRead(options);
-              mysqlRead.fetchAll(function(res) {
-                odataResult.value = res;
-                h.writeResponse(response, odataResult);
-              });
-              break;
-
-            // NOTE: Could move this out of end event and pipe request into mysql
-            case 'insert':
-              options.tableName = odataRequest.table;
-              options.resultStream = bucket;
-              var writeStream = new odataBackend.sqlWriteStream(options,
-                function() {
-                  odataResult.rdbms_response = decoder.write(bucket.get());
-                  h.writeResponse(response, odataResult);
-                }
-              );
-
-              // create stream that writes json into rdbms
-              var jsonStream = new require('stream');
-              jsonStream.pipe = function(dest) {
-                dest.write(JSON.stringify(jsonData));
-              };
-
-              jsonStream.pipe(writeStream);
-              break;
-
-            default:
-              h.writeError(response, 'Error, unknown query_type: ' +
-                          odataRequest.query_type);
-          }
-
-        } catch (e) {
-          h.writeError(response, e);
+        // parse odata payload into JSON object
+        var jsonData = null;
+        if (data !== '') {
+          jsonData = h.jsonParse(data);
+          log.debug('Data received: ' + JSON.stringify(jsonData));
         }
 
-      });
+        var mysqlAdmin;
+        var accountId = request.headers.user;
+        var password = request.headers.password;
+
+        var options = {
+          credentials: {
+            database: accountId,
+            user: accountId,
+            password: password
+          },
+          closeStream: true
+        };
+
+        var adminOptions = {
+          credentials: {
+            user: CONFIG.RDBMS.ADMIN_USER,
+            password: CONFIG.RDBMS.ADMIN_PASSWORD
+          },
+          closeStream: true
+        };
+
+        log.debug('Processing request - credentials: ' +
+          JSON.stringify(options) +
+          ', odataRequest: ' + JSON.stringify(odataRequest) +
+          ', JSON: ' + JSON.stringify(jsonData));
+
+        // queryType: create_user | set_password | delete_user
+        // queryType: service_def | create_table | delete_table | select | insert | delete,
+
+        var decoder = new StringDecoder('utf8');
+        var bucket = new h.arrayBucketStream();
+        var odataResult = {};
+
+        // operations performed with admin/root credentials
+        if (adminCredentialOps.indexOf(odataRequest.queryType) !== -1) {
+
+          log.debug('Performing operation ' + odataRequest.queryType +
+                    ' with admin/root credentials');
+          log.debug('odataRequest: ' + JSON.stringify(odataRequest));
+
+          sqlAdmin = new odataBackend.sqlAdmin(adminOptions);
+
+          var email = '';
+          if (odataRequest.queryType === 'create_account') {
+            // calculate accountId from email
+            accountId = h.email2accountId(jsonData.email);
+            email = jsonData.email;
+            sqlAdmin.new(accountId);
+          }
+
+          var password;
+          if (odataRequest.queryType === 'reset_password') {
+            password = sqlAdmin.resetPassword(jsonData.accountId);
+          }
+
+          if (odataRequest.queryType === 'delete_account') {
+            sqlAdmin.delete(accountId);
+          }
+
+          if (odataRequest.queryType === 'service_def') {
+            sqlAdmin.serviceDef(accountId);
+          }
+
+          sqlAdmin.pipe(bucket,
+            function() {
+              odataResult.email = email;
+              odataResult.accountId = accountId;
+
+              if (odataRequest.queryType === 'reset_password') {
+                odataResult.password = password;
+              }
+
+              // The RDBMS response is JSON but it is not parsed since that
+              // sometimes fails (reason unknown)
+              odataResult.rdbmsResponse = decoder.write(bucket.get());
+
+              h.writeResponse(response, odataResult);
+            },
+            function(err) {
+              h.writeError(response, err);
+            }
+          );
+
+          return;
+
+        }
+
+        log.debug('Performing operation ' + odataRequest.queryType +
+          ' with ' + accountId + ' credentials');
+        odataResult.accountId = accountId;
+
+        // operations performed with objects inheriting from the the rdbms base object
+        if (['grant', 'revoke', 'create_table', 'delete_table',
+            'delete'
+          ].indexOf(odataRequest.queryType) !== -1) {
+
+          var rdbms;
+
+          if (odataRequest.queryType === 'grant') {
+            rdbms = new odataBackend.sqlAdmin(options);
+            rdbms.grant(jsonData.tableName, jsonData.accountId);
+          }
+
+          if (odataRequest.queryType === 'revoke') {
+            rdbms = new odataBackend.sqlAdmin(options);
+            rdbms.revoke(jsonData.tableName, jsonData.accountId);
+          }
+
+          if (odataRequest.queryType === 'create_table') {
+            options.tableDef = jsonData.tableDef;
+            rdbms = new odataBackend.sqlCreate(options);
+          }
+
+          if (odataRequest.queryType === 'delete_table') {
+            options.tableName = jsonData.tableName;
+            rdbms = new odataBackend.sqlDrop(options);
+          }
+
+          if (odataRequest.queryType === 'delete') {
+            options.tableName = odataRequest.table;
+            options.where = odataRequest.where;
+            rdbms = new odataBackend.sqlDelete(options);
+          }
+
+          rdbms.pipe(bucket,
+            function() {
+              odataResult.rdbmsResponse = decoder.write(bucket.get());
+              h.writeResponse(response, odataResult);
+            },
+            function(err) {
+              h.writeError(response, err);
+            }
+          );
+
+          return;
+        }
+
+        // Handle select, insert and unknow query types
+        switch (odataRequest.queryType) {
+
+          case 'select':
+            options.sql = odataRequest.sql;
+            options.processRowFunc = h.addEtag;
+            log.debug('Pipe values of the mysql stream to the response ' +
+              '- options: ' +
+              JSON.stringify(options));
+            var mysqlRead = new odataBackend.sqlRead(options);
+            mysqlRead.fetchAll(function(res) {
+              odataResult.value = res;
+              h.writeResponse(response, odataResult);
+            });
+            break;
+
+            // NOTE: Could move this out of end event and pipe request into mysql
+          case 'insert':
+            options.tableName = odataRequest.table;
+            options.resultStream = bucket;
+            var writeStream = new odataBackend.sqlWriteStream(options,
+              function() {
+                odataResult.rdbmsResponse = decoder.write(bucket.get());
+                h.writeResponse(response, odataResult);
+              }
+            );
+
+            // create stream that writes json into rdbms
+            var jsonStream = new require('stream');
+            jsonStream.pipe = function(dest) {
+              dest.write(JSON.stringify(jsonData));
+            };
+
+            jsonStream.pipe(writeStream);
+            break;
+
+          default:
+            h.writeError(response, 'Error, unknown queryType: ' +
+              odataRequest.queryType);
+        }
+
+      } catch (e) {
+        h.writeError(response, e);
+      }
+
+    });
 
   };
 

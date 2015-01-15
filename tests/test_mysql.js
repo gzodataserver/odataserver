@@ -15,7 +15,6 @@
 
 var test = require('tape');
 
-
 var StringDecoder = require('string_decoder').StringDecoder;
 
 var mysql = require('../src/mysql.js');
@@ -24,16 +23,13 @@ var ws = require('../src/mysql.js').sqlWriteStream;
 var h = require('../src/helpers.js');
 
 var CONFIG = require('../src/config.js');
-
 var log = new h.log0(CONFIG.testLoggerOptions);
 
 var resultStream = process.stderr;
-
-var delay = 0,
+var delay = 0;
   // milliseconds between async tests, 10 is the minimum that works on
   // my laptop
-  intervall = 10;
-
+var intervall = 10;
 var decoder = new StringDecoder('utf8');
 
 // First test user
@@ -68,8 +64,8 @@ var adminOptions = {
   closeStream: false
 };
 
-var bucket = new h.arrayBucketStream(),
-  bucket2 = new h.arrayBucketStream();
+var bucket = new h.arrayBucketStream();
+var bucket2 = new h.arrayBucketStream();
 
 // Main
 // =====
@@ -78,7 +74,8 @@ var bucket = new h.arrayBucketStream(),
 test('setUp', function(test) {
   var self = this;
 
-  log.log('NOTE: Streams are used in these tests and process.stderr is as output stream.');
+  log.log('NOTE: Streams are used in these tests and process.stderr' +
+          ' is as output stream.');
 
   // drop table
   setTimeout(function() {
@@ -86,7 +83,6 @@ test('setUp', function(test) {
     var drop = new mysql.sqlDrop(adminOptions);
     drop.pipe(bucket);
   }.bind(this), (delay++) * intervall);
-
 
   // drop the users
   setTimeout(function() {
@@ -103,7 +99,6 @@ test('setUp', function(test) {
     test.end();
 
   }.bind(this), (delay++) * intervall);
-
 
 });
 /*
@@ -126,7 +121,7 @@ test('testing_fetchAll', function(test) {
     log.debug('create table');
 
     var tableDef = {
-      table_name: 'table1',
+      tableName: 'table1',
       columns: [
         'col1 int',
         'col2 varchar(255)',
@@ -139,7 +134,6 @@ test('testing_fetchAll', function(test) {
 
     test.ok(true, 'create table');
   }, (delay++) * intervall);
-
 
   // 3. insert into table
   setTimeout(function() {
@@ -185,7 +179,6 @@ test('testing_fetchAll', function(test) {
     test.end();
 
   }.bind(this), (delay++) * intervall);
-
 
 });*/
 
@@ -261,7 +254,6 @@ test('testing suite of functions, from create user to CRUD', function(test) {
       'MySQL credentials not set');
   }.bind(this), (delay++) * intervall);
 
-
   // 2. create new user
   setTimeout(function() {
     //test.deepEqual(bucket.get() === expected1, 'Test section #1 did not return the expected result');
@@ -283,7 +275,6 @@ test('testing suite of functions, from create user to CRUD', function(test) {
     test.ok(true, 'create new user');
   }.bind(this), (delay++) * intervall);
 
-
   // 3. set passwords
   setTimeout(function() {
     var mysqlAdmin = new mysql.sqlAdmin(adminOptions);
@@ -303,7 +294,7 @@ test('testing suite of functions, from create user to CRUD', function(test) {
   setTimeout(function() {
 
     var tableDef = {
-      table_name: 'table1',
+      tableName: 'table1',
       columns: [
         'col1 int',
         'col2 varchar(255)',
@@ -382,11 +373,10 @@ test('testing suite of functions, from create user to CRUD', function(test) {
   // 8. wait four seconds and write results
   setTimeout(function() {
     var decoder = new StringDecoder('utf8');
-    log.debug('BUCKET CONTENTS after insert (decoded):' + decoder.write(bucket.get()));
+    log.debug('BUCKET CONTENTS after insert (decoded):' +
+              decoder.write(bucket.get()));
     test.ok(true, 'wait four seconds and write results');
   }.bind(this), (delay++) * intervall);
-
-
 
   // X. Revoke privs from user #2
   setTimeout(function() {
@@ -402,20 +392,20 @@ test('testing suite of functions, from create user to CRUD', function(test) {
   // Y. select from table
   setTimeout(function() {
     log.debug('Read values of the mysql stream with user #2:');
-    options.sql = 'select * from '+accountId+'.table1';
+    options.sql = 'select * from ' + accountId + '.table1';
     var mysqlRead = new mysql.sqlRead(options);
     bucket.empty();
     mysqlRead.pipe(bucket);
-    test.ok(true, 'select from '+accountId+'.table1');
+    test.ok(true, 'select from ' + accountId + '.table1');
   }.bind(this), (delay++) * intervall);
 
   // Z. wait four seconds and write results
   setTimeout(function() {
     var decoder = new StringDecoder('utf8');
-    log.debug('BUCKET CONTENTS after insert (decoded):' + decoder.write(bucket.get()));
+    log.debug('BUCKET CONTENTS after insert (decoded):' +
+              decoder.write(bucket.get()));
     test.ok(true, 'wait four seconds and write results');
   }.bind(this), (delay++) * intervall);
-
 
   // 9. delete from table
   setTimeout(function() {
@@ -438,7 +428,8 @@ test('testing suite of functions, from create user to CRUD', function(test) {
 
   // 11. check what was read this time
   setTimeout(function() {
-    log.debug('BUCKET CONTENTS delete (decoded):' + decoder.write(bucket.get()));
+    log.debug('BUCKET CONTENTS delete (decoded):' +
+              decoder.write(bucket.get()));
 
     test.ok(true, 'check what was read this time');
   }.bind(this), (delay++) * intervall);
@@ -468,6 +459,5 @@ test('testing suite of functions, from create user to CRUD', function(test) {
     test.end();
 
   }.bind(this), (delay++) * intervall);
-
 
 });
