@@ -28,13 +28,17 @@
   // check for admin operations, where the url start with /s/...
   var urlAdminOps = ['create_account', 'reset_password', 'delete_account',
     'create_table', 'service_def', 'grant', 'revoke', 'drop_table',
-    'create_bucket', 'drop_bucket'
-  ];
+    'create_bucket', 'drop_bucket'];
 
   // These operations require admin/root privs in the db
   var adminCredentialOps = ['create_account', 'reset_password',
-  'delete_account', 'service_def'
-  ];
+  'delete_account', 'service_def'];
+
+  // Check if operation is a valid admin operation
+  exports.isAdminOp = function(op) {
+    return urlAdminOps.indexOf(op) !== -1;
+  };
+
 
   //
   // Parse OData URI
@@ -547,6 +551,7 @@
               // sometimes fails (reason unknown)
               odataResult.rdbmsResponse = decoder.write(bucket.get());
 
+              // NOTE: DUMMY ANSWER, YET TO BE IMPLMENTED
               h.writeResponse(response, odataResult);
             },
             function(err) {

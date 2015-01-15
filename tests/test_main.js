@@ -16,6 +16,7 @@ var tap = require('tape');
 var http = require('http');
 
 var h = require('../src/helpers.js');
+var th = require('./helpers.js');
 var StringDecoder = require('string_decoder').StringDecoder;
 var decoder = new StringDecoder('utf8');
 
@@ -28,38 +29,6 @@ var main = require('../src/main.js');
 var password, password2;
 var accountId = h.email2accountId(CONFIG.TEST.EMAIL);
 var accountId2 = h.email2accountId(CONFIG.TEST.EMAIL2);
-
-//
-// Helper for making http requests
-// -------------------------------
-
-var httpRequest = function(options, input, done) {
-  var _data = '';
-  var req = http.request(options, function(res) {
-    log.debug('status code:' + res.statusCode + ', headers: ' +
-              JSON.stringify(res.headers));
-
-    res.setEncoding('utf8');
-
-    res.on('data', function(chunk) {
-      _data += chunk;
-    });
-
-    res.on('end', function() {
-      done(_data, res.statusCode);
-    });
-  });
-
-  req.on('error', function(e) {
-    log.log('problem with request: ' + e.message);
-  });
-
-  if (input !== null) {
-    req.write(input);
-  }
-
-  req.end();
-};
 
 //
 // Start the odata server
@@ -103,7 +72,7 @@ tap('testing create_account and reset_password', function(test) {
 
   test.plan(2);
 
-  httpRequest(options, jsonInput, function(data, statusCode) {
+  th.httpRequest(options, jsonInput, function(data, statusCode) {
     var jsonData = h.jsonParse(data);
     log.debug('Received: ' + data);
     test.assert(statusCode === 200, 'create_account');
@@ -113,7 +82,7 @@ tap('testing create_account and reset_password', function(test) {
       accountId: accountId
     });
 
-    httpRequest(options, jsonInput, function(data, statusCode) {
+    th.httpRequest(options, jsonInput, function(data, statusCode) {
       var jsonData = h.jsonParse(data);
       log.debug('Received: ' + data);
 
@@ -129,7 +98,6 @@ tap('testing create_account and reset_password', function(test) {
   });
 
 });
-
 
 tap('testing create_account and reset_password for test user #2',
   function(test) {
@@ -148,7 +116,7 @@ tap('testing create_account and reset_password for test user #2',
 
     test.plan(2);
 
-    httpRequest(options, jsonInput, function(data, statusCode) {
+    th.httpRequest(options, jsonInput, function(data, statusCode) {
       var jsonData = h.jsonParse(data);
       log.debug('Received: ' + data);
       test.assert(statusCode === 200, 'create_account #2');
@@ -158,7 +126,7 @@ tap('testing create_account and reset_password for test user #2',
         accountId: accountId2
       });
 
-      httpRequest(options, jsonInput, function(data, statusCode) {
+      th.httpRequest(options, jsonInput, function(data, statusCode) {
         var jsonData = h.jsonParse(data);
         log.debug('Received: ' + data);
 
@@ -202,7 +170,7 @@ tap('testing create_table', function(test) {
 
   test.plan(1);
 
-  httpRequest(options, tableDef, function(data, statusCode) {
+  th.httpRequest(options, tableDef, function(data, statusCode) {
     var jsonData = h.jsonParse(data);
     log.debug('Received: ' + data);
     test.assert(statusCode === 200, 'create_table');
@@ -233,7 +201,7 @@ tap('testing insert', function(test) {
 
   test.plan(1);
 
-  httpRequest(options, input, function(data, statusCode) {
+  th.httpRequest(options, input, function(data, statusCode) {
     var jsonData = h.jsonParse(data);
     log.debug('Received: ' + data);
     test.assert(statusCode === 200, 'insert');
@@ -258,7 +226,7 @@ tap('testing select', function(test) {
 
   test.plan(1);
 
-  httpRequest(options, null, function(data, statusCode) {
+  th.httpRequest(options, null, function(data, statusCode) {
     var jsonData = h.jsonParse(data);
     log.debug('Received: ' + data);
     test.assert(statusCode === 200, 'select');
@@ -283,7 +251,7 @@ tap('testing select with user #2 before grant', function(test) {
 
   test.plan(2);
 
-  httpRequest(options, null, function(data, statusCode) {
+  th.httpRequest(options, null, function(data, statusCode) {
     var jsonData = h.jsonParse(data);
     log.debug('Received: ' + data);
     test.assert(statusCode === 200, 'select with user #2 before grant');
@@ -315,7 +283,7 @@ tap('testing grant', function(test) {
 
   test.plan(1);
 
-  httpRequest(options, input, function(data, statusCode) {
+  th.httpRequest(options, input, function(data, statusCode) {
     var jsonData = h.jsonParse(data);
     log.debug('Received: ' + data);
     test.assert(statusCode === 200, 'grant');
@@ -323,7 +291,7 @@ tap('testing grant', function(test) {
   });
 
 });
-/*
+
 tap('testing select with user #2 after grant', function(test) {
 
   // operation to test
@@ -340,7 +308,7 @@ tap('testing select with user #2 after grant', function(test) {
 
   test.plan(2);
 
-  httpRequest(options, null, function(data, statusCode) {
+  th.httpRequest(options, null, function(data, statusCode) {
     var jsonData = h.jsonParse(data);
     log.debug('Received: ' + data);
     test.assert(statusCode === 200, 'select with user #2 after grant');
@@ -349,7 +317,7 @@ tap('testing select with user #2 after grant', function(test) {
     test.end();
   });
 
-});*/
+});
 
 tap('testing revoke', function(test) {
 
@@ -372,7 +340,7 @@ tap('testing revoke', function(test) {
 
   test.plan(1);
 
-  httpRequest(options, input, function(data, statusCode) {
+  th.httpRequest(options, input, function(data, statusCode) {
     var jsonData = h.jsonParse(data);
     log.debug('Received: ' + data);
     test.assert(statusCode === 200, 'grant');
@@ -397,7 +365,7 @@ tap('testing select with user #2 after revoke', function(test) {
 
   test.plan(2);
 
-  httpRequest(options, null, function(data, statusCode) {
+  th.httpRequest(options, null, function(data, statusCode) {
     var jsonData = h.jsonParse(data);
     log.debug('Received: ' + data);
     test.assert(statusCode === 200, 'select with user #2 after revoke');
@@ -428,7 +396,7 @@ tap('testing delete', function(test) {
 
   test.plan(1);
 
-  httpRequest(options, null, function(data, statusCode) {
+  th.httpRequest(options, null, function(data, statusCode) {
     var jsonData = h.jsonParse(data);
     log.debug('Received: ' + data);
     test.assert(statusCode === 200, 'delete');
@@ -453,7 +421,7 @@ tap('testing select after delete', function(test) {
 
   test.plan(2);
 
-  httpRequest(options, null, function(data, statusCode) {
+  th.httpRequest(options, null, function(data, statusCode) {
     var jsonData = h.jsonParse(data);
     log.debug('Received: ' + data);
     test.assert(statusCode === 200, 'select after delete');
@@ -479,7 +447,7 @@ tap('testing service_def', function(test) {
 
   test.plan(1);
 
-  httpRequest(options, null, function(data, statusCode) {
+  th.httpRequest(options, null, function(data, statusCode) {
     var jsonData = h.jsonParse(data);
     log.debug('Received: ' + data);
     test.assert(true, 'service_def');
@@ -513,7 +481,7 @@ tap('testing delete_account', function(test) {
 
   test.plan(1);
 
-  httpRequest(options, jsonInput, function(data, statusCode) {
+  th.httpRequest(options, jsonInput, function(data, statusCode) {
     //var jsonData = h.jsonParse(data);
     log.debug('Received: ' + data);
     test.assert(statusCode === 200, 'delete_account');
@@ -542,7 +510,7 @@ tap('testing delete_account #2', function(test) {
 
   test.plan(1);
 
-  httpRequest(options, jsonInput, function(data, statusCode) {
+  th.httpRequest(options, jsonInput, function(data, statusCode) {
     //var jsonData = h.jsonParse(data);
     log.debug('Received: ' + data);
     test.assert(statusCode === 200, 'delete_account #2');

@@ -33,6 +33,7 @@
   var readable = require('stream').Readable;
   var writable = require('stream').Writable;
   var util = require('util');
+  var url = require('url');
 
   var h = require('./helpers.js');
   var CONFIG = require('./config.js');
@@ -44,6 +45,15 @@
 
   // set debugging flag
   var log = new h.log0(CONFIG.leveldbLoggerOptions);
+
+  // check for admin operations, where the url start with /s/...
+  var adminOps = ['create_bucket', 'drop_bucket'];
+
+  // Check if operation is a valid admin operation
+  exports.isAdminOp = function(op) {
+    return adminOps.indexOf(op) !== -1;
+  };
+
 
   //
   // Common for readable and writable stream
@@ -249,79 +259,104 @@
   };
 
   // handle both read and write requests
-  exports.BucketHttpServer.prototype.handleRequest =
+  exports.BucketHttpServer.prototype.handleReadWriteRequest =
     function(request, response) {
 
-    var rs = exports.BucketReadStream;
-    var ws = exports.BucketWriteStream;
+      var rs = exports.BucketReadStream;
+      var ws = exports.BucketWriteStream;
 
-    var leveldb = null;
+      var leveldb = null;
 
-    // Just for debugging
-    request.on('end', function() {
-      log.debug('end of request');
-    });
+      // Just for debugging
+      request.on('end', function() {
+        log.debug('end of request');
+      });
 
-    // Put into leveldb
-    if (request.method == 'POST') {
-      leveldb = new ws();
+      // Put into leveldb
+      if (request.method == 'POST') {
+        leveldb = new ws();
 
-      // catch when write is completed and wite status to response
-      leveldb.on('finish', function() {
-        var lastChunk = leveldb.lastSucessfullChunk();
+        // catch when write is completed and wite status to response
+        leveldb.on('finish', function() {
+          var lastChunk = leveldb.lastSucessfullChunk();
 
+          leveldb = new rs();
+          leveldb.init(request.url, function() {
+            h.calcHash(leveldb, 'sha1', 'hex', function(hash) {
+              log.debug('Finish event in leveldb write. Last chunk: ' +
+                lastChunk);
+
+              response.writeHead(200, {
+                'Content-Type': 'application/json'
+              });
+              response.write(JSON.stringify({
+                status: 'ok',
+                lastChunk: lastChunk,
+                etag: hash
+              }));
+              response.end();
+            });
+          });
+
+        });
+
+        // fetch any errors writing to database
+        leveldb.on('error', function(err) {
+          var lastChunk = leveldb.lastSucessfullChunk();
+          log.log('Error in leveldb write. Last successful chunk: ' + lastChunk);
+
+          // HTTP 400 General error: http://www.odata.org/documentation/odata-version-2-0/operations/
+          // need to somehow indicate how many chunks that were written to
+          // the database
+          response.writeHead(400, {
+            'Content-Type': 'application/json'
+          });
+          response.write(JSON.stringify({
+            status: 'error',
+            errorMessage: err,
+            lastChunk: lastChunk
+          }));
+          response.end();
+
+        });
+
+        leveldb.init(request.url, function() {
+          request.pipe(leveldb);
+        });
+      }
+
+      // get from leveldb
+      if (request.method == 'GET') {
         leveldb = new rs();
         leveldb.init(request.url, function() {
-          h.calcHash(leveldb, 'sha1', 'hex', function(hash) {
-            log.debug('Finish event in leveldb write. Last chunk: ' +
-                      lastChunk);
-
-            response.writeHead(200, {
-              'Content-Type': 'application/json'
-            });
-            response.write(JSON.stringify({
-              status: 'ok',
-              lastChunk: lastChunk,
-              etag: hash
-            }));
-            response.end();
-          });
+          leveldb.pipeReadStream(response);
         });
+      }
+    };
 
-      });
+  // HTTP REST Server that
+  exports.BucketHttpServer.prototype.main = function(request, response) {
+    log.debug('In main ...');
 
-      // fetch any errors writing to database
-      leveldb.on('error', function(err) {
-        var lastChunk = leveldb.lastSucessfullChunk();
-        log.log('Error in leveldb write. Last successful chunk: ' + lastChunk);
+    var parsedURL = url.parse(request.url, true, false);
+    var a = parsedURL.pathname.split("/");
 
-        // HTTP 400 General error: http://www.odata.org/documentation/odata-version-2-0/operations/
-        // need to somehow indicate how many chunks that were written to
-        // the database
-        response.writeHead(400, {
-          'Content-Type': 'application/json'
-        });
-        response.write(JSON.stringify({
-          status: 'error',
-          errorMessage: err,
-          lastChunk: lastChunk
-        }));
-        response.end();
+    // Check that the system operations are valid
+    if (a[1] === CONFIG.ODATA.SYS_PATH && exports.isAdminOp(a[2])) {
+      log.debug('Performing system operation: ' + a[2]);
 
-      });
+      h.writeResponse(response, '{message: "IN SYSTEM OP"}');
+      return;
+    }
+    // Perform read/write operation
+    else {
+      // NOTE: Add check of credentials here
 
-      leveldb.init(request.url, function() {
-        request.pipe(leveldb);
-      });
+      // Perform read/write operation
+      exports.BucketHttpServer.prototype.handleReadWriteRequest(request,
+                                                                response);
     }
 
-    // get from leveldb
-    if (request.method == 'GET') {
-      leveldb = new rs();
-      leveldb.init(request.url, function() {
-        leveldb.pipeReadStream(response);
-      });
-    }
   };
 
   //
@@ -332,14 +367,12 @@
   exports.bucketAdmin = function(options) {
     var self_ = this;
     self_.options = options;
-
-    // Use the RDBMS for access control
-    self.rdbms = require(CONFIG.ODATA.RDBMS_BACKEND);
   };
 
   // create a new bucket
   exports.bucketAdmin.prototype.createBucket = function(bucketPath) {
-    var rdbmsOptions
+    var self_ = this;
+    var rdbmsOptions_ = self_.options;
   };
 
   // create a new bucket

@@ -16,9 +16,12 @@
 // Run like this: `./node_modules/.bin/nodeunit test_leveldb.js`
 // Install dependencies first: `npm install`
 
-var test = require('tape');
+var tap = require('tape');
 
 var h = require('../src/helpers.js');
+var th = require('./helpers.js');
+var StringDecoder = require('string_decoder').StringDecoder;
+var decoder = new StringDecoder('utf8');
 var CONFIG = require('../src/config.js');
 
 var defaultPort = CONFIG.ODATA.PORT;
@@ -26,7 +29,16 @@ var log = new h.log0(CONFIG.testLoggerOptions);
 
 var server;
 
-test('setUp', function(test) {
+// used across tests
+var password, password2;
+var accountId = h.email2accountId(CONFIG.TEST.EMAIL);
+var accountId2 = h.email2accountId(CONFIG.TEST.EMAIL2);
+
+//
+// Start the server
+// ---------------
+
+tap('setUp', function(test) {
   var http = require("http");
   var level = require('./../src/' + CONFIG.ODATA.BUCKET_BACKEND);
 
@@ -39,7 +51,7 @@ test('setUp', function(test) {
 
     // handle request with leveldb
     var leveldb = new level.BucketHttpServer();
-    leveldb.handleRequest(request, response);
+    leveldb.main(request, response);
 
   });
 
@@ -51,7 +63,11 @@ test('setUp', function(test) {
   test.end();
 });
 
-test('testing POST', function(test) {
+//
+// Test write and read
+// -------------------
+
+tap('testing POST', function(test) {
   test.plan(2);
 
   var h = require('../src/helpers.js');
@@ -153,7 +169,45 @@ test('testing POST', function(test) {
 
 });
 
-test('tearDown', function(test) {
+
+//
+// Test privileges
+// ------------------
+
+tap('testing create bucket', function(test) {
+
+  // operation to test
+  var options = {
+    hostname: CONFIG.ODATA.HOST,
+    port: CONFIG.ODATA.PORT,
+    method: 'POST',
+    path: '/' + CONFIG.ODATA.SYS_PATH + '/create_bucket',
+    headers: {
+      user: accountId,
+      password: password
+    }
+  };
+
+  var bucket = JSON.stringify({name: 'mybucket'});
+
+  test.plan(1);
+
+  th.httpRequest(options, bucket, function(data, statusCode) {
+    var jsonData = h.jsonParse(data);
+    log.debug('Received: ' + data);
+    test.assert(statusCode === 200, 'create bucket');
+    test.end();
+
+  });
+
+});
+
+
+//
+// Stop the server
+// ---------------
+
+tap('tearDown', function(test) {
   server.close();
   test.end();
 });

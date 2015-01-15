@@ -24,9 +24,8 @@ var CONFIG = require('../src/config.js');
 var testEmail = 'test@gizur.com';
 var testEmail2 = 'test2@gizur.com';
 
-var accountId=h.email2accountId(testEmail);
-var accountId2=h.email2accountId(testEmail2);
-
+var accountId = h.email2accountId(testEmail);
+var accountId2 = h.email2accountId(testEmail2);
 
 // Main
 // =====
@@ -49,10 +48,10 @@ setTimeout(function() {
 
   var mssqlRead = new mssql.mssqlRead(adminCredentials, 'select * from ar');
   mssqlRead.pipe(bucket);
-}.bind(this), (delay++)*1000);
+}.bind(this), (delay++) * 1000);
 
 // check what was read this time
 setTimeout(function() {
   var decoder = new StringDecoder('utf8');
   h.log.log('BUCKET CONTENTS delete (decoded):' + decoder.write(bucket.get()));
-}.bind(this), (delay++)*1000);
+}.bind(this), (delay++) * 1000);

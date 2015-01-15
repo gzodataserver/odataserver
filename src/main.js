@@ -34,7 +34,7 @@
 
 (function(moduleSelf, undefined) {
 
-  var http = require("http");
+  var http = require('http');
   var url = require('url');
   var test = require('tape');
 
@@ -63,6 +63,14 @@
 
     server = http.createServer(function(request, response) {
 
+      // Only GET, POST, PUT and DELETE supported
+      if (!(request.method == 'GET' ||
+          request.method == 'POST' ||
+          request.method == 'DELETE')) {
+
+        h.writeError(response, request.method + ' not supported.');
+      }
+
       var parsedURL = url.parse(request.url, true, false);
       var a = parsedURL.pathname.split("/");
 
@@ -74,6 +82,13 @@
       // log and fire dtrace probe
       log.log(str);
       h.fireProbe(str);
+
+      // Check that the system operations are valid
+      if (a[1] === CONFIG.ODATA.SYS_PATH && !odata.isAdminOp(a[2])) {
+        log.debug('invalid sys op');
+        h.writeError(response, "Invalid system operation. " + a[2]);
+        return;
+      }
 
       // Parse the Uri
       var uriParser = new odata.ODataUri2Sql();
@@ -92,14 +107,6 @@
           odataRequest.queryType);
 
         return;
-      }
-
-      // Only GET, POST, PUT and DELTE supported
-      if (!(request.method == 'GET' ||
-          request.method == 'POST' ||
-          request.method == 'DELETE')) {
-
-        h.writeError(response, request.method + ' not supported.');
       }
 
       // Handle the request

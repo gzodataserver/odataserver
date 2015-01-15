@@ -13,9 +13,9 @@
 //
 //------------------------------
 
-(function(self_, undefined) {
+(function(moduleSelf, undefined) {
 
-  var h = self_.helpers || {};
+  var h = {};
   var u = require('underscore');
   var crypto = require('crypto');
   var Writable = require('stream').Writable;
@@ -63,7 +63,7 @@
   h.log0.prototype.log = function(text) {
     var self = this;
     if (self._filename !== undefined && self._filename !== null) {
-      text  = self._filename + ':' + text;
+      text = self._filename + ':' + text;
     }
 
     if (!self._noLogging) {
@@ -90,7 +90,9 @@
     }
   };
 
-  var log = new h.log0({debug: false});
+  var log = new h.log0({
+    debug: false
+  });
 
   // change to false to stop logging
   h.debug = false;
@@ -147,7 +149,7 @@
   };
 
   h.calcHash2 = function(obj, alg, enc) {
-    var func  = crypto.createHash(alg);
+    var func = crypto.createHash(alg);
 
     for (var key in obj) {
       func.update('' + obj[key]);
@@ -304,8 +306,8 @@
   // calculate account id from email
   h.email2accountId = function(email) {
     return h.hashString(CONFIG.ACCOUNT_ID.HASH_ALG,
-                           CONFIG.ACCOUNT_ID.HASH_ENCODING,
-                           CONFIG.ACCOUNT_ID.SECRET_SALT + email).slice(0, 12);
+      CONFIG.ACCOUNT_ID.HASH_ENCODING,
+      CONFIG.ACCOUNT_ID.SECRET_SALT + email).slice(0, 12);
 
   };
 
@@ -386,7 +388,7 @@
 
     // The insert query
     var insert = 'insert into ' + database + '.' + tableName +
-                 '(' + k + ') values(' + v + ')';
+      '(' + k + ') values(' + v + ')';
     return insert;
   };
 
@@ -394,7 +396,9 @@
   h.json2update = function(database, tableName, data) {
 
     // {k1: v1, k2: v2} -> k1=v1,k2=v2
-    var str = u.map(data, function(k, v) {return v + '=' + k;}).join(',');
+    var str = u.map(data, function(k, v) {
+      return v + '=' + k;
+    }).join(',');
 
     // The update query
     var update = 'update ' + database + '.' + tableName + ' set ' + str;
@@ -440,7 +444,11 @@
       "Content-Type": "application/json"
     });
 
-    odataResult = {d: {results: jsonData}};
+    odataResult = {
+      d: {
+        results: jsonData
+      }
+    };
     response.write(JSON.stringify(odataResult));
     response.end();
   }
@@ -450,7 +458,11 @@
     // Should return 406 when failing
     // http://www.odata.org/documentation/odata-version-2-0/operations/
 
-    odataResult = {d: {error: err.toString()}};
+    odataResult = {
+      d: {
+        error: err.toString()
+      }
+    };
 
     response.writeHead(406, {
       "Content-Type": "application/json"
@@ -468,7 +480,7 @@
 
     // Check that the request is ok
     return !(!request.headers.hasOwnProperty('user') ||
-    !request.headers.hasOwnProperty('password')) ;
+      !request.headers.hasOwnProperty('password'));
 
   };
 

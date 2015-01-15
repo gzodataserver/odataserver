@@ -33,10 +33,10 @@ Work with tables
 ----------------
 
 1. Create a new table:
-`curl -X POST -v -H "user:3ea8f06baf64" -H "password:xxx" --data "{table_name: 'mytable', columns: ['col1 int','col2 varchar(255)']} " http://[IP]:[PORT]/s/create_table`
+`curl -X POST -v -H "user:3ea8f06baf64" -H "password:xxx" --data "{tableName: 'mytable', columns: ['col1 int','col2 varchar(255)']} " http://[IP]:[PORT]/s/create_table`
 
 2. Grant privileges for the new table to bill:
-`curl -X PUT -v -H "user:3ea8f06baf64" -H "password:xxx" --data "{table_name: 'mytable', accountId: '6adb637f9cf2'}" http://[IP]:[PORT]/s/grant_privs`
+`curl -X PUT -v -H "user:3ea8f06baf64" -H "password:xxx" --data "{tableName: 'mytable', accountId: '6adb637f9cf2'}" http://[IP]:[PORT]/s/grant_privs`
 
 3. Insert some data into mytable:
 `curl -X POST -v -H "user:3ea8f06baf64" -H "password:xxx" --data "{col1: 11, col2: '11'}" http://[IP]:[PORT]/3ea8f06baf64/mytable`
@@ -59,7 +59,7 @@ Work with tables
 `curl -H "user:3ea8f06baf64" -H "password:xxx" -v http://[IP]:[PORT]/3ea8f06baf64/mytable`
 
 9. Drop mytable
-`curl -X DELETE -v -H "user:3ea8f06baf64" -H "password:xxx" --data "{table_name: 'mytable'}" http://[IP]:[PORT]/drop_table`
+`curl -X DELETE -v -H "user:3ea8f06baf64" -H "password:xxx" --data "{tableName: 'mytable'}" http://[IP]:[PORT]/drop_table`
 
 
 

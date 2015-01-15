@@ -13,7 +13,6 @@
 //
 //------------------------------
 
-
 var test = require('tape');
 
 var h = require('../src/helpers.js');
@@ -30,16 +29,13 @@ var log = new h.log0(CONFIG.testLoggerOptions);
 test('setUp', function(test) {
   // setup here
 
-
   // setup finished
   test.end();
 });
 
-
 //
 // Test the arrayBucketStream
 // -----------------------
-
 
 test('testing arrayBucketStream', function(test) {
   test.plan(1);
@@ -61,7 +57,8 @@ test('testing arrayBucketStream', function(test) {
   log.debug('JSON in bucket using decoder: ' + decoder.write(bucket.get()));
 
   var json2 = h.jsonParse(bucket.get());
-  log.debug('JSON in bucket using jsonParse col1:' + json2.col1 + ', col2:' + json2.col2);
+  log.debug('JSON in bucket using jsonParse col1:' + json2.col1 + ', col2:' +
+            json2.col2);
 
   test.deepEqual(json, json2,
     'json in bucket should equal the source json');

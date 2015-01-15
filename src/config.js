@@ -6,9 +6,9 @@
 //
 //
 
-(function(self_, undefined) {
+(function(moduleSelf, undefined) {
 
-  var c = self_.config || {};
+  var c = {};
 
   // OData server configuration
   // --------------------------
@@ -17,14 +17,19 @@
   c.ODATA = {
     // The port that the server should bind to
     PORT: '9000',
+
     // Number of rows to return if nothing else is specified
     DEFAULT_ROW_COUNT: 100,
+
     // Url for system operations - http(s)://HOST:PORT/SYS_PATH/[operation]
     SYS_PATH: 's',
+
     // Make sure that the RDBMS backend works like sqlBase.js outlines if you change this
     RDBMS_BACKEND: './mysql.js',
+
     // The prefix used in the name of buckets
     BUCKET_PREFIX: 'b_',
+
     // Make sure that the bucket backend works like leveldb.js if you change this
     BUCKET_BACKEND: './leveldb.js',
   };
@@ -36,10 +41,13 @@
   c.TEST = {
     // The IP/DNS of the OData server
     HOST: 'localhost',
+
     // odata admin username - used in the tests (typically equals the admin user for the database)
     ADMIN_USER: process.env.ADMIN_USER,
+
     // odata admin password - used in the tests (typically equals the admin password for the database)
     ADMIN_PASSWORD: process.env.ADMIN_PASSWORD,
+
     // The IP/DNS of the OData server
     EMAIL: 'test@gizur.com',
     EMAIL2: 'test2@gizur.com',
@@ -99,7 +107,7 @@
 
   // The # before test_XXX is necessary for the test TAP protocol
   c.testLoggerOptions = {
-    debug: false,
+    debug: true,
     filename: '# test_XXX.js',
     noLogging: false
   };
@@ -113,7 +121,7 @@
   };
 
   c.leveldbLoggerOptions = {
-    debug: false,
+    debug: true,
     filename: 'leveldb.js',
     noLogging: false
   };
@@ -127,7 +135,7 @@
   c.mainLoggerOptions = {
     debug: false,
     filename: 'main.js',
-    noLogging: true
+    noLogging: false
   };
 
   // dtrace setup
