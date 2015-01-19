@@ -45,7 +45,7 @@
   var log = new h.log0(CONFIG.mainLoggerOptions);
 
   var rdbms = require(CONFIG.ODATA.RDBMS_BACKEND);
-  //var buckets = require(CONFIG.ODATA.BUCKET_BACKEND);
+  var buckets = require(CONFIG.ODATA.BUCKET_BACKEND);
 
   var server;
 
@@ -73,6 +73,7 @@
 
       var parsedURL = url.parse(request.url, true, false);
       var a = parsedURL.pathname.split("/");
+      var operation = a[2];
 
       var str = "Processing request: " +
         JSON.stringify(request.method) + " - " +
@@ -84,9 +85,22 @@
       h.fireProbe(str);
 
       // Check that the system operations are valid
-      if (a[1] === CONFIG.ODATA.SYS_PATH && !odata.isAdminOp(a[2])) {
-        log.debug('invalid sys op');
-        h.writeError(response, "Invalid system operation. " + a[2]);
+      if (a[1] === CONFIG.ODATA.SYS_PATH &&
+        !odata.isAdminOp(operation) &&
+        !buckets.isAdminOp(operation)) {
+        log.debug("Invalid system operation. " + operation);
+        h.writeError(response, "Invalid system operation. " + operation);
+        return;
+      }
+
+      // Check if this is an operatoion on a bucket by looking for the b_
+      // prefix
+      if (buckets.isAdminOp(operation) ||
+          operation.substr(0, CONFIG.ODATA.BUCKET_PREFIX .length) ===
+            CONFIG.ODATA.BUCKET_PREFIX ) {
+        log.debug("Bucket operation: " + operation);
+        var bucketServer = new buckets.BucketHttpServer();
+        bucketServer.main(request, response);
         return;
       }
 
@@ -94,8 +108,8 @@
       var uriParser = new odata.ODataUri2Sql();
       var odataRequest = uriParser.parseUri(request.url, request.method);
 
-      // Check the MySQL credentials have been supplied, not required when
-      // creating a new account ore resetting password though
+      // Check that the MySQL credentials have been supplied, not required when
+      // creating a new account or resetting password
       if (odataRequest.queryType != 'create_account' &&
         odataRequest.queryType != 'reset_password' &&
         !h.checkCredentials(request, response)) {
@@ -110,7 +124,7 @@
       }
 
       // Handle the request
-      odataServer.main(request, response, rdbms, odataRequest);
+      odataServer.main(request, response);
 
       // NOTE: The response object should not be closed explicitly here
 

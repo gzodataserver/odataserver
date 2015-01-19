@@ -35,6 +35,9 @@
 //                   for add eTags etc.
 // };
 //
+// NOTES:
+// * closeStream - is not always taken into account, should look over this
+//
 //
 //------------------------------
 //
@@ -221,7 +224,7 @@
 
   // Fetch all rows in to an array. `done` is then called with this
   // array is its only argument
-  exports.sqlRead.prototype.fetchAll = function(done) {
+  exports.sqlRead.prototype.fetchAll = function(resultFunc, errFunc) {
     var self = this;
 
     runQuery(self.connection, self.sql,
@@ -231,7 +234,13 @@
       },
       function() {
         self.connection.end();
-        done(self.result);
+        resultFunc(self.result);
+      },
+      function(err) {
+        self.connection.end();
+        if (errFunc !== undefined) {
+          errFunc(err);
+        }
       }
     );
 
@@ -241,7 +250,7 @@
   // Mysql writable stream
   // ----------------------
 
-  exports.sqlWriteStream = function(options, endFunc) {
+  exports.sqlWriteStream = function(options, endFunc, errFunc) {
     var self = this;
     // call stream.Writeable constructor
     Writable.call(this);
@@ -253,6 +262,7 @@
     self.data = '';
     self.jsonOK = false;
     self.endFunc = endFunc;
+    self.errFunc = errFunc;
   };
 
   // inherit stream.Writeable
@@ -295,6 +305,11 @@
         }
         if (self.endFunc) {
           self.endFunc();
+        }
+      },
+      function(err) {
+        if (self.errFunc !== undefined) {
+          self.errFunc(err);
         }
       }
     );

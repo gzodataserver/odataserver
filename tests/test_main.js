@@ -458,6 +458,94 @@ tap('testing service_def', function(test) {
 });
 
 //
+// Test bucket privileges (more bucket tests in test_leveldb.js)
+// -------------------------------------------------------------
+
+tap('testing incorrect bucket admin operation', function(test) {
+
+  // operation to test
+  var options = {
+    hostname: CONFIG.ODATA.HOST,
+    port: CONFIG.ODATA.PORT,
+    method: 'POST',
+    path: '/' + CONFIG.ODATA.SYS_PATH + '/create_bucket2',
+    headers: {
+      user: accountId,
+      password: password
+    }
+  };
+
+  var bucket = JSON.stringify({name: 'b_mybucket'});
+
+  test.plan(1);
+
+  th.httpRequest(options, bucket, function(data, statusCode) {
+    var jsonData = h.jsonParse(data);
+    log.debug('Received: ' + data);
+    test.assert(statusCode === 406, 'incorrect admin operation');
+    test.end();
+
+  });
+
+});
+
+tap('testing create bucket', function(test) {
+
+  // operation to test
+  var options = {
+    hostname: CONFIG.ODATA.HOST,
+    port: CONFIG.ODATA.PORT,
+    method: 'POST',
+    path: '/' + CONFIG.ODATA.SYS_PATH + '/create_bucket',
+    headers: {
+      user: accountId,
+      password: password
+    }
+  };
+
+  var bucket = JSON.stringify({bucketName: 'b_mybucket'});
+
+  test.plan(1);
+
+  th.httpRequest(options, bucket, function(data, statusCode) {
+    var jsonData = h.jsonParse(data);
+    log.debug('Received: ' + data);
+    test.assert(statusCode === 200, 'create bucket');
+    test.end();
+
+  });
+
+});
+
+tap('testing drop bucket', function(test) {
+
+  // operation to test
+  var options = {
+    hostname: CONFIG.ODATA.HOST,
+    port: CONFIG.ODATA.PORT,
+    method: 'POST',
+    path: '/' + CONFIG.ODATA.SYS_PATH + '/drop_bucket',
+    headers: {
+      user: accountId,
+      password: password
+    }
+  };
+
+  var bucket = JSON.stringify({bucketName: 'b_mybucket'});
+
+  test.plan(1);
+
+  th.httpRequest(options, bucket, function(data, statusCode) {
+    var jsonData = h.jsonParse(data);
+    log.debug('Received: ' + data);
+    test.assert(statusCode === 200, 'drop bucket');
+    test.end();
+
+  });
+
+});
+
+//
 // Cleanup
 // ------------------
 

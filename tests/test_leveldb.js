@@ -51,7 +51,7 @@ tap('setUp', function(test) {
 
     // handle request with leveldb
     var leveldb = new level.BucketHttpServer();
-    leveldb.main(request, response);
+    leveldb.handleReadWriteRequest(request, response);
 
   });
 
@@ -165,39 +165,6 @@ tap('testing POST', function(test) {
   // This catches any errors that happen while creating the readable stream (usually invalid names)
   readStream.on('end', function() {
     log.debug('readStream on end - nothing more to read');
-  });
-
-});
-
-
-//
-// Test privileges
-// ------------------
-
-tap('testing create bucket', function(test) {
-
-  // operation to test
-  var options = {
-    hostname: CONFIG.ODATA.HOST,
-    port: CONFIG.ODATA.PORT,
-    method: 'POST',
-    path: '/' + CONFIG.ODATA.SYS_PATH + '/create_bucket',
-    headers: {
-      user: accountId,
-      password: password
-    }
-  };
-
-  var bucket = JSON.stringify({name: 'mybucket'});
-
-  test.plan(1);
-
-  th.httpRequest(options, bucket, function(data, statusCode) {
-    var jsonData = h.jsonParse(data);
-    log.debug('Received: ' + data);
-    test.assert(statusCode === 200, 'create bucket');
-    test.end();
-
   });
 
 });

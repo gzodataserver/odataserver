@@ -117,7 +117,7 @@
   c.mysqlLoggerOptions = {
     debug: false,
     filename: 'mysql.js',
-    noLogging: true
+    noLogging: false
   };
 
   c.leveldbLoggerOptions = {

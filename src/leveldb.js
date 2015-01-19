@@ -34,11 +34,12 @@
   var writable = require('stream').Writable;
   var util = require('util');
   var url = require('url');
+  var StringDecoder = require('string_decoder').StringDecoder;
 
   var h = require('./helpers.js');
   var CONFIG = require('./config.js');
 
-  var rdbms = require(CONFIG.ODATA.RDBMS_BACKEND);
+  var Rdbms = require(CONFIG.ODATA.RDBMS_BACKEND);
 
   moduleSelf.levelup = null;
   moduleSelf.leveldb = null;
@@ -53,7 +54,6 @@
   exports.isAdminOp = function(op) {
     return adminOps.indexOf(op) !== -1;
   };
-
 
   //
   // Common for readable and writable stream
@@ -129,7 +129,6 @@
       values: true
     };
 
-    //log.debug('LevelDB.pipeReadStream: key=' + self._key + ', rev=' + self._currentRevision);
     log.debug('LevelDB.pipeReadStream: ' + JSON.stringify(_options));
 
     // create stream that reads all chunks
@@ -238,7 +237,8 @@
     log.debug('LevelDBWriteStream close');
 
     // save the last chunk if provided
-    // risk that close below is exec first? if(arguments.length > 0) this._write(arguments[0]);
+    // risk that close below is exec first?
+    // if(arguments.length > 0) this._write(arguments[0]);
 
     self.emit('finish');
 
@@ -303,7 +303,8 @@
         // fetch any errors writing to database
         leveldb.on('error', function(err) {
           var lastChunk = leveldb.lastSucessfullChunk();
-          log.log('Error in leveldb write. Last successful chunk: ' + lastChunk);
+          log.log('Error in leveldb write. Last successful chunk: ' +
+            lastChunk);
 
           // HTTP 400 General error: http://www.odata.org/documentation/odata-version-2-0/operations/
           // need to somehow indicate how many chunks that were written to
@@ -341,22 +342,177 @@
     var parsedURL = url.parse(request.url, true, false);
     var a = parsedURL.pathname.split("/");
 
-    // Check that the system operations are valid
-    if (a[1] === CONFIG.ODATA.SYS_PATH && exports.isAdminOp(a[2])) {
-      log.debug('Performing system operation: ' + a[2]);
+    var accountId = request.headers.user;
 
-      h.writeResponse(response, '{message: "IN SYSTEM OP"}');
-      return;
-    }
-    // Perform read/write operation
-    else {
-      // NOTE: Add check of credentials here
+    var decoder = new StringDecoder('utf8');
+    var bucket = new h.arrayBucketStream();
 
+    if (a[1] === CONFIG.ODATA.SYS_PATH) {
+
+      var bucketOp = a[2];
+
+      // Check that the system operation is valid
+      if (!exports.isAdminOp(bucketOp)) {
+        var str = "Incorrent admin operation: " + bucketOp;
+        log.log(str);
+        h.writeError(response, str);
+        return;
+      }
+
+      log.debug('Performing system operation: ' + bucketOp);
+
+      // save input from POST and PUT here
+      var data = '';
+
+      request
+      // read the data in the stream, if there is any
+        .on('error', function(err) {
+
+        var str = "Error in http input data: " + err +
+          ", URL: " + request.url +
+          ", headers: " + JSON.stringify(request.headers) + " TYPE:" +
+          bucketOp;
+
+        log.log(str);
+        h.writeError(response, str);
+      })
+
+      // read the data in the stream, if there is any
+      .on('data', function(chunk) {
+        log.debug('Receiving data');
+        data += chunk;
+      })
+
+      // request closed,
+      .on('close', function() {
+        log.debug('http request closed.');
+      })
+
+      // request closed, process it
+      .on('end', function() {
+
+        log.debug('End of data');
+
+        try {
+
+          // parse odata payload into JSON object
+          var jsonData = null;
+          if (data !== '') {
+            jsonData = h.jsonParse(data);
+            log.debug('Data received: ' + JSON.stringify(jsonData));
+          }
+
+          var odataResult = {};
+          var rdbms;
+          var options = {
+            credentials: {
+              database: accountId,
+              user: accountId,
+              password: request.headers.password
+            },
+            closeStream: true
+          };
+
+          if (bucketOp === 'create_bucket') {
+            options.tableDef = {};
+            options.tableDef.tableName = jsonData.bucketName;
+            options.tableDef.columns = ['id int', 'log varchar(255)'];
+            rdbms = new Rdbms.sqlCreate(options);
+
+          }
+
+          if (bucketOp === 'drop_bucket') {
+            options.tableDef = {};
+            options.tableDef.tableName = jsonData.bucketName;
+            rdbms = new Rdbms.sqlDrop(options);
+          }
+
+          var str = 'Performing bucket operation: ' + bucketOp +
+            '. options: ' + JSON.stringify(options);
+          log.log(str);
+
+          rdbms.pipe(bucket,
+            function() {
+              odataResult.rdbmsResponse = decoder.write(bucket.get());
+              h.writeResponse(response, odataResult);
+            },
+            function(err) {
+              h.writeError(response, err);
+            }
+          );
+
+        } catch (e) {
+          h.writeError(response, e);
+        }
+
+      });
+
+    } else {
       // Perform read/write operation
-      exports.BucketHttpServer.prototype.handleReadWriteRequest(request,
-                                                                response);
-    }
 
+      var bucketName = a[2];
+      var schema = a[1];
+      var options = {
+        credentials: {
+          database: schema,
+          user: accountId,
+          password: request.headers.password
+        },
+        closeStream: false
+      };
+
+      var credentialsOk = false;
+
+      // Check that the user can perform read operations
+      if (request.method == 'GET') {
+        options.sql = 'select id, log from ' + schema + '.' + bucketName;
+        options.processRowFunc = null;
+
+        log.debug('Check privileges for user ' + accountId + ' on bucket ' +
+                  schema + '/' + bucketName);
+
+        var mysqlRead = new Rdbms.sqlRead(options);
+        mysqlRead.fetchAll(
+          function(res) {
+            credentialsOk = true;
+          }, function(err) {
+            h.writeError(response, 'Cannot read from bucket: ' + err);
+          }
+        );
+      }
+
+      // Check that the user can perform write operations
+      if (request.method == 'POST') {
+        options.tableName = bucketName;
+        options.resultStream = bucket;
+        var writeStream = new Rdbms.sqlWriteStream(options,
+          function() {
+            credentialsOk = true;
+          },
+          function(err) {
+            h.writeError(response, 'Cannot write to bucket. ' + err);
+          }
+        );
+
+        // create stream that writes json into rdbms
+        var jsonStream = new require('stream');
+        jsonStream.pipe = function(dest) {
+          dest.write(JSON.stringify({id: 2, log: 'writing to bucket ' +
+                                                  schema + '/' + bucketName +
+                                                  ' with credentials ' +
+                                                  accountId}));
+        };
+
+        jsonStream.pipe(writeStream);
+      }
+
+      // Perform the requested operation if the credentials are ok
+      if(credentialsOk) {
+        // Perform read/write operation
+        exports.BucketHttpServer.prototype.handleReadWriteRequest(request,
+          response);
+      }
+    }
   };
 
   //
@@ -368,15 +524,6 @@
     var self_ = this;
     self_.options = options;
   };
-
-  // create a new bucket
-  exports.bucketAdmin.prototype.createBucket = function(bucketPath) {
-    var self_ = this;
-    var rdbmsOptions_ = self_.options;
-  };
-
-  // create a new bucket
-  exports.bucketAdmin.prototype.dropBucket = function(bucketPath) {};
 
   // create a new bucket
   exports.bucketAdmin.prototype.checkGet = function(bucketPath) {};

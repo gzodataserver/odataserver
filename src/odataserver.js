@@ -22,13 +22,14 @@
 
   var u = require('underscore');
 
+  var Rdbms = require(CONFIG.ODATA.RDBMS_BACKEND);
+
   // Default no of rows to return
   var defaultRowCount = CONFIG.ODATA.DEFAULT_ROW_COUNT;
 
   // check for admin operations, where the url start with /s/...
   var urlAdminOps = ['create_account', 'reset_password', 'delete_account',
-    'create_table', 'service_def', 'grant', 'revoke', 'drop_table',
-    'create_bucket', 'drop_bucket'];
+    'create_table', 'service_def', 'grant', 'revoke', 'drop_table'];
 
   // These operations require admin/root privs in the db
   var adminCredentialOps = ['create_account', 'reset_password',
@@ -38,7 +39,6 @@
   exports.isAdminOp = function(op) {
     return urlAdminOps.indexOf(op) !== -1;
   };
-
 
   //
   // Parse OData URI
@@ -430,9 +430,11 @@
   };
 
   // HTTP REST Server that
-  exports.ODataServer.prototype.main = function(request, response, odataBackend,
-                                                odataRequest) {
+  exports.ODataServer.prototype.main = function(request, response) {
     log.debug('In main ...');
+
+    var uriParser = new exports.ODataUri2Sql();
+    var odataRequest = uriParser.parseUri(request.url, request.method);
 
     // save input from POST and PUT here
     var data = '';
@@ -447,7 +449,7 @@
         odataRequest.queryType;
 
       log.log(str);
-      writeError(response, str);
+      h.writeError(response, str);
     })
 
     // read the data in the stream, if there is any
@@ -515,7 +517,7 @@
                     ' with admin/root credentials');
           log.debug('odataRequest: ' + JSON.stringify(odataRequest));
 
-          sqlAdmin = new odataBackend.sqlAdmin(adminOptions);
+          sqlAdmin = new Rdbms.sqlAdmin(adminOptions);
 
           var email = '';
           if (odataRequest.queryType === 'create_account') {
@@ -575,29 +577,29 @@
           var rdbms;
 
           if (odataRequest.queryType === 'grant') {
-            rdbms = new odataBackend.sqlAdmin(options);
+            rdbms = new Rdbms.sqlAdmin(options);
             rdbms.grant(jsonData.tableName, jsonData.accountId);
           }
 
           if (odataRequest.queryType === 'revoke') {
-            rdbms = new odataBackend.sqlAdmin(options);
+            rdbms = new Rdbms.sqlAdmin(options);
             rdbms.revoke(jsonData.tableName, jsonData.accountId);
           }
 
           if (odataRequest.queryType === 'create_table') {
             options.tableDef = jsonData.tableDef;
-            rdbms = new odataBackend.sqlCreate(options);
+            rdbms = new Rdbms.sqlCreate(options);
           }
 
           if (odataRequest.queryType === 'delete_table') {
             options.tableName = jsonData.tableName;
-            rdbms = new odataBackend.sqlDrop(options);
+            rdbms = new Rdbms.sqlDrop(options);
           }
 
           if (odataRequest.queryType === 'delete') {
             options.tableName = odataRequest.table;
             options.where = odataRequest.where;
-            rdbms = new odataBackend.sqlDelete(options);
+            rdbms = new Rdbms.sqlDelete(options);
           }
 
           rdbms.pipe(bucket,
@@ -622,7 +624,7 @@
             log.debug('Pipe values of the mysql stream to the response ' +
               '- options: ' +
               JSON.stringify(options));
-            var mysqlRead = new odataBackend.sqlRead(options);
+            var mysqlRead = new Rdbms.sqlRead(options);
             mysqlRead.fetchAll(function(res) {
               odataResult.value = res;
               h.writeResponse(response, odataResult);
@@ -633,7 +635,7 @@
           case 'insert':
             options.tableName = odataRequest.table;
             options.resultStream = bucket;
-            var writeStream = new odataBackend.sqlWriteStream(options,
+            var writeStream = new Rdbms.sqlWriteStream(options,
               function() {
                 odataResult.rdbmsResponse = decoder.write(bucket.get());
                 h.writeResponse(response, odataResult);
