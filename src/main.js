@@ -31,12 +31,15 @@
 //
 // Install with: `npm install`
 // Run with: `npm start`
+//
+
 
 (function(moduleSelf, undefined) {
 
   var http = require('http');
   var url = require('url');
   var test = require('tape');
+  var fs = require('fs');
 
   var CONFIG = require('./config.js');
   var odata = require('./odataserver.js');
@@ -48,6 +51,21 @@
   var buckets = require(CONFIG.ODATA.BUCKET_BACKEND);
 
   var server;
+
+
+  //
+  // Module helpers
+  // --------------
+
+  var showHelp = function(request, response) {
+    log.debug('Showing help');
+
+    var fileStream = fs.createReadStream(CONFIG.ODATA.HELP_FILE);
+    response.writeHead(200, {
+      'Content-Type': 'text/plain'
+    });
+    fileStream.pipe(response);
+  }
 
   //
   // Start the OData server
@@ -84,11 +102,22 @@
       log.log(str);
       h.fireProbe(str);
 
+      // Show the help
+      if (a[1] === CONFIG.ODATA.HELP_PATH) {
+        showHelp(request, response);
+        return;
+      }
+
+      // Check that the url has table/bucket or system operation
+      if (a.length <= 2) {
+        h.writeError(response, "Invalid operation: " + request.url);
+        return;
+      }
+
       // Check that the system operations are valid
       if (a[1] === CONFIG.ODATA.SYS_PATH &&
         !odata.isAdminOp(operation) &&
         !buckets.isAdminOp(operation)) {
-        log.debug("Invalid system operation. " + operation);
         h.writeError(response, "Invalid system operation. " + operation);
         return;
       }
@@ -96,14 +125,15 @@
       // Check if this is an operatoion on a bucket by looking for the b_
       // prefix
       if (buckets.isAdminOp(operation) ||
-          operation.substr(0, CONFIG.ODATA.BUCKET_PREFIX .length) ===
-            CONFIG.ODATA.BUCKET_PREFIX ) {
+        operation.substr(0, CONFIG.ODATA.BUCKET_PREFIX.length) ===
+        CONFIG.ODATA.BUCKET_PREFIX) {
         log.debug("Bucket operation: " + operation);
         var bucketServer = new buckets.BucketHttpServer();
         bucketServer.main(request, response);
         return;
       }
 
+/*
       // Parse the Uri
       var uriParser = new odata.ODataUri2Sql();
       var odataRequest = uriParser.parseUri(request.url, request.method);
@@ -122,7 +152,7 @@
 
         return;
       }
-
+*/
       // Handle the request
       odataServer.main(request, response);
 

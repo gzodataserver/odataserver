@@ -460,7 +460,8 @@
 
     odataResult = {
       d: {
-        error: err.toString()
+        error: err.toString() + '. See /' + CONFIG.ODATA.HELP_PATH +
+                                ' for help.'
       }
     };
 

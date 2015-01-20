@@ -79,7 +79,8 @@ tap('testing create_account and reset_password', function(test) {
 
     options.path = '/' + CONFIG.ODATA.SYS_PATH + '/reset_password';
     jsonInput = JSON.stringify({
-      accountId: accountId
+      accountId: accountId,
+      email: CONFIG.TEST.EMAIL
     });
 
     th.httpRequest(options, jsonInput, function(data, statusCode) {
@@ -123,7 +124,8 @@ tap('testing create_account and reset_password for test user #2',
 
       options.path = '/' + CONFIG.ODATA.SYS_PATH + '/reset_password';
       jsonInput = JSON.stringify({
-        accountId: accountId2
+        accountId: accountId2,
+        email: CONFIG.TEST.EMAIL2
       });
 
       th.httpRequest(options, jsonInput, function(data, statusCode) {

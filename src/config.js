@@ -15,6 +15,9 @@
   //
 
   c.ODATA = {
+    // The IP/DNS of the OData server
+    HOST: 'localhost',
+
     // The port that the server should bind to
     PORT: '9000',
 
@@ -24,33 +27,80 @@
     // Url for system operations - http(s)://HOST:PORT/SYS_PATH/[operation]
     SYS_PATH: 's',
 
-    // Make sure that the RDBMS backend works like sqlBase.js outlines if you change this
+    // Make sure that the RDBMS backend works like sqlBase.js outlines if you
+    // change this
     RDBMS_BACKEND: './mysql.js',
 
     // The prefix used in the name of buckets
     BUCKET_PREFIX: 'b_',
 
-    // Make sure that the bucket backend works like leveldb.js if you change this
+    // Make sure that the bucket backend works like leveldb.js if you change
+    // this
     BUCKET_BACKEND: './leveldb.js',
+
+    // The prefix used in the name of buckets
+    HELP_PATH: 'help',
+
+    // The prefix used in the name of buckets
+    HELP_FILE: './docs/Usage.md',
+
+    // How long the reset password link is valid (using Date.now() to generate
+    // timestamps)
+    EXPIRE_RESET_PASSWORD: 24*60*60*1000,
   };
+
+  // Setting for sending mails
+  // -------------------------
+  //
+  // [Nodemailer](https://github.com/andris9/Nodemailer) is used for sending
+  // mails
+
+  c.NODEMAIlER_OPTIONS = {
+    service: 'Gmail',
+    auth: {
+      user: process.env.MAIL_USER,
+      pass: process.env.MAIL_PASSWORD
+    }
+  };
+
+  c.MAIL_OPTIONS = {
+    // sender address
+    from: 'noreply@gizur.com',
+
+    // list of receivers
+    to: 'this will be replaced',
+
+    // Subject line
+    subject: 'Reset password',
+
+    // plaintext body
+    text: 'The link below link is valid for 24 hours. Copy it into a browser.\n',
+
+    // html body
+    html: '<b>The link below link is valid for 24 hours.</b><br/>'
+  };
+
 
   // Some parameters user in the tests
   // ---------------------------------
   //
 
   c.TEST = {
-    // The IP/DNS of the OData server
-    HOST: 'localhost',
-
-    // odata admin username - used in the tests (typically equals the admin user for the database)
+    // odata admin username - used in the tests (typically equals the admin
+    // user for the database)
     ADMIN_USER: process.env.ADMIN_USER,
 
-    // odata admin password - used in the tests (typically equals the admin password for the database)
+    // odata admin password - used in the tests (typically equals the admin
+    // password for the database)
     ADMIN_PASSWORD: process.env.ADMIN_PASSWORD,
 
     // The IP/DNS of the OData server
     EMAIL: 'test@gizur.com',
     EMAIL2: 'test2@gizur.com',
+
+    // IMPORTANT: This is only used for tests. It must always be set to false
+    // in production
+    RESET_PASSWORD_WITHOUT_LINK: true,
   };
 
   // Account IDs are based email adresses
@@ -64,8 +114,9 @@
     // can for instance be generated like this: `openssl rand -base64 32`
     SECRET_SALT: 'MnS3FQfXIbtMrvT6Y1zboNHLkiX/hui0NVqcR33EoQs=',
 
-    // algorith use to create account id. 'sha1', 'md5', 'sha256', 'sha512', etc.
-    // `openssl list-message-digest-algorithms` will display the available digest algorithms
+    // algorith use to create account id. 'sha1', 'md5', 'sha256', 'sha512',
+    // etc. `openssl list-message-digest-algorithms` will display the available
+    // digest algorithms
     HASH_ALG: 'sha1',
 
     // 'utf8', 'ascii' or 'binary'
@@ -107,7 +158,7 @@
 
   // The # before test_XXX is necessary for the test TAP protocol
   c.testLoggerOptions = {
-    debug: true,
+    debug: false,
     filename: '# test_XXX.js',
     noLogging: false
   };
@@ -117,13 +168,13 @@
   c.mysqlLoggerOptions = {
     debug: false,
     filename: 'mysql.js',
-    noLogging: false
+    noLogging: true
   };
 
   c.leveldbLoggerOptions = {
-    debug: true,
+    debug: false,
     filename: 'leveldb.js',
-    noLogging: false
+    noLogging: true
   };
 
   c.odataServerLoggerOptions = {
@@ -135,7 +186,7 @@
   c.mainLoggerOptions = {
     debug: false,
     filename: 'main.js',
-    noLogging: false
+    noLogging: true
   };
 
   // dtrace setup

@@ -21,6 +21,7 @@
   var StringDecoder = require('string_decoder').StringDecoder;
 
   var u = require('underscore');
+  var nodemailer = require('nodemailer');
 
   var Rdbms = require(CONFIG.ODATA.RDBMS_BACKEND);
 
@@ -29,11 +30,13 @@
 
   // check for admin operations, where the url start with /s/...
   var urlAdminOps = ['create_account', 'reset_password', 'delete_account',
-    'create_table', 'service_def', 'grant', 'revoke', 'drop_table'];
+    'create_table', 'service_def', 'grant', 'revoke', 'drop_table'
+  ];
 
   // These operations require admin/root privs in the db
   var adminCredentialOps = ['create_account', 'reset_password',
-  'delete_account', 'service_def'];
+    'delete_account', 'service_def'
+  ];
 
   // Check if operation is a valid admin operation
   exports.isAdminOp = function(op) {
@@ -230,8 +233,8 @@
   };
 
   //
-  // Parse OData  URI
-  // ====================
+  // Convert URI to SQL
+  // ==================
 
   var reduce = function(sqlObjects) {
     // create a string from the objects
@@ -244,7 +247,7 @@
 
   };
 
-  // Just en empty constructor
+  // Just an empty constructor
   exports.ODataUri2Sql = function() {
     var self = this;
   };
@@ -265,6 +268,8 @@
 
     // get the schema and table name
     var a = parsedURL.pathname.split("/");
+
+    log.debug('parsedURL: ' + JSON.stringify(a));
 
     var result = {
       schema: a[1],
@@ -288,21 +293,32 @@
           result.queryType = 'delete_table';
           break;
 
-          // POST etc. not supported here
+          // PUT etc. not supported here
         default:
           throw new Error('Operation on /schema not supported for ' +
-                          reqMethod);
+            reqMethod);
       }
 
       return result;
     }
 
+    // reset_password is allowed these forms:
+    // * POST /s/reset_password - with the accountId as data will mail a link
+    // * GET /s/reset_password/<reset_token> - this will return the new password
+    if (a[2] === 'reset_password' && a.length === 4) {
+      result.queryType = a[2];
+      result.resetToken = a[3];
+      return result;
+    }
+
+
     // URI should look like this: /schema/table
     if (a.length != 3) {
       throw new Error('Pathname should be in the form /schema/table, not ' +
-                      parsedURL.pathname);
+        parsedURL.pathname);
     }
 
+    // Handle admin operations: /s/...
     if (urlAdminOps.indexOf(a[2]) !== -1) {
       result.queryType = a[2];
       return result;
@@ -311,7 +327,7 @@
     // indexing with table(x) not supported
     if (result.table.indexOf('(') > -1) {
       throw new Error('The form /schema/entity(key) is not supported.' +
-                      ' Use $filter instead.');
+        ' Use $filter instead.');
     }
 
     // translate odata queries in URI to sql
@@ -405,14 +421,15 @@
   };
 
   //
-  // Operations
-  // -----------
+  // ODataServer Operations
+  // =======================
   //
-  //  requires root credentials: THESE HAVE NOT BEEN IMPLMENTED IN PARSEUR!!!
+  //  requires root credentials:
   //
   //  * create user (account) (POST /createAccount data={email=...})
   //  * reset password for user (POST /resetPassword data={email=...})
   //  * delete user (DELETE /deleteAccount data={accountID=...} )
+  //  * get service definition (table definition)
   //
   //  Using account credentials:
   //
@@ -420,8 +437,90 @@
   //  * revoke privs from user (DELETE /privileges data={accountID=..., entity=...} ))
   //  * create table
   //  * drop table
-  //  * get service definition (table definition)
   //  * CRUD operations
+  //
+
+  // Some helpers used for resetting passwords
+  // -----------------------------------------
+  //
+
+  var generateUUID = function() {
+    var d = new Date().getTime();
+    var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,
+      function(c) {
+        var r = (d + Math.random() * 16) % 16 | 0;
+        d = Math.floor(d / 16);
+        return (c == 'x' ? r : (r & 0x7 | 0x8)).toString(16);
+      });
+    return uuid;
+  };
+
+  var mailResetLink = function(email, accountId) {
+
+    // generate random token
+    var token = generateUUID();
+
+    // create the resetTokens object if it doesn't exist
+    moduleSelf.resetTokens = moduleSelf.resetTokens || {};
+
+    // save the Token
+    moduleSelf.resetTokens[token] = {
+      accountId: accountId,
+      timeStamp: Date.now()
+    };
+
+    log.debug('Saved reset token: ' + token + ' - ' +
+      JSON.stringify(moduleSelf.resetTokens[token]));
+
+    // The link that is used to reset a password
+    var resetLink = 'http://' + CONFIG.ODATA.HOST + ':' +
+      CONFIG.ODATA.PORT + '/' + CONFIG.ODATA.SYS_PATH + '/reset_password/' +
+      token;
+
+    // create transporter object using SMTP transport
+    var transporter = nodemailer.createTransport(CONFIG.NODEMAIlER_OPTIONS);
+
+    // email data
+    var mailOptions = u.clone(CONFIG.MAIL_OPTIONS);
+    mailOptions.to = email;
+    mailOptions.text += resetLink;
+    mailOptions.html += resetLink;
+
+    // send mail with defined transport object
+    transporter.sendMail(mailOptions, function(error, info) {
+      if (error) {
+        log.log(error);
+      } else {
+        log.debug('Mail reset link to ' + email +
+          '. SMTP Server reply: ' + info.response);
+      }
+    });
+  }
+
+  var getAccountIdFromToken = function(token) {
+    if (moduleSelf.resetTokens[token] === undefined ||
+      moduleSelf.resetTokens[token] === null) {
+      throw new Error('Invalid reset password token.');
+    }
+
+    if (Date.now() - moduleSelf.resetTokens[token].timeStamp >
+      CONFIG.ODATA.EXPIRE_RESET_PASSWORD) {
+      throw new Error('Reset password token has expired.');
+    }
+
+    log.debug('Retrieving accountId from token: ' + token + ' - ' +
+      JSON.stringify(moduleSelf.resetTokens[token]));
+
+    var accountId = moduleSelf.resetTokens[token].accountId;
+
+    // The token can only be used once
+    moduleSelf.resetTokens[token] = null;
+
+    return accountId;
+  }
+
+  // ODataServer object
+  // -------------------
   //
 
   // empty constructor
@@ -434,7 +533,30 @@
     log.debug('In main ...');
 
     var uriParser = new exports.ODataUri2Sql();
-    var odataRequest = uriParser.parseUri(request.url, request.method);
+
+    // Parse the URI and write any errors back to the client
+    try {
+      var odataRequest = uriParser.parseUri(request.url, request.method);
+      log.debug('odataRequest' + JSON.stringify(odataRequest));
+    } catch (e) {
+      h.writeError(response, e);
+      return;
+    }
+
+    // Check that the MySQL credentials have been supplied, not required when
+    // creating a new account or resetting password
+    if (odataRequest.queryType != 'create_account' &&
+      odataRequest.queryType != 'reset_password' &&
+      !h.checkCredentials(request, response)) {
+
+      h.writeError(response,
+        "Invalid credentials, user or password missing. " +
+        "URL: " + request.url +
+        ", headers: " + JSON.stringify(request.headers) + " TYPE:" +
+        odataRequest.queryType);
+
+      return;
+    }
 
     // save input from POST and PUT here
     var data = '';
@@ -514,7 +636,7 @@
         if (adminCredentialOps.indexOf(odataRequest.queryType) !== -1) {
 
           log.debug('Performing operation ' + odataRequest.queryType +
-                    ' with admin/root credentials');
+            ' with admin/root credentials');
           log.debug('odataRequest: ' + JSON.stringify(odataRequest));
 
           sqlAdmin = new Rdbms.sqlAdmin(adminOptions);
@@ -529,6 +651,30 @@
 
           var password;
           if (odataRequest.queryType === 'reset_password') {
+
+            // mail a reset password link
+            if (odataRequest.resetToken === undefined) {
+
+              // Make sure the mail is sent to the right address
+              if (h.email2accountId(jsonData.email) !== jsonData.accountId) {
+                h.writeError(response, 'Incorrect reset_password request');
+              }
+
+              log.debug('Mail reset password link.');
+              mailResetLink(jsonData.email, jsonData.accountId);
+
+              // NOTE: allow to reset password without link, used for testing
+              if (!CONFIG.TEST.RESET_PASSWORD_WITHOUT_LINK) {
+                h.writeResponse(response, {
+                  message: 'Check your mail!'
+                });
+                return;
+              }
+            } else {
+              jsonData = jsonData || {};
+              jsonData.accountId = getAccountIdFromToken(odataRequest.resetToken);
+            }
+
             password = sqlAdmin.resetPassword(jsonData.accountId);
           }
 
@@ -553,7 +699,6 @@
               // sometimes fails (reason unknown)
               odataResult.rdbmsResponse = decoder.write(bucket.get());
 
-              // NOTE: DUMMY ANSWER, YET TO BE IMPLMENTED
               h.writeResponse(response, odataResult);
             },
             function(err) {
