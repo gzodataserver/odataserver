@@ -46,7 +46,7 @@
 
     // How long the reset password link is valid (using Date.now() to generate
     // timestamps)
-    EXPIRE_RESET_PASSWORD: 24*60*60*1000,
+    EXPIRE_RESET_PASSWORD: 24 * 60 * 60 * 1000,
   };
 
   // Setting for sending mails
@@ -55,7 +55,7 @@
   // [Nodemailer](https://github.com/andris9/Nodemailer) is used for sending
   // mails
 
-  c.NODEMAIlER_OPTIONS = {
+  c.nodeMailerOptions = {
     service: 'Gmail',
     auth: {
       user: process.env.MAIL_USER,
@@ -74,12 +74,12 @@
     subject: 'Reset password',
 
     // plaintext body
-    text: 'The link below link is valid for 24 hours. Copy it into a browser.\n',
+    text: 'The link below link is valid for 24 hours. ' +
+          'Copy it into a browser.\n',
 
     // html body
     html: '<b>The link below link is valid for 24 hours.</b><br/>'
   };
-
 
   // Some parameters user in the tests
   // ---------------------------------

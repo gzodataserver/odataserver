@@ -311,7 +311,6 @@
       return result;
     }
 
-
     // URI should look like this: /schema/table
     if (a.length != 3) {
       throw new Error('Pathname should be in the form /schema/table, not ' +
@@ -478,7 +477,7 @@
       token;
 
     // create transporter object using SMTP transport
-    var transporter = nodemailer.createTransport(CONFIG.NODEMAIlER_OPTIONS);
+    var transporter = nodemailer.createTransport(CONFIG.nodeMailerOptions);
 
     // email data
     var mailOptions = u.clone(CONFIG.MAIL_OPTIONS);
@@ -672,7 +671,8 @@
               }
             } else {
               jsonData = jsonData || {};
-              jsonData.accountId = getAccountIdFromToken(odataRequest.resetToken);
+              jsonData.accountId =
+                      getAccountIdFromToken(odataRequest.resetToken);
             }
 
             password = sqlAdmin.resetPassword(jsonData.accountId);

@@ -91,10 +91,6 @@ ADD ./docs /docs
 ADD ./tests /tests
 RUN cd /; npm install
 
-# Add batches here since it changes often (use cache when building)
-ADD ./src-docker/batches.py /
-ADD ./src-docker/batches.sh /
-
 
 #
 # Start things

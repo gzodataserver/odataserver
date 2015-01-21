@@ -7,33 +7,40 @@ Simple OData server for MySQL
 Introduction
 ============
 
-Copy `src/setenv.template` to `src/setenv` and update with the database
-credentials. Environment variables are used to set admin credentials for the
-database and the mail server. The admin database needs to have privileges to
-create schemas, users etc. Admin/root is typically used.
+Copy `src/setenv.template` to `src/setenv` and update with the database and
+mail server credentials. Environment variables are used to set admin credentials
+for the database and the mail server. The admin database needs to have
+privileges to create schemas, users etc. Admin/root is typically used.
 
-Run the tests to make sure everything is ok: `npm install; npm test`.
+Make sure that MySQL is running and that port 9000 is free and then run the
+tests: `npm install; npm test`.
 
-The simplest way to start the server is: `npm start`. A MySQL server needs to
-be running on the same host and port 9000 must not be in use.
+Now start the server with: `npm start`. Check that it is alive with:
+`curl http://localhost:9000/help`.
 
 The file `src/config.js` contains a number of variables that can be configured.
+Check it out, it is fairly well documented.
 
 
-Getting started
-----------------
+Getting started with development
+--------------------------------
 
-This will show the API help: `curl http://[IP]:[PORT]/help`.
+This will show the API help: `curl http://localhost:9000/help`.
 
 
-Run the server using docker
-===========================
+Running the server using docker
+===============================
+
+[docker](docker.io) is a virtualization technnique that makes it easy to run
+services that are separated from each other. It is also a great way to easily
+ensure that development, test and production configurations are identical
+(except hardware of course).
 
 Prerequisites:
 
  * docker needs to be installed - I'm using [boot2docker](http://boot2docker.io)
 
-Installation: `docker build --rm -t odataserver .`
+Build the image: `docker build --rm -t odataserver .`
 
 Run the container in daemon mode:
 `docker run -d -p 81:81 -p 9000:9000 --name odataserver odataserver`.

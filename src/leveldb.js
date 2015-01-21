@@ -507,7 +507,7 @@
       }
 
       // Perform the requested operation if the credentials are ok
-      if(credentialsOk) {
+      if (credentialsOk) {
         // Perform read/write operation
         exports.BucketHttpServer.prototype.handleReadWriteRequest(request,
           response);

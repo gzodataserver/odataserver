@@ -169,7 +169,6 @@ tap('testing POST', function(test) {
 
 });
 
-
 //
 // Stop the server
 // ---------------

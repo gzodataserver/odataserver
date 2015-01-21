@@ -33,7 +33,6 @@
 // Run with: `npm start`
 //
 
-
 (function(moduleSelf, undefined) {
 
   var http = require('http');
@@ -51,7 +50,6 @@
   var buckets = require(CONFIG.ODATA.BUCKET_BACKEND);
 
   var server;
-
 
   //
   // Module helpers
