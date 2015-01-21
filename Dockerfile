@@ -59,6 +59,7 @@ RUN /bin/bash -c "source $HOME/.profile && nvm install v0.10.33"
 ADD ./src-docker/init-node.sh /src/
 RUN /src/init-node.sh
 
+ADD ./start.sh /
 
 #
 # Install MySQL
@@ -86,6 +87,7 @@ RUN /src/init-mysql.sh
 ADD ./package.json /
 ADD ./run_tests.sh /
 ADD ./src /src
+ADD ./docs /docs
 ADD ./tests /tests
 RUN cd /; npm install
 
@@ -108,5 +110,5 @@ VOLUME /volume
 
 EXPOSE 80 81 443 3306
 
-ADD ./src-docker/start.sh /start.sh
-CMD ["/start.sh"]
+ADD ./src-docker/start-supervisor.sh /start-supervisor.sh
+CMD ["/start-supervisor.sh"]

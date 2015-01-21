@@ -4,51 +4,53 @@ Simple OData server for MySQL
 
 [![Build Status][travis-image]][travis-url]
 
-Usage
-======
+Introduction
+============
 
 Copy `src/setenv.template` to `src/setenv` and update with the database
-credentials. An admin user with privileges to create tables, users etc. is
-needed for these features to work.
+credentials. Environment variables are used to set admin credentials for the
+database and the mail server. The admin database needs to have privileges to
+create schemas, users etc. Admin/root is typically used.
 
 Run the tests to make sure everything is ok: `npm install; npm test`.
 
-The simplest way to start the server is: `npm start`. First you need install
-the node modules though: `npm install` (if you didn't run the tests above).
-A MySQL server needs to be running on
-the same host and port 80 must not be in use. Also the `ADMIN_USER` and
-`ADMIN_PASSWORD` environment variables needs to be set.
+The simplest way to start the server is: `npm start`. A MySQL server needs to
+be running on the same host and port 9000 must not be in use.
+
+The file `src/config.js` contains a number of variables that can be configured.
 
 
-Test the installation
----------------------
+Getting started
+----------------
 
-Here are some queries, just to get you started:
-
-    # Get all rows in wp_options
-    curl -H "user:wp" -H "password:wp" http://[IP]/wp/wp_options
-
-    # Select a few columns
-    curl -H "user:wp" -H "password:wp" http://[IP]/wp/wp_options\?\$select=option_id,option_name
+This will show the API help: `curl http://[IP]:[PORT]/help`.
 
 
-Run using docker
-===============
+Run the server using docker
+===========================
 
 Prerequisites:
 
- * docker needs to be installed.
+ * docker needs to be installed - I'm using [boot2docker](http://boot2docker.io)
 
 Installation: `docker build --rm -t odataserver .`
 
-Run the container in daemon mode: `docker run -d -p 80:80 -p 81:81 -p 443:443 --name odataserver odataserver`.
-The 80 and 443 ports that have been exposed from the container will be routed from the host to the container
-using the `-p` flag.
+Run the container in daemon mode:
+`docker run -d -p 81:81 -p 9000:9000 --name odataserver odataserver`.
+The ports 81 and 9000 that have been exposed from the container will be routed
+from the host to the container using the `-p` flag.
 
-When developing using docker, it is usefull to connect to the containers shell:
+When developing using docker, it is usefull to connect to the containers' shell:
 
-    # Start a container and connect to the shell (remove when stopped)
-    docker run -t -i --rm -p 80:80 -p 81:81 -p 443:443 -e ADMIN_USER="root" -e ADMIN_PASSWORD="secret" odataserver /bin/bash
+    # Start a container and connect to the shell (without mail settings)
+    docker run -t -i --rm -p 81:81 -p 9000:9000 -e ADMIN_USER="root" \
+    -e ADMIN_PASSWORD="secret" odataserver /bin/bash
+
+    # Run the tests, MySQL needs to be started manually first
+    /usr/bin/mysqld_safe &
+    npm test
+    ps -ef
+    kill <PID for MySQL>
 
     # Start the services
     supervisord &> /tmp/out.txt &
@@ -56,21 +58,27 @@ When developing using docker, it is usefull to connect to the containers shell:
     # Check that all processes are up
     ps -ef
 
-    # Tun the tests
-    npm test
+    # Check that the server is alive
+    curl http://localhost:9000/help
 
-Login to MySQL using phpMyAdmin at: `http://[IP]:PORT/phpMyAdmin-4.0.8-all-languages`
+    # In a new terminal, check that you can connect to the odataserver
+    curl http://[IP]:9000/help
+
+    # Also, check that apache is running
+    curl http://[IP]:81/phpMyAdmin-4.0.8-all-languages/
+
+    # NOTE: fetch the ip with `boot2docker ip` if you're running boot2docker
 
 
-Production
-----------
+External MySQL
+--------------
 
-The included MySQL server should not be used for production. Disable it by commenting out the
-`[program:mysql]` parts with `#` in supervisord.conf
+The included MySQL can be replaced with an external MySQL server. Disable the
+internal MySQl server by commenting out the `[program:mysql]` parts with `#` in
+`supervisord.conf`.
 
-MySQL credentials for an external server should be passed as environment variables that are set when starting the container.
-
-Here is an example: `docker run -d -p 80:80 -p 443:443 -e ADMIN_USER="admin", ADMIN_PASSWORD="secret", HOSTNAME="hostname" base /bin/bash`
+MySQL credentials are passed as environment variables that are set when
+starting the container (the `-e` flag).
 
 
 Development
@@ -87,9 +95,9 @@ Check the code: `npm run-script style`
 
 I'm using editor Atom with the following addons:
 
-  apm install atom-beautify
-  apm install linter
-  apm install linter-jscs
+    apm install atom-beautify
+    apm install linter
+    apm install linter-jscs
 
 
 dtrace
