@@ -59,7 +59,10 @@ RUN /bin/bash -c "source $HOME/.profile && nvm install v0.10.33"
 ADD ./src-docker/init-node.sh /src/
 RUN /src/init-node.sh
 
-ADD ./start.sh /
+ADD ./bin/start.sh /
+
+ADD ./server.key /
+ADD ./server.cer /
 
 #
 # Install MySQL
@@ -85,7 +88,7 @@ RUN /src/init-mysql.sh
 # ------------------------------------
 
 ADD ./package.json /
-ADD ./run_tests.sh /
+ADD ./bin/run_tests.sh /
 ADD ./src /src
 ADD ./docs /docs
 ADD ./tests /tests

@@ -17,7 +17,7 @@
 
   var h = {};
 
-  var http = require('http');
+  var https = require('https');
   var h = require('../src/helpers.js');
 
   var CONFIG = require('../src/config.js');
@@ -29,7 +29,11 @@
 
   h.httpRequest = function(options, input, done) {
     var _data = '';
-    var req = http.request(options, function(res) {
+
+    // Using a self-signed certificate for development and testing
+    options.rejectUnauthorized = false;
+
+    var req = https.request(options, function(res) {
       log.debug('status code:' + res.statusCode + ', headers: ' +
       JSON.stringify(res.headers));
 

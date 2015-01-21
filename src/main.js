@@ -35,7 +35,7 @@
 
 (function(moduleSelf, undefined) {
 
-  var http = require('http');
+  var https = require('https');
   var url = require('url');
   var test = require('tape');
   var fs = require('fs');
@@ -77,7 +77,14 @@
     // start http server
     // -----------------
 
-    server = http.createServer(function(request, response) {
+    var httpsOptions = {
+      key: fs.readFileSync(CONFIG.HTTPS_OPTIONS.KEY_FILE),
+      cert: fs.readFileSync(CONFIG.HTTPS_OPTIONS.CERT_FILE)
+    };
+
+
+    server = https.createServer(httpsOptions,
+                                function(request, response) {
 
       // Only GET, POST, PUT and DELETE supported
       if (!(request.method == 'GET' ||
@@ -131,26 +138,6 @@
         return;
       }
 
-/*
-      // Parse the Uri
-      var uriParser = new odata.ODataUri2Sql();
-      var odataRequest = uriParser.parseUri(request.url, request.method);
-
-      // Check that the MySQL credentials have been supplied, not required when
-      // creating a new account or resetting password
-      if (odataRequest.queryType != 'create_account' &&
-        odataRequest.queryType != 'reset_password' &&
-        !h.checkCredentials(request, response)) {
-
-        h.writeError(response,
-          "Invalid credentials, user or password missing. " +
-          "URL: " + request.url +
-          ", headers: " + JSON.stringify(request.headers) + " TYPE:" +
-          odataRequest.queryType);
-
-        return;
-      }
-*/
       // Handle the request
       odataServer.main(request, response);
 

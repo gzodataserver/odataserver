@@ -63,7 +63,8 @@ tap('testing create_account and reset_password', function(test) {
     hostname: CONFIG.ODATA.HOST,
     port: CONFIG.ODATA.PORT,
     method: 'POST',
-    path: '/' + CONFIG.ODATA.SYS_PATH + '/create_account'
+//    path: '/' + CONFIG.ODATA.SYS_PATH + '/create_account'
+    path: '/create_account'
   };
 
   var jsonInput = JSON.stringify({

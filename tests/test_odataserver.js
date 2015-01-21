@@ -23,6 +23,7 @@
 
 var http = require("http");
 var test = require('tape');
+var u = require('underscore');
 
 var mysql = require('./../src/mysql.js');
 var CONFIG = require('../src/config.js');
@@ -34,8 +35,83 @@ var log = new h.log0(CONFIG.testLoggerOptions);
 
 var defaultPort = CONFIG.ODATA.PORT;
 
-
 var ic, c, server;
+
+test('test ', function(test) {
+
+  var parser = new o2s.ODataUri2Sql();
+  var parse = parser.parseUri2;
+
+  console.log(u.isEqual(parse('GET', '/help'), {
+    "queryType": "help"
+  }));
+
+  // Not what you'd expect but correct, authentication will of course fail
+  console.log(u.isEqual(parse('GET', '/help2'), {
+    queryType: 'service_def',
+    schema: 'help2'
+  }));
+
+  console.log(u.isEqual(parse('POST', '/create_account'), {
+    "queryType": "create_account"
+  }));
+
+  console.log(u.isEqual(parse('GET', '/account1'), {
+    "queryType": "service_def",
+    "schema": "account1"
+  }));
+  console.log(u.isEqual(parse('GET', '/account2/table2'), {
+    "queryType": "select",
+    "schema": "account2",
+    "table": "table2"
+  }));
+  console.log(u.isEqual(parse('POST', '/account3/table3'), {
+    "queryType": "insert",
+    "schema": "account3",
+    "table": "table3"
+  }));
+  console.log(u.isEqual(parse('PUT', '/account4/table4'), {
+    "queryType": "update",
+    "schema": "account4",
+    "table": "table4"
+  }));
+  console.log(u.isEqual(parse('DELETE', '/account5/table5'), {
+    "queryType": "delete",
+    "schema": "account5",
+    "table": "table5"
+  }));
+
+  console.log(u.isEqual(parse('POST', '/account1/s/create_bucket'), {
+    "queryType": "create_bucket",
+    "schema": "account1"
+  }));
+  console.log(u.isEqual(parse('POST', '/account1/s/drop_bucket'), {
+    "queryType": "drop_bucket",
+    "schema": "account1"
+  }));
+  console.log(u.isEqual(parse('POST', '/account1/s/create_table'), {
+    "queryType": "create_table",
+    "schema": "account1"
+  }));
+  console.log(u.isEqual(parse('POST', '/account1/s/drop_table'), {
+    "queryType": "drop_table",
+    "schema": "account1"
+  }));
+  console.log(u.isEqual(parse('POST', '/account1/s/reset_password'), {
+    "queryType": "reset_password",
+    "schema": "account1"
+  }));
+  console.log(u.isEqual(
+    parse('POST', '/account1/s/reset_password/xxx-xxx-xxx-xxx'), {
+      "queryType": "reset_password",
+      "schema": "account1",
+      "resetToken": "xxx-xxx-xxx-xxx"
+    }
+  ));
+
+  test.end();
+
+});
 
 //
 // Some Uris to test with

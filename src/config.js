@@ -49,7 +49,16 @@
     EXPIRE_RESET_PASSWORD: 24 * 60 * 60 * 1000,
   };
 
-  // Setting for sending mails
+  // HTTPS settings
+  // -------------------------
+  //
+
+  c.HTTPS_OPTIONS = {
+    KEY_FILE: './server.key',
+    CERT_FILE: './server.cer'
+  };
+
+  // Settings for sending mails
   // -------------------------
   //
   // [Nodemailer](https://github.com/andris9/Nodemailer) is used for sending

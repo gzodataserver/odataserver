@@ -39,9 +39,9 @@
     "npm": "1.1.x"
   },
   "scripts": {
-    "test": "./run_tests.sh",
+    "test": "./bin/run_tests.sh",
     "test2": "node tests/test_odataserver.js",
-    "start": "sudo ./start.sh",
+    "start": "sudo ./bin/start.sh",
     "docco": "docco -o docco src/*.js tests/*.js",
     "clean": "rm -rf docco; rm -rf mydb; rm -rf tests/mydb",
     "style": "./node_modules/.bin/jscs src/*.js tests/test_mysql.js tests/test_leveldb.js tests/test_main.js tests/helpers.js tests/test_helpers.js tests/test_mssql.js"

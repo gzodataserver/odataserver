@@ -252,6 +252,154 @@
     var self = this;
   };
 
+
+  //
+  // parse URI using a simple BNF grammar
+  //
+  // ```
+  // slash ('/'') is the delimiter for tokens
+  //
+  // URI like: /help
+  // <method,uri>        ::= basic_uri
+  //                     |   system_uri
+  //                     |   table_uri
+  //
+  // <method,basic_uri>  ::= <GET,'help'>
+  //                     |  <POST,'create_account'>
+  //
+  // URI like /account/s/system_operation
+  // <method,system_uri> ::= <POST,variable 's' system_operation> -> [system_operation,account]
+  // system_operation    :== 'create_table'
+  //                     |   'create_bucket'
+  //                     |   'drop_table'
+  //                     |   'drop_bucket'
+  //                     |   'grant'
+  //                     |   'revoke'
+  //                     |   'reset_password'
+  //                     |   'reset_password' variable            -> [reset_password,account,resetToken]
+  //
+  // URI like /account/table
+  // <method,table_uri>  ::= <GET,variable>             -> [service_def,account]
+  //                     |   <GET,variable variable>    -> [select,account,table]
+  //                     |   <POST,variable variable>   -> [insert,account,table]
+  //                     |   <PUT,variable variable>    -> [update,account,table]
+  //                     |   <DELETE,variable variable> -> [delete,account,table]
+  //
+  // variable            ::= SQL schema or table name
+  // ```
+
+
+  var u = require('underscore');
+
+  var parseUri = function(method, tokens) {
+    return parseBasicUri(method, tokens) || parseSystemUri(method, tokens) ||
+      parseTableUri(method, tokens);
+  }
+
+  // URI like /help and /create_account
+  var parseBasicUri = function(method, tokens) {
+    if (method === 'GET' && tokens[0] === 'help' &&
+      tokens.length === 1) {
+      return {
+        queryType: 'help'
+      };
+    }
+
+    if (method === 'POST' && tokens[0] === 'create_account' &&
+      tokens.length === 1) {
+      return {
+        queryType: 'create_account'
+      };
+    }
+
+    return false;
+  }
+
+  // URI like /account/s/create_table
+  var parseSystemUri = function(method, tokens) {
+    if (method === 'POST' &&
+      tokens.length === 3 &&
+      tokens[1] === 's' && ['reset_password', 'delete_account', 'create_bucket',
+        'drop_bucket', 'create_table', 'grant', 'revoke', 'drop_table'
+      ].indexOf(tokens[2]) !== -1) {
+      return {
+        queryType: tokens[2],
+        schema: tokens[0]
+      };
+    }
+
+    if (method === 'POST' &&
+      tokens.length === 4 &&
+      tokens[1] === 's' &&
+      tokens[2] === 'reset_password') {
+      return {
+        queryType: tokens[2],
+        schema: tokens[0],
+        resetToken: tokens[3]
+      };
+    }
+
+    return false;
+  }
+
+  // URI like /account or /account/table, tokens = [account,table]
+  var parseTableUri = function(method, tokens) {
+    if (method === 'GET' && tokens.length === 1) {
+      return {
+        queryType: 'service_def',
+        schema: tokens[0]
+      };
+    }
+
+    if (method === 'GET' && tokens.length === 2) {
+      return {
+        queryType: 'select',
+        schema: tokens[0],
+        table: tokens[1]
+      };
+    }
+
+    if (method === 'POST' && tokens.length === 2) {
+      return {
+        queryType: 'insert',
+        schema: tokens[0],
+        table: tokens[1]
+      };
+    }
+
+    if (method === 'PUT' && tokens.length === 2) {
+      return {
+        queryType: 'update',
+        schema: tokens[0],
+        table: tokens[1]
+      };
+    }
+
+    if (method === 'DELETE' && tokens.length === 2) {
+      return {
+        queryType: 'delete',
+        schema: tokens[0],
+        table: tokens[1]
+      };
+    }
+
+    return false;
+
+  }
+
+  exports.ODataUri2Sql.prototype.parseUri2 = function(method, inputUri) {
+    var url = require('url');
+    var parsedUri_ = url.parse(inputUri, true, false);
+
+    // get the schema and table name
+    var a_ = parsedUri_.pathname.split("/");
+
+    // drop the first element which is an empty string
+    var tokens_ = a_.splice(1, a_.length);
+
+    return parseUri(method, tokens_);
+  }
+
   // parse the uri and create a JSON object. The where_sql property is used
   // for select and delete statements.
   //
@@ -262,6 +410,12 @@
   //   sql: 'select col1, col2, colN from table where col1="YY"'
   // }
   //
+  // ```
+  // Typical URLs: / accountId / s     / reset_password/reset_token
+  //                  a[1]       a[2]        a[3]           a[4]
+  //               / accountId / table ? ...
+  //                  a[1]       a[2]              NOTE: a[0] contains ''
+  // ```
   exports.ODataUri2Sql.prototype.parseUri = function(s, reqMethod) {
     var url = require('url');
     var parsedURL = url.parse(s, true, false);
@@ -276,8 +430,9 @@
       table: a[2]
     };
 
-    // Work on service definition, e.g. list of tables, for /schema/
-    if (a.length == 2) {
+    // URL of the form:  /account/s/create_table
+    //                    a = ['','account','s','create_table']
+    if (a.length === 2) {
 
       switch (reqMethod) {
         // return list of tables
@@ -318,7 +473,7 @@
     }
 
     // Handle admin operations: /s/...
-    if (urlAdminOps.indexOf(a[2]) !== -1) {
+    if (a[1] === CONFIG.SYS_PATH && urlAdminOps.indexOf(a[2]) !== -1) {
       result.queryType = a[2];
       return result;
     }
@@ -672,7 +827,7 @@
             } else {
               jsonData = jsonData || {};
               jsonData.accountId =
-                      getAccountIdFromToken(odataRequest.resetToken);
+                getAccountIdFromToken(odataRequest.resetToken);
             }
 
             password = sqlAdmin.resetPassword(jsonData.accountId);
