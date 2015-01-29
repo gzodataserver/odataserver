@@ -36,6 +36,7 @@
 (function(moduleSelf, undefined) {
 
   var https = require('https');
+  var http = require('http');
   var url = require('url');
   var test = require('tape');
   var fs = require('fs');
@@ -74,16 +75,7 @@
     // handle request with odata server
     var odataServer = new odata.ODataServer();
 
-    // start http server
-    // -----------------
-
-    var httpsOptions = {
-      key: fs.readFileSync(CONFIG.HTTPS_OPTIONS.KEY_FILE),
-      cert: fs.readFileSync(CONFIG.HTTPS_OPTIONS.CERT_FILE)
-    };
-
-    server = https.createServer(httpsOptions,
-                                function(request, response) {
+    var httpFunc = function(request, response) {
 
       // Only GET, POST, PUT and DELETE supported
       if (!(request.method == 'GET' ||
@@ -153,9 +145,30 @@
 
       // NOTE: The response object should not be closed explicitly here
 
-    });
+    };
 
-    server.listen(CONFIG.ODATA.PORT);
+    // start http server
+    // -----------------
+
+    if (CONFIG.HTTPS_OPTIONS.USE_HTTPS) {
+      // use a secure https server
+
+      log.log('Use HTTPS.');
+
+      var httpsOptions = {
+        key: fs.readFileSync(CONFIG.HTTPS_OPTIONS.KEY_FILE),
+        cert: fs.readFileSync(CONFIG.HTTPS_OPTIONS.CERT_FILE)
+      };
+
+      moduleSelf.server = https.createServer(httpsOptions, httpFunc);
+
+    } else {
+      // use a plain old http server
+      log.log('Use HTTP.');
+      moduleSelf.server = http.createServer(httpFunc);
+    }
+
+    moduleSelf.server.listen(CONFIG.ODATA.PORT);
 
     log.log("Server is listening on port " + CONFIG.ODATA.PORT);
 
@@ -166,7 +179,7 @@
   // ---------------------
 
   exports.stop = function() {
-    server.close();
+    moduleSelf.server.close();
   };
 
 })(this);

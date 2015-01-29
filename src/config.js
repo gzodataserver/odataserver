@@ -54,6 +54,7 @@
   //
 
   c.HTTPS_OPTIONS = {
+    USE_HTTPS: false,
     KEY_FILE: './server.key',
     CERT_FILE: './server.cer'
   };
@@ -193,9 +194,9 @@
   };
 
   c.mainLoggerOptions = {
-    debug: false,
+    debug: true,
     filename: 'main.js',
-    noLogging: true
+    noLogging: false
   };
 
   // dtrace setup
