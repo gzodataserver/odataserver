@@ -252,7 +252,6 @@
     var self = this;
   };
 
-
   //
   // parse URI using a simple BNF grammar
   //
@@ -289,7 +288,6 @@
   // variable            ::= SQL schema or table name
   // ```
 
-
   var u = require('underscore');
 
   var parseUri = function(method, tokens) {
@@ -299,8 +297,7 @@
     log.debug('parseUri: ' + JSON.stringify(res));
 
     // indexing with table(x) not supported
-    if (res.table
-       !== undefined && res.table.indexOf('(') > -1) {
+    if (res.table !== undefined && res.table.indexOf('(') > -1) {
       throw new Error('The form /schema/entity(key) is not supported.' +
       ' Use $filter instead.');
     }

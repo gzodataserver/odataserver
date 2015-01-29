@@ -82,7 +82,6 @@
       cert: fs.readFileSync(CONFIG.HTTPS_OPTIONS.CERT_FILE)
     };
 
-
     server = https.createServer(httpsOptions,
                                 function(request, response) {
 
