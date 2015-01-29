@@ -690,7 +690,7 @@
 
     // Parse the URI and write any errors back to the client
     try {
-      var odataRequest = uriParser.parseUri(request.url, request.method);
+      var odataRequest = uriParser.parseUri2(request.url, request.method);
       log.debug('odataRequest' + JSON.stringify(odataRequest));
     } catch (e) {
       h.writeError(response, e);

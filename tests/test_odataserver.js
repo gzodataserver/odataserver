@@ -21,7 +21,7 @@
  *
  */
 
-var http = require("http");
+var http = require('http');
 var test = require('tape');
 var u = require('underscore');
 
@@ -42,72 +42,83 @@ test('test ', function(test) {
   var parser = new o2s.ODataUri2Sql();
   var parse = parser.parseUri2;
 
-  console.log(u.isEqual(parse('GET', '/help'), {
+  test.plan(14);
+
+  test.ok(u.isEqual(parse('GET', '/help'), {
     "queryType": "help"
-  }));
+  }), 'GET /help');
 
   // Not what you'd expect but correct, authentication will of course fail
-  console.log(u.isEqual(parse('GET', '/help2'), {
+  test.ok(u.isEqual(parse('GET', '/help2'), {
     queryType: 'service_def',
     schema: 'help2'
-  }));
+  }), 'GET /help2');
 
-  console.log(u.isEqual(parse('POST', '/create_account'), {
+  test.ok(u.isEqual(parse('POST', '/create_account'), {
     "queryType": "create_account"
-  }));
+  }), 'POST /create_account');
 
-  console.log(u.isEqual(parse('GET', '/account1'), {
+  test.ok(u.isEqual(parse('GET', '/account1'), {
     "queryType": "service_def",
     "schema": "account1"
-  }));
-  console.log(u.isEqual(parse('GET', '/account2/table2'), {
+  }), 'GET /account1');
+
+  test.ok(u.isEqual(parse('GET', '/account2/table2'), {
     "queryType": "select",
     "schema": "account2",
     "table": "table2"
-  }));
-  console.log(u.isEqual(parse('POST', '/account3/table3'), {
+  }), 'GET /account2/table2');
+
+  test.ok(u.isEqual(parse('POST', '/account3/table3'), {
     "queryType": "insert",
     "schema": "account3",
     "table": "table3"
-  }));
-  console.log(u.isEqual(parse('PUT', '/account4/table4'), {
+  }), 'POST /account3/table3');
+
+  test.ok(u.isEqual(parse('PUT', '/account4/table4'), {
     "queryType": "update",
     "schema": "account4",
     "table": "table4"
-  }));
-  console.log(u.isEqual(parse('DELETE', '/account5/table5'), {
+  }), 'PUT /account4/table4');
+
+  test.ok(u.isEqual(parse('DELETE', '/account5/table5'), {
     "queryType": "delete",
     "schema": "account5",
     "table": "table5"
-  }));
+  }), 'DELETE /account5/table5');
 
-  console.log(u.isEqual(parse('POST', '/account1/s/create_bucket'), {
+  test.ok(u.isEqual(parse('POST', '/account1/s/create_bucket'), {
     "queryType": "create_bucket",
     "schema": "account1"
-  }));
-  console.log(u.isEqual(parse('POST', '/account1/s/drop_bucket'), {
+  }), 'POST /account1/s/create_bucket');
+
+  test.ok(u.isEqual(parse('POST', '/account1/s/drop_bucket'), {
     "queryType": "drop_bucket",
     "schema": "account1"
-  }));
-  console.log(u.isEqual(parse('POST', '/account1/s/create_table'), {
+  }), 'POST /account1/s/drop_bucket');
+
+  test.ok(u.isEqual(parse('POST', '/account1/s/create_table'), {
     "queryType": "create_table",
     "schema": "account1"
-  }));
-  console.log(u.isEqual(parse('POST', '/account1/s/drop_table'), {
+  }), 'POST /account1/s/create_table');
+
+  test.ok(u.isEqual(parse('POST', '/account1/s/drop_table'), {
     "queryType": "drop_table",
     "schema": "account1"
-  }));
-  console.log(u.isEqual(parse('POST', '/account1/s/reset_password'), {
+  }), 'POST /account1/s/drop_table');
+
+  test.ok(u.isEqual(parse('POST', '/account1/s/reset_password'), {
     "queryType": "reset_password",
     "schema": "account1"
-  }));
-  console.log(u.isEqual(
+  }), 'POST /account1/s/reset_password');
+
+  test.ok(u.isEqual(
     parse('POST', '/account1/s/reset_password/xxx-xxx-xxx-xxx'), {
       "queryType": "reset_password",
       "schema": "account1",
       "resetToken": "xxx-xxx-xxx-xxx"
     }
-  ));
+  ), '/account1/s/reset_password/xxx-xxx-xxx-xxx');
 
   test.end();
 
@@ -167,10 +178,10 @@ test('testing odatauri2sql.ODataUri2Sql GET', function(test) {
   test.plan(6);
 
   var expected = [];
-  expected.push('{"query_type":"select","schema":"schema","table":"table","sql":"select col1,col2 from schema.table where co1 = \\"help\\" order by col2 limit 10,100"}');
-  expected.push('{"query_type":"select","schema":"schema","table":"table","sql":"select * from schema.table"}');
-  expected.push('{"query_type":"select","schema":"schema","table":"table","sql":"select col1,col2 from schema.table where Price + 5 > 10 order by col2"}');
-  expected.push('{"query_type":"select","schema":"schema","table":"table","sql":"select * from schema.table order by col2"}');
+  expected.push('{"queryType":"select","schema":"schema","table":"table","sql":"select col1,col2 from schema.table where co1 = \\"help\\" order by col2 limit 10,100"}');
+  expected.push('{"queryType":"select","schema":"schema","table":"table","sql":"select * from schema.table"}');
+  expected.push('{"queryType":"select","schema":"schema","table":"table","sql":"select col1,col2 from schema.table where Price + 5 > 10 order by col2"}');
+  expected.push('{"queryType":"select","schema":"schema","table":"table","sql":"select * from schema.table order by col2"}');
 
   for (var i = 0; i < c.length; i++) {
     var o = uriParser.parseUri(c[i], 'GET');
@@ -257,112 +268,117 @@ test('testing simple GET', function(test) {
   };
 
   var expected = {
-    value: [{
-      '@odata.etag': 'c7e19e5018a42885e0a84925e3d2aec8',
-      link_description: '',
-      link_id: 1,
-      link_image: '',
-      link_name: 'Documentation',
-      link_notes: '',
-      link_owner: 1,
-      link_rating: 0,
-      link_rel: '',
-      link_rss: '',
-      link_target: '',
-      link_updated: '0000-00-00 00:00:00',
-      link_url: 'http://codex.wordpress.org/',
-      link_visible: 'Y'
-    }, {
-      '@odata.etag': 'ed72dc5274fc377332892108ea6287c5',
-      link_description: '',
-      link_id: 2,
-      link_image: '',
-      link_name: 'WordPress Blog',
-      link_notes: '',
-      link_owner: 1,
-      link_rating: 0,
-      link_rel: '',
-      link_rss: 'http://wordpress.org/news/feed/',
-      link_target: '',
-      link_updated: '0000-00-00 00:00:00',
-      link_url: 'http://wordpress.org/news/',
-      link_visible: 'Y'
-    }, {
-      '@odata.etag': '9479d4b1e98bd01b848d9ed0776aaf0e',
-      link_description: '',
-      link_id: 3,
-      link_image: '',
-      link_name: 'Support Forums',
-      link_notes: '',
-      link_owner: 1,
-      link_rating: 0,
-      link_rel: '',
-      link_rss: '',
-      link_target: '',
-      link_updated: '0000-00-00 00:00:00',
-      link_url: 'http://wordpress.org/support/',
-      link_visible: 'Y'
-    }, {
-      '@odata.etag': 'a6d05cfb42f2b98a4f1e493251e9d309',
-      link_description: '',
-      link_id: 4,
-      link_image: '',
-      link_name: 'Plugins',
-      link_notes: '',
-      link_owner: 1,
-      link_rating: 0,
-      link_rel: '',
-      link_rss: '',
-      link_target: '',
-      link_updated: '0000-00-00 00:00:00',
-      link_url: 'http://wordpress.org/extend/plugins/',
-      link_visible: 'Y'
-    }, {
-      '@odata.etag': '83cc01e1cbd1810281a9d3d41e86e8ea',
-      link_description: '',
-      link_id: 5,
-      link_image: '',
-      link_name: 'Themes',
-      link_notes: '',
-      link_owner: 1,
-      link_rating: 0,
-      link_rel: '',
-      link_rss: '',
-      link_target: '',
-      link_updated: '0000-00-00 00:00:00',
-      link_url: 'http://wordpress.org/extend/themes/',
-      link_visible: 'Y'
-    }, {
-      '@odata.etag': 'b0c2f191c14cf21531a0a4724edb5d8d',
-      link_description: '',
-      link_id: 6,
-      link_image: '',
-      link_name: 'Feedback',
-      link_notes: '',
-      link_owner: 1,
-      link_rating: 0,
-      link_rel: '',
-      link_rss: '',
-      link_target: '',
-      link_updated: '0000-00-00 00:00:00',
-      link_url: 'http://wordpress.org/support/forum/requests-and-feedback',
-      link_visible: 'Y'
-    }, {
-      '@odata.etag': '535377d732cabe4c215c196eda6e9d06',
-      link_description: '',
-      link_id: 7,
-      link_image: '',
-      link_name: 'WordPress Planet',
-      link_notes: '',
-      link_owner: 1,
-      link_rating: 0,
-      link_rel: '',
-      link_rss: '',
-      link_target: '',
-      link_updated: '0000-00-00 00:00:00',
-      link_url: 'http://planet.wordpress.org/',
-      link_visible: 'Y'
-    }]
+    d: {
+      results: {
+        accountId: 'wp',
+        value: [{
+          '@odata.etag': 'c7e19e5018a42885e0a84925e3d2aec8',
+          link_description: '',
+          link_id: 1,
+          link_image: '',
+          link_name: 'Documentation',
+          link_notes: '',
+          link_owner: 1,
+          link_rating: 0,
+          link_rel: '',
+          link_rss: '',
+          link_target: '',
+          link_updated: '0000-00-00 00:00:00',
+          link_url: 'http://codex.wordpress.org/',
+          link_visible: 'Y'
+        }, {
+          '@odata.etag': 'ed72dc5274fc377332892108ea6287c5',
+          link_description: '',
+          link_id: 2,
+          link_image: '',
+          link_name: 'WordPress Blog',
+          link_notes: '',
+          link_owner: 1,
+          link_rating: 0,
+          link_rel: '',
+          link_rss: 'http://wordpress.org/news/feed/',
+          link_target: '',
+          link_updated: '0000-00-00 00:00:00',
+          link_url: 'http://wordpress.org/news/',
+          link_visible: 'Y'
+        }, {
+          '@odata.etag': '9479d4b1e98bd01b848d9ed0776aaf0e',
+          link_description: '',
+          link_id: 3,
+          link_image: '',
+          link_name: 'Support Forums',
+          link_notes: '',
+          link_owner: 1,
+          link_rating: 0,
+          link_rel: '',
+          link_rss: '',
+          link_target: '',
+          link_updated: '0000-00-00 00:00:00',
+          link_url: 'http://wordpress.org/support/',
+          link_visible: 'Y'
+        }, {
+          '@odata.etag': 'a6d05cfb42f2b98a4f1e493251e9d309',
+          link_description: '',
+          link_id: 4,
+          link_image: '',
+          link_name: 'Plugins',
+          link_notes: '',
+          link_owner: 1,
+          link_rating: 0,
+          link_rel: '',
+          link_rss: '',
+          link_target: '',
+          link_updated: '0000-00-00 00:00:00',
+          link_url: 'http://wordpress.org/extend/plugins/',
+          link_visible: 'Y'
+        }, {
+          '@odata.etag': '83cc01e1cbd1810281a9d3d41e86e8ea',
+          link_description: '',
+          link_id: 5,
+          link_image: '',
+          link_name: 'Themes',
+          link_notes: '',
+          link_owner: 1,
+          link_rating: 0,
+          link_rel: '',
+          link_rss: '',
+          link_target: '',
+          link_updated: '0000-00-00 00:00:00',
+          link_url: 'http://wordpress.org/extend/themes/',
+          link_visible: 'Y'
+        }, {
+          '@odata.etag': 'b0c2f191c14cf21531a0a4724edb5d8d',
+          link_description: '',
+          link_id: 6,
+          link_image: '',
+          link_name: 'Feedback',
+          link_notes: '',
+          link_owner: 1,
+          link_rating: 0,
+          link_rel: '',
+          link_rss: '',
+          link_target: '',
+          link_updated: '0000-00-00 00:00:00',
+          link_url: 'http://wordpress.org/support/forum/requests-and-feedback',
+          link_visible: 'Y'
+        }, {
+          '@odata.etag': '535377d732cabe4c215c196eda6e9d06',
+          link_description: '',
+          link_id: 7,
+          link_image: '',
+          link_name: 'WordPress Planet',
+          link_notes: '',
+          link_owner: 1,
+          link_rating: 0,
+          link_rel: '',
+          link_rss: '',
+          link_target: '',
+          link_updated: '0000-00-00 00:00:00',
+          link_url: 'http://planet.wordpress.org/',
+          link_visible: 'Y'
+        }]
+      }
+    }
   };
 
   test.plan(1);

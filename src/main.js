@@ -127,7 +127,7 @@
         return;
       }
 
-      // Check if this is an operatoion on a bucket by looking for the b_
+      // Check if this is an operation on a bucket by looking for the b_
       // prefix
       if (buckets.isAdminOp(operation) ||
         operation.substr(0, CONFIG.ODATA.BUCKET_PREFIX.length) ===
