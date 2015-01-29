@@ -1,6 +1,10 @@
 #!/bin/bash
 
-source setenv || true
+if test -e setenv; then
+  echo "sourcing setenv..."
+  source setenv
+fi
+
 echo "#NOTE: Redirecting stderr to /dev/null"
 node tests/test_main.js && node tests/test_leveldb.js && \
 node tests/test_mysql.js && node tests/test_odataserver.js && \

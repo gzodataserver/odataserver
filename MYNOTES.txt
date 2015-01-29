@@ -9,6 +9,34 @@ var x ms och mät hur ofta den körs. Sätt en flagga om det tar för lång tid.
 https://hacks.mozilla.org/2013/01/building-a-node-js-server-that-wont-melt-a-node-js-holiday-season-part-5/
 
 
+Proxy/load balancing
+====================
+
+Each process handles one account. The number of processes is configured and ecch
+process is assigned a processId. It is only leveldb that requires one process
+per account. The MySQL server can for instance be shared aming all
+
+
+
+    proxy               proxy
+      | \                 /|
+    server0             server1
+    odata0  odata1      odata2  odata3
+    :9000   :9001       :9000   :9001
+
+
+    ProcessId = CRC(AccountId) % numProcesses
+    ServerId  = ProcessId / numServer
+    Port      = ProcessId % numServers
+
+    IP[ServerId] = IP Adress for ServerId
+
+
+All requests but 'create_account' and 'delete_account' can be routed based on
+the URL only. Logic is required in order to determine which process that these
+requests should be routed to.
+
+
 Apps
 ====
 

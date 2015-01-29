@@ -17,6 +17,7 @@
 
   var h = {};
 
+  var http = require('http');
   var https = require('https');
   var h = require('../src/helpers.js');
 
@@ -30,10 +31,7 @@
   h.httpRequest = function(options, input, done) {
     var _data = '';
 
-    // Using a self-signed certificate for development and testing
-    options.rejectUnauthorized = false;
-
-    var req = https.request(options, function(res) {
+    var func = function(res) {
       log.debug('status code:' + res.statusCode + ', headers: ' +
       JSON.stringify(res.headers));
 
@@ -46,7 +44,18 @@
       res.on('end', function() {
         done(_data, res.statusCode);
       });
-    });
+    };
+
+    // Using a self-signed certificate for development and testing
+    options.rejectUnauthorized = false;
+
+    if (CONFIG.HTTPS_OPTIONS.USE_HTTPS) {
+      // use a secure https server
+      req = https.request(options, func);
+    } else {
+      // use a plain old http server
+      req = http.request(options, func);
+    }
 
     req.on('error', function(e) {
       log.log('problem with request: ' + e.message);
