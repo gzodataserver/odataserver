@@ -397,7 +397,64 @@
     // drop the first element which is an empty string
     var tokens_ = a_.splice(1, a_.length);
 
-    return parseUri(method, tokens_);
+
+    var result = parseUri(method, tokens_);
+
+    // translate odata queries in URI to sql
+    var sqlObjects = u.map(parsedUri_.query, odata2sql);
+
+    // Build the select statement
+    if (result.queryType === 'select') {
+
+      sqlObjects.push({
+        id: 2,
+        q: ' from ' + result.schema + '.' + result.table
+      });
+
+      // sort the query objects according to the sql specification
+      sqlObjects = u.sortBy(sqlObjects, function(o) {
+        return o.id;
+      });
+
+      // add select * if there is no $select
+      if (sqlObjects[0].id != 1) {
+        sqlObjects.push({
+          id: 1,
+          q: 'select *'
+        });
+      }
+    }
+
+    // Check that there is no where statement in insert
+    if (result.queryType === 'insert') {
+
+      // check that there are no parameters
+      if (!u.isEmpty(parsedUri_.query)) {
+        throw new Error('Parameters are not supported in POST: ' +
+          JSON.stringify(parsedURL.query));
+      }
+
+    }
+
+    // sort the query objects according to the sql specification
+    sqlObjects = u.sortBy(sqlObjects, function(o) {
+      return o.id;
+    });
+
+    // create a string from the objects
+    var sql = u.reduce(
+      sqlObjects,
+      function(memo, o) {
+        return memo + o.q;
+      },
+      "");
+
+    if (sql !== '') {
+      result.sql = sql;
+    }
+
+    return result;
+
   }
 
   // parse the uri and create a JSON object. The where_sql property is used
@@ -690,8 +747,12 @@
 
     // Parse the URI and write any errors back to the client
     try {
-      var odataRequest = uriParser.parseUri2(request.url, request.method);
-      log.debug('odataRequest' + JSON.stringify(odataRequest));
+      var odataRequest = uriParser.parseUri2(request.method, request.url);
+      if (!odataRequest) {
+        h.writeError(response, 'Could not parse URI: ' + request.url +
+          ' with HTTP method: ' + request.method);
+      }
+      log.debug('odataRequest: ' + JSON.stringify(odataRequest));
     } catch (e) {
       h.writeError(response, e);
       return;
