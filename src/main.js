@@ -95,8 +95,10 @@
       }
 
       var parsedURL = url.parse(request.url, true, false);
-      var a = parsedURL.pathname.split("/");
-      var operation = a[2];
+      var a_ = parsedURL.pathname.split("/");
+
+      // drop the first element which is an empty string
+      var tokens_ = a_.splice(1, a_.length);
 
       var str = "Processing request: " +
         JSON.stringify(request.method) + " - " +
@@ -108,31 +110,40 @@
       h.fireProbe(str);
 
       // Show the help
-      if (a[1] === CONFIG.ODATA.HELP_PATH) {
+      if (tokens_[0] === CONFIG.ODATA.HELP_PATH) {
         showHelp(request, response);
         return;
       }
 
       // Check that the url has table/bucket or system operation
-      if (a.length <= 2) {
-        h.writeError(response, "Invalid operation: " + request.url);
+      if (tokens_[0] !== 'create_account' &&
+          tokens_[0] !== 'delete_account' &&
+          tokens_.length <= 1) {
+        h.writeError(response, 'Invalid operation: ' + request.method +
+                                ' ' + request.url);
         return;
       }
 
+      // tokens_ should contain [ account, table ] or
+      // [ account, 's', system_operation ] now
+
       // Check that the system operations are valid
-      if (a[1] === CONFIG.ODATA.SYS_PATH &&
-        !odata.isAdminOp(operation) &&
-        !buckets.isAdminOp(operation)) {
-        h.writeError(response, "Invalid system operation. " + operation);
+      if (tokens_.length === 3 &&
+          tokens_[1] === CONFIG.ODATA.SYS_PATH &&
+          !odata.isAdminOp(tokens_[2]) &&
+          !buckets.isAdminOp(tokens_[2])) {
+        h.writeError(response, "Invalid system operation. " + tokens_[2]);
         return;
       }
 
       // Check if this is an operation on a bucket by looking for the b_
-      // prefix
-      if (buckets.isAdminOp(operation) ||
-        operation.substr(0, CONFIG.ODATA.BUCKET_PREFIX.length) ===
-        CONFIG.ODATA.BUCKET_PREFIX) {
-        log.debug("Bucket operation: " + operation);
+      // prefix, tokens_ = [ account, 'b_'bucket] or
+      //                   [ account, 's', 'create_bucket' | 'delete_bucket' ]
+      if ((tokens_.length === 3 && buckets.isAdminOp(tokens_[2])) ||
+          (tokens_.length === 2 &&
+            tokens_[1].substr(0, CONFIG.ODATA.BUCKET_PREFIX.length) ===
+            CONFIG.ODATA.BUCKET_PREFIX)) {
+        log.debug("Bucket operation: " +  tokens_[2]);
         var bucketServer = new buckets.BucketHttpServer();
         bucketServer.main(request, response);
         return;

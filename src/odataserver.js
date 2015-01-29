@@ -266,6 +266,7 @@
   //
   // <method,basic_uri>  ::= <GET,'help'>
   //                     |  <POST,'create_account'>
+  //                     |  <POST,'delete_account'>
   //
   // URI like /account/s/system_operation
   // <method,system_uri> ::= <POST,variable 's' system_operation> -> [system_operation,account]
@@ -292,12 +293,25 @@
   var u = require('underscore');
 
   var parseUri = function(method, tokens) {
-    return parseBasicUri(method, tokens) || parseSystemUri(method, tokens) ||
+    var res = parseBasicUri(method, tokens) || parseSystemUri(method, tokens) ||
       parseTableUri(method, tokens);
+
+    log.debug('parseUri: ' + JSON.stringify(res));
+
+    // indexing with table(x) not supported
+    if (res.table
+       !== undefined && res.table.indexOf('(') > -1) {
+      throw new Error('The form /schema/entity(key) is not supported.' +
+      ' Use $filter instead.');
+    }
+
+    return res;
   }
 
   // URI like /help and /create_account
   var parseBasicUri = function(method, tokens) {
+    log.debug('parseBasicUri method: ' + method + ' tokens: ' + tokens);
+
     if (method === 'GET' && tokens[0] === 'help' &&
       tokens.length === 1) {
       return {
@@ -312,6 +326,13 @@
       };
     }
 
+    if (method === 'POST' && tokens[0] === 'delete_account' &&
+    tokens.length === 1) {
+      return {
+        queryType: 'delete_account'
+      };
+    }
+
     return false;
   }
 
@@ -319,7 +340,8 @@
   var parseSystemUri = function(method, tokens) {
     if (method === 'POST' &&
       tokens.length === 3 &&
-      tokens[1] === 's' && ['reset_password', 'delete_account', 'create_bucket',
+      tokens[1] === CONFIG.ODATA.SYS_PATH && ['reset_password',
+        'delete_account', 'create_bucket',
         'drop_bucket', 'create_table', 'grant', 'revoke', 'drop_table'
       ].indexOf(tokens[2]) !== -1) {
       return {
@@ -330,7 +352,7 @@
 
     if (method === 'POST' &&
       tokens.length === 4 &&
-      tokens[1] === 's' &&
+      tokens[1] === CONFIG.ODATA.SYS_PATH &&
       tokens[2] === 'reset_password') {
       return {
         queryType: tokens[2],
@@ -396,7 +418,6 @@
 
     // drop the first element which is an empty string
     var tokens_ = a_.splice(1, a_.length);
-
 
     var result = parseUri(method, tokens_);
 
@@ -473,6 +494,8 @@
   //               / accountId / table ? ...
   //                  a[1]       a[2]              NOTE: a[0] contains ''
   // ```
+
+/*
   exports.ODataUri2Sql.prototype.parseUri = function(s, reqMethod) {
     var url = require('url');
     var parsedURL = url.parse(s, true, false);
@@ -488,7 +511,7 @@
     };
 
     // URL of the form:  /account/s/create_table
-    //                    a = ['','account','s','create_table']
+    //                    a = ['','account',CONFIG.ODATA.SYS_PATH,'create_table']
     if (a.length === 2) {
 
       switch (reqMethod) {
@@ -607,6 +630,8 @@
     return result;
 
   };
+
+*/
 
   // calculate the MD5 etag for a JSON object
   var etag = function(obj) {

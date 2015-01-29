@@ -40,7 +40,7 @@
   },
   "scripts": {
     "test": "./bin/run_tests.sh",
-    "test2": "node tests/test_odataserver.js",
+    "test2": "node tests/test_odataserver2.js",
     "start": "sudo ./bin/start.sh",
     "docco": "docco -o docco src/*.js tests/*.js",
     "clean": "rm -rf docco; rm -rf mydb; rm -rf tests/mydb",

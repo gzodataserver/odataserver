@@ -92,7 +92,7 @@ tap('testing POST', function(test) {
     };
 
     this.options.method = 'POST';
-    this.options.path = '/image1';
+    this.options.path = '/wp/image1';
 
     var data = '';
 
@@ -116,7 +116,7 @@ tap('testing POST', function(test) {
           hostname: CONFIG.ODATA.HOST,
           port: defaultPort,
           method: 'GET',
-          path: '/image1',
+          path: '/wp/image1',
           headers: {
             user: 'wp',
             password: 'wp'

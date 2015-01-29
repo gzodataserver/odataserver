@@ -342,14 +342,19 @@
     var parsedURL = url.parse(request.url, true, false);
     var a = parsedURL.pathname.split("/");
 
+    // drop the first element which is an empty string
+    var tokens = a.splice(1, a.length);
+
     var accountId = request.headers.user;
 
     var decoder = new StringDecoder('utf8');
     var bucket = new h.arrayBucketStream();
 
-    if (a[1] === CONFIG.ODATA.SYS_PATH) {
+    // tokens = [ account, 'b_'bucket ] or
+    //          [ account, 's', create_bucket | delete_bucket ]
+    if (tokens[1] === CONFIG.ODATA.SYS_PATH) {
 
-      var bucketOp = a[2];
+      var bucketOp = tokens[2];
 
       // Check that the system operation is valid
       if (!exports.isAdminOp(bucketOp)) {

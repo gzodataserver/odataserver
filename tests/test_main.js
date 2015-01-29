@@ -63,7 +63,6 @@ tap('testing create_account and reset_password', function(test) {
     hostname: CONFIG.ODATA.HOST,
     port: CONFIG.ODATA.PORT,
     method: 'POST',
-//    path: '/' + CONFIG.ODATA.SYS_PATH + '/create_account'
     path: '/create_account'
   };
 
@@ -78,7 +77,9 @@ tap('testing create_account and reset_password', function(test) {
     log.debug('Received: ' + data);
     test.assert(statusCode === 200, 'create_account');
 
-    options.path = '/' + CONFIG.ODATA.SYS_PATH + '/reset_password';
+    options.path = '/' + jsonData.accountId + '/' +
+                    CONFIG.ODATA.SYS_PATH + '/reset_password';
+
     jsonInput = JSON.stringify({
       accountId: accountId,
       email: CONFIG.TEST.EMAIL
@@ -109,7 +110,7 @@ tap('testing create_account and reset_password for test user #2',
       hostname: CONFIG.ODATA.HOST,
       port: CONFIG.ODATA.PORT,
       method: 'POST',
-      path: '/' + CONFIG.ODATA.SYS_PATH + '/create_account'
+      path: '/create_account'
     };
 
     var jsonInput = JSON.stringify({
@@ -123,7 +124,9 @@ tap('testing create_account and reset_password for test user #2',
       log.debug('Received: ' + data);
       test.assert(statusCode === 200, 'create_account #2');
 
-      options.path = '/' + CONFIG.ODATA.SYS_PATH + '/reset_password';
+      options.path = '/' + jsonData.accountId + '/' +
+      CONFIG.ODATA.SYS_PATH + '/reset_password';
+
       jsonInput = JSON.stringify({
         accountId: accountId2,
         email: CONFIG.TEST.EMAIL2
@@ -157,7 +160,7 @@ tap('testing create_table', function(test) {
     hostname: CONFIG.ODATA.HOST,
     port: CONFIG.ODATA.PORT,
     method: 'POST',
-    path: '/' + CONFIG.ODATA.SYS_PATH + '/create_table',
+    path: '/' + accountId + '/' + CONFIG.ODATA.SYS_PATH + '/create_table',
     headers: {
       user: accountId,
       password: password
@@ -272,7 +275,7 @@ tap('testing grant', function(test) {
     hostname: CONFIG.ODATA.HOST,
     port: CONFIG.ODATA.PORT,
     method: 'POST',
-    path: '/' + CONFIG.ODATA.SYS_PATH + '/grant',
+    path: '/' + accountId + '/' + CONFIG.ODATA.SYS_PATH + '/grant',
     headers: {
       user: accountId,
       password: password
@@ -329,7 +332,7 @@ tap('testing revoke', function(test) {
     hostname: CONFIG.ODATA.HOST,
     port: CONFIG.ODATA.PORT,
     method: 'POST',
-    path: '/' + CONFIG.ODATA.SYS_PATH + '/revoke',
+    path: '/' + accountId + '/' + CONFIG.ODATA.SYS_PATH + '/revoke',
     headers: {
       user: accountId,
       password: password
@@ -441,7 +444,7 @@ tap('testing service_def', function(test) {
     hostname: CONFIG.ODATA.HOST,
     port: CONFIG.ODATA.PORT,
     method: 'GET',
-    path: '/' + CONFIG.ODATA.SYS_PATH + '/service_def',
+    path: '/' + accountId,
     headers: {
       user: accountId,
       password: password
@@ -471,7 +474,7 @@ tap('testing incorrect bucket admin operation', function(test) {
     hostname: CONFIG.ODATA.HOST,
     port: CONFIG.ODATA.PORT,
     method: 'POST',
-    path: '/' + CONFIG.ODATA.SYS_PATH + '/create_bucket2',
+    path: '/' + accountId + '/' + CONFIG.ODATA.SYS_PATH + '/create_bucket2',
     headers: {
       user: accountId,
       password: password
@@ -499,7 +502,7 @@ tap('testing create bucket', function(test) {
     hostname: CONFIG.ODATA.HOST,
     port: CONFIG.ODATA.PORT,
     method: 'POST',
-    path: '/' + CONFIG.ODATA.SYS_PATH + '/create_bucket',
+    path: '/' + accountId + '/' + CONFIG.ODATA.SYS_PATH + '/create_bucket',
     headers: {
       user: accountId,
       password: password
@@ -527,7 +530,7 @@ tap('testing drop bucket', function(test) {
     hostname: CONFIG.ODATA.HOST,
     port: CONFIG.ODATA.PORT,
     method: 'POST',
-    path: '/' + CONFIG.ODATA.SYS_PATH + '/drop_bucket',
+    path: '/' + accountId + '/' + CONFIG.ODATA.SYS_PATH + '/drop_bucket',
     headers: {
       user: accountId,
       password: password
@@ -559,7 +562,7 @@ tap('testing delete_account', function(test) {
     hostname: CONFIG.ODATA.HOST,
     port: CONFIG.ODATA.PORT,
     method: 'POST',
-    path: '/' + CONFIG.ODATA.SYS_PATH + '/delete_account',
+    path: '/delete_account',
     headers: {
       user: accountId,
       password: password
@@ -588,7 +591,7 @@ tap('testing delete_account #2', function(test) {
     hostname: CONFIG.ODATA.HOST,
     port: CONFIG.ODATA.PORT,
     method: 'POST',
-    path: '/' + CONFIG.ODATA.SYS_PATH + '/delete_account',
+    path: '/delete_account',
     headers: {
       user: accountId2,
       password: password2

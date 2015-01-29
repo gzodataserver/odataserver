@@ -29,12 +29,12 @@ var defaultPort = CONFIG.ODATA.PORT;
 
 var ic, c, server;
 
-test('Test new parser ', function(test) {
+test('Test parser for /operation', function(test) {
 
   var parser = new o2s.ODataUri2Sql();
   var parse = parser.parseUri2;
 
-  test.plan(17);
+  test.plan(4);
 
   test.deepEqual(
     parse('GET', '/help'), {
@@ -59,6 +59,17 @@ test('Test new parser ', function(test) {
       "queryType": "service_def",
       "schema": "account1"
     }, 'GET /account1');
+
+  test.end();
+
+});
+
+test('Test parser for /schema/table operations', function(test) {
+
+  var parser = new o2s.ODataUri2Sql();
+  var parse = parser.parseUri2;
+
+  test.plan(4);
 
   test.deepEqual(
     parse('GET', '/account2/table2'), {
@@ -88,6 +99,17 @@ test('Test new parser ', function(test) {
       "schema": "account5",
       "table": "table5"
     }, 'DELETE /account5/table5');
+
+  test.end();
+
+});
+
+test('Test parser for /account/s/operation ', function(test) {
+
+  var parser = new o2s.ODataUri2Sql();
+  var parse = parser.parseUri2;
+
+  test.plan(6);
 
   test.deepEqual(
     parse('POST', '/account1/s/create_bucket'), {
@@ -127,6 +149,18 @@ test('Test new parser ', function(test) {
     }, '/account1/s/reset_password/xxx-xxx-xxx-xxx');
 
 
+  test.end();
+
+});
+
+
+test('Test parser for /schema/table?select... operation', function(test) {
+
+  var parser = new o2s.ODataUri2Sql();
+  var parse = parser.parseUri2;
+
+  test.plan(3);
+
   test.deepEqual(
     parse('GET', '/schema/table?$select=col1,col2&$filter=co1 eq "help"&$orderby=col2&$skip=10'), {
       "queryType": "select",
@@ -136,7 +170,7 @@ test('Test new parser ', function(test) {
     },
     '/schema/table?$select=col1,col2&$filter=co1 eq "help"&$orderby=col2&$skip=10');
 
-  test.ok(
+  test.deepEqual(
     parse('GET', '/schema/table?$select=col1,col2&$filter=Price add 5 gt 10&$orderby=col2'), {
       "queryType": "select",
       "schema": "schema",
@@ -145,8 +179,7 @@ test('Test new parser ', function(test) {
     },
     '/schema/table?$select=col1,col2&$filter=Price add 5 gt 10&$orderby=col2');
 
-
-  test.ok(
+  test.deepEqual(
     parse('GET', '/schema/table?$orderby=col2'), {
       "queryType": "select",
       "schema": "schema",
@@ -160,106 +193,24 @@ test('Test new parser ', function(test) {
 
 });
 
-//
-// Some Uris to test with
-// ---------------------
+test('Test parser for grant and revoke operations ', function(test) {
 
-test('setUp', function(test) {
+  var parser = new o2s.ODataUri2Sql();
+  var parse = parser.parseUri2;
 
-  // IMPORTANT: UPDATE THIS IP ADDRESS BEFORE RUNNING THE TESTS
+  test.plan(2);
 
-  // Incorrect URLs
-  ic = [];
-  ic.push('http://localhost/xyz/schema/table?$select=col1,col2&$filter=co1 eq "help"&$orderby=col2');
-  ic.push('http://localhost/schema/table(2)');
+  test.deepEqual(
+    parse('POST', '/account1/s/grant'), {
+      queryType: 'grant',
+      schema: 'account1'
+    }, 'POST /account1/s/grant');
 
-  // Correct URLs
-  c = [];
-  c.push('http://localhost/schema/table?$select=col1,col2&$filter=co1 eq "help"&$orderby=col2&$skip=10');
-  c.push('http://localhost/schema/table');
-  c.push('http://localhost/schema/table?$select=col1,col2&$filter=Price add 5 gt 10&$orderby=col2');
-  c.push('http://localhost/schema/table?$orderby=col2');
-
-  // start http server
-  // -----------------
-
-  server = http.createServer(function(request, response) {
-
-    log.log("Processing request: " +
-      JSON.stringify(request.method) + " - " +
-      JSON.stringify(request.url) + " - " +
-      JSON.stringify(request.headers));
-
-    // handle request with odata server
-    var odataServer = new odata.ODataServer();
-    odataServer.main(request, response, mysql);
-
-  });
-
-  server.listen(defaultPort);
-
-  log.log("Server is listening on port " + defaultPort);
-
-  // setup finished
-  test.end();
-});
-
-//
-// Test GET/SELECT Uris
-// ---------------------
-
-test('testing odatauri2sql.ODataUri2Sql GET', function(test) {
-  var uriParser = new o2s.ODataUri2Sql();
-
-  test.plan(6);
-
-  var expected = [];
-  expected.push('{"queryType":"select","schema":"schema","table":"table","sql":"select col1,col2 from schema.table where co1 = \\"help\\" order by col2 limit 10,100"}');
-  expected.push('{"queryType":"select","schema":"schema","table":"table","sql":"select * from schema.table"}');
-  expected.push('{"queryType":"select","schema":"schema","table":"table","sql":"select col1,col2 from schema.table where Price + 5 > 10 order by col2"}');
-  expected.push('{"queryType":"select","schema":"schema","table":"table","sql":"select * from schema.table order by col2"}');
-
-  for (var i = 0; i < c.length; i++) {
-    var o = uriParser.parseUri(c[i], 'GET');
-
-    test.deepEqual(o,
-      JSON.parse(expected[i]),
-      c[i]);
-  }
-
-  for (i = 0; i < ic.length; i++) {
-    test.throws(function() {
-      uriParser.parseUri(ic[i]);
-    });
-  }
-
-  test.end();
-
-});
-
-//
-// Test POST/INSERT Uris
-// ---------------------
-
-test('testing odatauri2sql.ODataUri2Sql POST', function(test) {
-  var uriParser = new o2s.ODataUri2Sql();
-
-  test.plan(5);
-
-  for (var i = 0; i < ic.length; i++) {
-    test.throws(function() {
-      uriParser.parseUri(ic[i], 'POST');
-    });
-  }
-
-  for (i = 0; i < c.length; i++) {
-    // URL #2 is ok for POST
-    if (i !== 1) {
-      test.throws(function() {
-        uriParser.parseUri(c[i], 'POST');
-      });
-    }
-  }
+  test.deepEqual(
+    parse('POST', '/account1/s/revoke'), {
+      queryType: 'revoke',
+      schema: 'account1'
+    }, 'POST /account1/s/revoke');
 
   test.end();
 
@@ -282,13 +233,5 @@ test('testing etag', function(test) {
     'key2': 'val2'
   });
   test.deepEqual(o, expected, 'Check ETAG');
-  test.end();
-});
-
-
-
-test('tearDown', function(test) {
-  var self = this;
-  server.close();
   test.end();
 });

@@ -167,7 +167,7 @@
 
   // The # before test_XXX is necessary for the test TAP protocol
   c.testLoggerOptions = {
-    debug: true,
+    debug: false,
     filename: '# test_XXX.js',
     noLogging: false
   };
@@ -175,9 +175,9 @@
   // NOTE: should turn logging on in production. Turned off here in order for
   // the tests output to comply with the TAP protocol
   c.mysqlLoggerOptions = {
-    debug: true,
+    debug: false,
     filename: 'mysql.js',
-    noLogging: false
+    noLogging: true
   };
 
   c.leveldbLoggerOptions = {
@@ -187,7 +187,7 @@
   };
 
   c.odataServerLoggerOptions = {
-    debug: true,
+    debug: false,
     filename: 'odataserver.js',
     noLogging: false
   };
