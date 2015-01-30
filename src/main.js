@@ -64,13 +64,32 @@
       'Content-Type': 'text/plain'
     });
     fileStream.pipe(response);
-  }
+  };
+
+
+  moduleSelf.tooBusy = false;
+  var setupTooBusy = function() {
+      var ts = Date.now();
+      var lastTs = ts;
+      setInterval(function() {
+        ts = Date.now();
+        moduleSelf.tooBusy = (ts - lastTs) > 1000;
+        lastTs = ts;
+
+        if (moduleSelf.tooBusy) {
+          log.log("ALERT: Server tooBusy!");
+        }
+
+      }, 500);
+  };
 
   //
   // Start the OData server
   // ---------------------
 
   exports.start = function() {
+
+    setupTooBusy();
 
     // handle request with odata server
     var odataServer = new odata.ODataServer();
