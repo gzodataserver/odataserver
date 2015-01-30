@@ -30,6 +30,12 @@ var password, password2;
 var accountId = h.email2accountId(CONFIG.TEST.EMAIL);
 var accountId2 = h.email2accountId(CONFIG.TEST.EMAIL2);
 
+var moduleSelf = this;
+moduleSelf.accountId = accountId;
+moduleSelf.accountId2 = accountId2;
+
+
+
 //
 // Start the odata server
 // -----------------------------
@@ -77,11 +83,11 @@ tap('testing create_account and reset_password', function(test) {
     log.debug('Received: ' + data);
     test.assert(statusCode === 200, 'create_account');
 
-    options.path = '/' + jsonData.accountId + '/' +
+    options.path = '/' + moduleSelf.accountId + '/' +
                     CONFIG.ODATA.SYS_PATH + '/reset_password';
 
     jsonInput = JSON.stringify({
-      accountId: accountId,
+      accountId: moduleSelf.accountId,
       email: CONFIG.TEST.EMAIL
     });
 
@@ -124,11 +130,11 @@ tap('testing create_account and reset_password for test user #2',
       log.debug('Received: ' + data);
       test.assert(statusCode === 200, 'create_account #2');
 
-      options.path = '/' + jsonData.accountId + '/' +
+      options.path = '/' + moduleSelf.accountId2 + '/' +
       CONFIG.ODATA.SYS_PATH + '/reset_password';
 
       jsonInput = JSON.stringify({
-        accountId: accountId2,
+        accountId: moduleSelf.accountId2,
         email: CONFIG.TEST.EMAIL2
       });
 

@@ -24,14 +24,32 @@
   var CONFIG = require('../src/config.js');
   var log = new h.log0(CONFIG.testLoggerOptions);
 
+  // exponentially smoothed moving average (since it is easy to calculate)
+  moduleSelf.latency = 0;
+  moduleSelf.weight = 0.2;
+  moduleSelf.logIntervall = 100;
+  moduleSelf.counter = 0;
+
   //
   // Helper for making http requests
   // -------------------------------
 
   h.httpRequest = function(options, input, done) {
     var _data = '';
+    var beforeReq = Date.now();
 
     var func = function(res) {
+      var receivedRes = Date.now();
+      moduleSelf.latency = (receivedRes - beforeReq)*moduleSelf.weight +
+                           (1-moduleSelf.weight)*moduleSelf.latency;
+
+      if (moduleSelf.counter++ % moduleSelf.logIntervall === 0) {
+          log.log('httpRequest average latency: ' + moduleSelf.latency +
+                  '(ms)' +
+                  '[beforeReq: ' + beforeReq + ' receivedRes: ' + receivedRes +
+                  ' diff: ' + (receivedRes-beforeReq) + ']');
+      }
+
       log.debug('status code:' + res.statusCode + ', headers: ' +
       JSON.stringify(res.headers));
 
