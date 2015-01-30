@@ -83,6 +83,7 @@ var createAccount = function(cb) {
   });
 };
 
+// 11 requests are performed
 var runTest = function() {
 
   // Create table
@@ -90,7 +91,7 @@ var runTest = function() {
 
   moduleSelf.options.method = 'POST';
   moduleSelf.options.path = '/' + moduleSelf.accountId + '/' +
-                            CONFIG.ODATA.SYS_PATH + '/create_table';
+    CONFIG.ODATA.SYS_PATH + '/create_table';
 
   var tableDef = JSON.stringify({
     tableDef: {
@@ -136,7 +137,7 @@ var runTest = function() {
 
   moduleSelf.options.method = 'POST';
   moduleSelf.options.path = '/' + moduleSelf.accountId + '/' +
-                            CONFIG.ODATA.SYS_PATH + '/grant';
+    CONFIG.ODATA.SYS_PATH + '/grant';
 
   input = JSON.stringify({
     tableName: 'mytable',
@@ -278,6 +279,20 @@ var cleanUp = function() {
 
 };
 
+var everySec = function(func, numTimes, endFunc) {
+  var self = this;
+  return function() {
+    self.i = 0;
+    self.interval = setInterval(function() {
+      if (self.i++ == numTimes) {
+        self.interval.clearInterval();
+        endFunc();
+      } else {
+        func();
+      }
+    }, 1000);
+  }
+};
 
 //
 // Main
@@ -289,8 +304,12 @@ var times = function(n, func, endFunc) {
     while (i++ < n) {
       func();
     }
-    endFunc();
+    if (endFunc !== undefined) {
+      endFunc();
+    }
   };
 };
 
-createAccount(times(1000, runTest, cleanUp));
+// Run the test 40 times every second. The test performs 11 requests
+// => 440 requests per second can be handled
+createAccount(everySec(times(20, runTest), 100, cleanUp));

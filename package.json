@@ -25,7 +25,8 @@
     "mysql": "*",
     "nodemailer": "*",
     "level": "*",
-    "dtrace-provider" : "*"
+    "dtrace-provider" : "*",
+    "toobusy" : "*"
   },
   "devDependencies": {
     "docco": "*",
