@@ -204,6 +204,14 @@
 
   c.enableDtrace = true;
 
+  // Too Busy setup
+  // -------------
+  // The server will respond inidicating that it is too busy in order to keep
+  // the response times. NOTE: Using tooBusy will prevent the tests from
+  // completing (a timer is running in the event loop)
+
+  c.enableTooBusy = false;
+
   // Exports
   // =======
 

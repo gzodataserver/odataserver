@@ -40,7 +40,7 @@
   var url = require('url');
   var test = require('tape');
   var fs = require('fs');
-  var toobusy = require('toobusy');
+//  var toobusy = require('toobusy');
 
   var CONFIG = require('./config.js');
   var odata = require('./odataserver.js');
@@ -68,6 +68,7 @@
   };
 
 
+
   moduleSelf.tooBusy = false;
   var setupTooBusy = function() {
       var ts = Date.now();
@@ -84,26 +85,29 @@
       }, 500);
   };
 
+
   //
   // Start the OData server
   // ---------------------
 
   exports.start = function() {
 
-    setupTooBusy();
+    if(CONFIG.enableTooBusy) {
+      setupTooBusy();
+    }
 
     // handle request with odata server
     var odataServer = new odata.ODataServer();
 
     var httpFunc = function(request, response) {
 
-      if(toobusy()) {
+/*      if(toobusy()) {
         var msg = 'Server too busy!';
         h.writeError(response, msg);
         log.log(msg);
         return;
       }
-
+*/
       // Only GET, POST, PUT and DELETE supported
       if (!(request.method == 'GET' ||
           request.method == 'POST' ||
