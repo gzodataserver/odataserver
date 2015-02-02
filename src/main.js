@@ -40,7 +40,6 @@
   var url = require('url');
   var test = require('tape');
   var fs = require('fs');
-//  var toobusy = require('toobusy');
 
   var CONFIG = require('./config.js');
   var odata = require('./odataserver.js');
