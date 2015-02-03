@@ -1,3 +1,23 @@
+App - GNA
+=========
+
+Behöver ett bättre arbetsnamn, kanske Gna, budbärerska till gudinnan Frigg
+som som har vetskap om alla människors och gudars öden. Eller Hofvarpner, Gnas
+häst som tar henne genom luft och vatten.
+Se http://www.nordisk-mytologi.se/gudargudinnor.html
+
+I Gna ska det vara möjligt att utveckla egna appar. Programspråket kommer att
+vara JavaScript/HTML5. Tanken är att använda Cordova för att kompilera för
+olika mobila plattformar. HTML5/JavaScript Gna-apparna ska laddas dynamiskt. Ett
+ ramverk som är användbart är Angular men det bästa är att Gna inte är knutet
+ till något speciellt ramverk. OpenUI5 (SAPUI5) är också ett alternativ.
+
+ Gna bör vara ett litet JS program som laddar JS/HTML från backend
+ (OdataServer). Backend accountId avgör vad en användare har tillgång till.
+
+
+
+
 Hantera många anrop
 ====================
 
