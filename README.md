@@ -48,7 +48,9 @@ Prerequisites:
 Build the image: `docker build --rm -t odataserver .`
 
 Run the container in daemon mode:
-`docker run -d -p 81:81 -p 9000:9000 --name odataserver odataserver`.
+`docker run -d -p 81:81 -p 9000:9000 -e ADMIN_USER="root" \
+-e ADMIN_PASSWORD="secret" -e MAIL_USER="joe@example.com" \
+-e MAIL_PASSWORD="yyy" --name odataserver odataserver`.
 The ports 81 and 9000 that have been exposed from the container will be routed
 from the host to the container using the `-p` flag.
 
