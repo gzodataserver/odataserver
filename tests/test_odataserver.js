@@ -142,7 +142,7 @@ test('Test parser for /account/s/operation ', function(test) {
     }, 'POST /account1/s/reset_password');
 
   test.deepEqual(
-    parse('POST', '/account1/s/reset_password/xxx-xxx-xxx-xxx'), {
+    parse('GET', '/account1/s/reset_password/xxx-xxx-xxx-xxx'), {
       "queryType": "reset_password",
       "schema": "account1",
       "resetToken": "xxx-xxx-xxx-xxx"
