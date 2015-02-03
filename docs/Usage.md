@@ -22,20 +22,20 @@ The examples should be easy to translate to arbitrary programming language that
 support HTTP REST operations.
 
 1. Create a new account. An account ID will be returned, please note this:
-`curl -d '{"email":"joe@example.com"}' http://[IP]:[PORT]/s/create_account`
+`curl -d '{"email":"joe@example.com"}' http://[IP]:[PORT]/create_account`
 
 2. Get a password for joe:
-`curl -d '{"accountId":"3ea8f06baf64","email":"joe@example.com"}' http://[IP]:[PORT]/s/reset_password`
+`curl -d '{"accountId":"3ea8f06baf64","email":"joe@example.com"}' http://[IP]:[PORT]/3ea8f06baf64/s/reset_password`
 
 Use the link in the mail to get the new password:
-`curl http://[IP]:[PORT]/reset_password/[reset password token]`
+`curl http://[IP]:[PORT]/3ea8f06baf64/s/reset_password/[reset password token]`
 
 
 3. Create one more account. An account ID will be returned, please note this:
 `curl -d '{"email":"bill@example.com"}' http://[IP]:[PORT]/s/create_account`
 
 4. Get a password for bill:
-`curl -d '{"accountId":"6adb637f9cf2","email":"bill@example.com"}' http://[IP]:[PORT]/s/reset_password`
+`curl -d '{"accountId":"6adb637f9cf2","email":"bill@example.com"}' http://[IP]:[PORT]/6adb637f9cf2/s/reset_password`
 
 Use the link in the mail to get the new password:
 `curl http://[IP]:[PORT]/reset_password/[reset password token]`
@@ -45,10 +45,10 @@ Work with tables
 ----------------
 
 1. Create a new table:
-`curl -H "user:3ea8f06baf64" -H "password:xxx" -d '{"tableName":"mytable","columns":["col1 int","col2 varchar(255)"]}' http://[IP]:[PORT]/s/create_table`
+`curl -H "user:3ea8f06baf64" -H "password:xxx" -d '{"tableName":"mytable","columns":["col1 int","col2 varchar(255)"]}' http://[IP]:[PORT]/3ea8f06baf64/s/create_table`
 
 2. Grant privileges for the new table to bill:
-`curl -H "user:3ea8f06baf64" -H "password:xxx" -d '{"tableName":"mytable","accountId":"6adb637f9cf2"}' http://[IP]:[PORT]/s/grant_privs`
+`curl -H "user:3ea8f06baf64" -H "password:xxx" -d '{"tableName":"mytable","accountId":"6adb637f9cf2"}' http://[IP]:[PORT]/3ea8f06baf64/s/grant_privs`
 
 3. Insert some data into mytable:
 `curl -H "user:3ea8f06baf64" -H "password:xxx" -d '{"col1":11,"col2":"11"}' http://[IP]:[PORT]/3ea8f06baf64/mytable`
@@ -71,7 +71,7 @@ Work with tables
 `curl -H "user:3ea8f06baf64" -H "password:xxx" http://[IP]:[PORT]/3ea8f06baf64/mytable`
 
 9. Drop mytable
-`curl -X DELETE -H "user:3ea8f06baf64" -H "password:xxx" -d '{"tableName":"mytable"}' http://[IP]:[PORT]/drop_table`
+`curl -X DELETE -H "user:3ea8f06baf64" -H "password:xxx" -d '{"tableName":"mytable"}' http://[IP]:[PORT]/3ea8f06baf64/s/drop_table`
 
 
 
@@ -88,7 +88,7 @@ begin with `b_`. Privileges for buckets are manages with the same API functions
 as tables.
 
 1. Create a new bucket:
-`curl -H "user:3ea8f06baf64" -H "password:xxx" -d '{"bucketName":"mybucket"}' http://[IP]:[PORT]/s/create_bucket`
+`curl -H "user:3ea8f06baf64" -H "password:xxx" -d '{"bucketName":"mybucket"}' http://[IP]:[PORT]/3ea8f06baf64/s/create_bucket`
 
 2. Store a BLOB in mybucket:
 `curl -H "user:3ea8f06baf64" -H "password:xxx" -d "Just some test data to store in the bucket" http://[IP]:[PORT]/3ea8f06baf64/mybucket`
@@ -99,22 +99,22 @@ as tables.
 `curl -H "user:3ea8f06baf64" -H "password:xxx" -v http://[IP]:[PORT]/3ea8f06baf64/mybucket`
 
 4. Grant privileges for the new bucket to bill:
-`curl -H "user:3ea8f06baf64" -H "password:xxx" -d '{"name":"mybucket","accountId":"6adb637f9cf2"}' http://[IP]:[PORT]/s/grant_privs`
+`curl -H "user:3ea8f06baf64" -H "password:xxx" -d '{"name":"mybucket","accountId":"6adb637f9cf2"}' http://[IP]:[PORT]/3ea8f06baf64/s/grant_privs`
 
 5. Get the contents of the new table using bill's credentials:
 `curl -H "user:6adb637f9cf2" -H "password:xxx" http://[IP]:[PORT]/3ea8f06baf64/mybucket`
 
 6. Drop mybucket
-`curl -X DELETE -H "user:3ea8f06baf64" -H "password:xxx" -d '{"bucketName":"mybucket"}' http://[IP]:[PORT]/drop_bucket`
+`curl -X DELETE -H "user:3ea8f06baf64" -H "password:xxx" -d '{"bucketName":"mybucket"}' http://[IP]:[PORT]/3ea8f06baf64/s/drop_bucket`
 
 
 Clean up
 ---------
 
 1. Drop accounts
-`curl -X POST -H "user:3ea8f06baf64" -H "password:xxx" -d '{"accountId":"3ea8f06baf64"}' http://[IP]:[PORT]/s/delete_account`
+`curl -X POST -H "user:3ea8f06baf64" -H "password:xxx" -d '{"accountId":"3ea8f06baf64"}' http://[IP]:[PORT]/3ea8f06baf64/s/delete_account`
 
-`curl -X POST -H "user:6adb637f9cf2" -H "password:xxx" -d '{"accountId":"6adb637f9cf2"}' http://[IP]:[PORT]/s/delete_account`
+`curl -X POST -H "user:6adb637f9cf2" -H "password:xxx" -d '{"accountId":"6adb637f9cf2"}' http://[IP]:[PORT]/6adb637f9cf2/s/delete_account`
 
 
 

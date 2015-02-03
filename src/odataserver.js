@@ -268,15 +268,15 @@
   //                     |  <POST,'delete_account'>
   //
   // URI like /account/s/system_operation
-  // <method,system_uri> ::= <POST,variable 's' system_operation> -> [system_operation,account]
-  // system_operation    :== 'create_table'
+  // <method,system_uri> ::= <GET,variable 's' reset_password variable> -> [reset_password,account,resetToken]
+  //                     |   <POST,variable 's' system_operation> -> [system_operation,account]
+  // system_operation    ::= 'create_table'
   //                     |   'create_bucket'
   //                     |   'drop_table'
   //                     |   'drop_bucket'
   //                     |   'grant'
   //                     |   'revoke'
   //                     |   'reset_password'
-  //                     |   'reset_password' variable            -> [reset_password,account,resetToken]
   //
   // URI like /account/table
   // <method,table_uri>  ::= <GET,variable>             -> [service_def,account]
@@ -347,7 +347,7 @@
       };
     }
 
-    if (method === 'POST' &&
+    if (method === 'GET' &&
       tokens.length === 4 &&
       tokens[1] === CONFIG.ODATA.SYS_PATH &&
       tokens[2] === 'reset_password') {
@@ -475,161 +475,6 @@
 
   }
 
-  // parse the uri and create a JSON object. The where_sql property is used
-  // for select and delete statements.
-  //
-  // {
-  //   schema: xxx,
-  //   table: yyy,
-  //   queryType: service_def | create_table | delete_table | select | insert | delete,
-  //   sql: 'select col1, col2, colN from table where col1="YY"'
-  // }
-  //
-  // ```
-  // Typical URLs: / accountId / s     / reset_password/reset_token
-  //                  a[1]       a[2]        a[3]           a[4]
-  //               / accountId / table ? ...
-  //                  a[1]       a[2]              NOTE: a[0] contains ''
-  // ```
-
-/*
-  exports.ODataUri2Sql.prototype.parseUri = function(s, reqMethod) {
-    var url = require('url');
-    var parsedURL = url.parse(s, true, false);
-
-    // get the schema and table name
-    var a = parsedURL.pathname.split("/");
-
-    log.debug('parsedURL: ' + JSON.stringify(a));
-
-    var result = {
-      schema: a[1],
-      table: a[2]
-    };
-
-    // URL of the form:  /account/s/create_table
-    //                    a = ['','account',CONFIG.ODATA.SYS_PATH,'create_table']
-    if (a.length === 2) {
-
-      switch (reqMethod) {
-        // return list of tables
-        case 'GET':
-          result.queryType = 'service_def';
-          break;
-
-        case 'POST':
-          result.queryType = 'create_table';
-          break;
-
-        case 'DELETE':
-          result.queryType = 'delete_table';
-          break;
-
-          // PUT etc. not supported here
-        default:
-          throw new Error('Operation on /schema not supported for ' +
-            reqMethod);
-      }
-
-      return result;
-    }
-
-    // reset_password is allowed these forms:
-    // * POST /s/reset_password - with the accountId as data will mail a link
-    // * GET /s/reset_password/<reset_token> - this will return the new password
-    if (a[2] === 'reset_password' && a.length === 4) {
-      result.queryType = a[2];
-      result.resetToken = a[3];
-      return result;
-    }
-
-    // URI should look like this: /schema/table
-    if (a.length != 3) {
-      throw new Error('Pathname should be in the form /schema/table, not ' +
-        parsedURL.pathname);
-    }
-
-    // Handle admin operations: /s/...
-    if (a[1] === CONFIG.SYS_PATH && urlAdminOps.indexOf(a[2]) !== -1) {
-      result.queryType = a[2];
-      return result;
-    }
-
-    // indexing with table(x) not supported
-    if (result.table.indexOf('(') > -1) {
-      throw new Error('The form /schema/entity(key) is not supported.' +
-        ' Use $filter instead.');
-    }
-
-    // translate odata queries in URI to sql
-    var sqlObjects = u.map(parsedURL.query, odata2sql);
-
-    // parse GET requests
-    if (reqMethod == 'GET') {
-
-      // this is a select
-      result.queryType = 'select';
-
-      sqlObjects.push({
-        id: 2,
-        q: ' from ' + result.schema + '.' + result.table
-      });
-
-      // sort the query objects according to the sql specification
-      sqlObjects = u.sortBy(sqlObjects, function(o) {
-        return o.id;
-      });
-
-      // add select * if there is no $select
-      if (sqlObjects[0].id != 1) {
-        sqlObjects.push({
-          id: 1,
-          q: 'select *'
-        });
-      }
-    }
-
-    // parse POST requests
-    if (reqMethod == 'POST') {
-
-      // this is a insert
-      result.queryType = 'insert';
-
-      // check that there are no parameters
-      if (!u.isEmpty(parsedURL.query)) {
-        throw new Error('Parameters are not supported in POST: ' +
-          JSON.stringify(parsedURL.query));
-      }
-
-    }
-
-    // parse DELETE request
-    if (reqMethod == 'DELETE') {
-
-      // this is a delete
-      result.queryType = 'delete';
-
-    }
-
-    // sort the query objects according to the sql specification
-    sqlObjects = u.sortBy(sqlObjects, function(o) {
-      return o.id;
-    });
-
-    // create a string from the objects
-    result.sql = u.reduce(
-      sqlObjects,
-      function(memo, o) {
-        return memo + o.q;
-      },
-      "");
-
-    return result;
-
-  };
-
-*/
-
   // calculate the MD5 etag for a JSON object
   var etag = function(obj) {
     var crypto = require('crypto');
@@ -707,7 +552,8 @@
 
     // The link that is used to reset a password
     var resetLink = 'http://' + CONFIG.ODATA.HOST + ':' +
-      CONFIG.ODATA.PORT + '/' + CONFIG.ODATA.SYS_PATH + '/reset_password/' +
+      CONFIG.ODATA.PORT + '/' + accountId + '/' +
+      CONFIG.ODATA.SYS_PATH + '/reset_password/' +
       token;
 
     // create transporter object using SMTP transport
