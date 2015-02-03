@@ -196,7 +196,7 @@
   c.mainLoggerOptions = {
     debug: false,
     filename: 'main.js',
-    noLogging: false
+    noLogging: true
   };
 
   // dtrace setup

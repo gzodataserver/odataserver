@@ -339,6 +339,7 @@
   exports.BucketHttpServer.prototype.main = function(request, response) {
     log.debug('In main ...');
 
+    var self = this;
     var parsedURL = url.parse(request.url, true, false);
     var a = parsedURL.pathname.split("/");
 
@@ -455,8 +456,8 @@
     } else {
       // Perform read/write operation
 
-      var bucketName = a[2];
-      var schema = a[1];
+      var bucketName = tokens[1];
+      var schema = tokens[0];
       var options = {
         credentials: {
           database: schema,
@@ -466,12 +467,9 @@
         closeStream: false
       };
 
-      var credentialsOk = false;
-
       // Check that the user can perform read operations
       if (request.method == 'GET') {
         options.sql = 'select id, log from ' + schema + '.' + bucketName;
-        options.processRowFunc = null;
 
         log.debug('Check privileges for user ' + accountId + ' on bucket ' +
                   schema + '/' + bucketName);
@@ -479,8 +477,9 @@
         var mysqlRead = new Rdbms.sqlRead(options);
         mysqlRead.fetchAll(
           function(res) {
-            credentialsOk = true;
-          }, function(err) {
+            exports.BucketHttpServer.prototype.handleReadWriteRequest(request,
+              response);
+            }, function(err) {
             h.writeError(response, 'Cannot read from bucket: ' + err);
           }
         );
@@ -492,8 +491,9 @@
         options.resultStream = bucket;
         var writeStream = new Rdbms.sqlWriteStream(options,
           function() {
-            credentialsOk = true;
-          },
+            exports.BucketHttpServer.prototype.handleReadWriteRequest(request,
+              response);
+            },
           function(err) {
             h.writeError(response, 'Cannot write to bucket. ' + err);
           }
@@ -511,12 +511,6 @@
         jsonStream.pipe(writeStream);
       }
 
-      // Perform the requested operation if the credentials are ok
-      if (credentialsOk) {
-        // Perform read/write operation
-        exports.BucketHttpServer.prototype.handleReadWriteRequest(request,
-          response);
-      }
     }
   };
 

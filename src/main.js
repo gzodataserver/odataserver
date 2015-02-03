@@ -7,16 +7,21 @@
 //
 // This is the top file in the hierarchy. The architedture looks like this:
 //
-//     +-------------+
-//     | odataserver |
-//     +------+------+
-//            |
-//      +-----+-----+
-//      |           |
-//      v           v
-//  +-------+  +---------+
-//  | mysql |<-| leveldb |
-//  +-------+  +---------+
+//     +-------------------+
+//     |        main       |
+//     +------+---------+--+
+//            |         |
+//            v         |
+//     +-------------+  |
+//     | odataserver |  |
+//     +--+----------+  |
+//        |             |
+//        |             |
+//        |             |
+//        v             v
+//  +-------+    +---------+
+//  | mysql |<---| leveldb |
+//  +-------+    +---------+
 //
 //
 // LevelDB is a in-process library key/value store is currently used for buckets.
@@ -100,13 +105,6 @@
 
     var httpFunc = function(request, response) {
 
-/*      if(toobusy()) {
-        var msg = 'Server too busy!';
-        h.writeError(response, msg);
-        log.log(msg);
-        return;
-      }
-*/
       // Only GET, POST, PUT and DELETE supported
       if (!(request.method == 'GET' ||
           request.method == 'POST' ||
@@ -164,7 +162,11 @@
           (tokens_.length === 2 &&
             tokens_[1].substr(0, CONFIG.ODATA.BUCKET_PREFIX.length) ===
             CONFIG.ODATA.BUCKET_PREFIX)) {
-        log.debug("Bucket operation: " +  tokens_[2]);
+
+        log.debug('Bucket operation ' + request.method + " on " +  tokens_[0] +
+          '.' + tokens_[1] + ' ' +
+          ((tokens_.length === 3) ? tokens_[2] : ''));
+
         var bucketServer = new buckets.BucketHttpServer();
         bucketServer.main(request, response);
         return;
