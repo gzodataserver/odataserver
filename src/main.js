@@ -60,7 +60,11 @@
   var showHelp = function(request, response) {
     log.debug('Showing help');
 
-    var fileStream = fs.createReadStream(CONFIG.ODATA.HELP_FILE);
+    var path = require('path');
+    var fs = require('fs');
+    var dir = path.join(path.dirname(fs.realpathSync(__filename)), '../');
+
+    var fileStream = fs.createReadStream(dir + CONFIG.ODATA.HELP_FILE);
     response.writeHead(200, {
       'Content-Type': 'text/plain'
     });
