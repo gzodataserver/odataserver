@@ -20,7 +20,7 @@
   var u = require('underscore');
 
   var h = require('./helpers.js');
-  var CONFIG = require('./config.js');
+  var CONFIG = require('../config.js');
   var log = new h.log0(CONFIG.odataServerLoggerOptions);
   var StringDecoder = require('string_decoder').StringDecoder;
 
@@ -48,7 +48,7 @@
   };
 
 
-  // ODataUri2Sql class 
+  // ODataUri2Sql class
   // ===================
 
   //

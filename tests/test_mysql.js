@@ -22,7 +22,7 @@ var rs = require('../src/mysql.js').sqlRead;
 var ws = require('../src/mysql.js').sqlWriteStream;
 var h = require('../src/helpers.js');
 
-var CONFIG = require('../src/config.js');
+var CONFIG = require('../config.js');
 var log = new h.log0(CONFIG.testLoggerOptions);
 
 var resultStream = process.stderr;

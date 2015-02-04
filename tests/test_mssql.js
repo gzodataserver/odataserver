@@ -20,7 +20,7 @@ var StringDecoder = require('string_decoder').StringDecoder;
 var mssql = require('../src/mssql.js');
 var h = require('../src/helpers.js');
 
-var CONFIG = require('../src/config.js');
+var CONFIG = require('../config.js');
 var testEmail = 'test@gizur.com';
 var testEmail2 = 'test2@gizur.com';
 

@@ -18,7 +18,7 @@ var test = require('tape');
 var u = require('underscore');
 
 var mysql = require('./../src/mysql.js');
-var CONFIG = require('../src/config.js');
+var CONFIG = require('../config.js');
 var odata = require('./../src/odataserver.js');
 var o2s = require('../src/odataserver.js');
 

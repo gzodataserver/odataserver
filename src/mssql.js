@@ -18,7 +18,7 @@
 
   var util = require('util');
   var h = require('./helpers.js');
-  var CONFIG = require('./config.js');
+  var CONFIG = require('../config.js');
 
   var mssql = require('../win/node_modules/mssql');
   var u = require('underscore');

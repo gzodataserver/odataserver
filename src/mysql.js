@@ -53,7 +53,7 @@
   var Writable = require('stream').Writable;
   var util = require('util');
   var h = require('./helpers.js');
-  var CONFIG = require('./config.js');
+  var CONFIG = require('../config.js');
 
   var mysql = require('mysql');
   var u = require('underscore');

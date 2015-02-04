@@ -19,7 +19,7 @@ var h = require('../src/helpers.js');
 var StringDecoder = require('string_decoder').StringDecoder;
 var decoder = new StringDecoder('utf8');
 
-var CONFIG = require('../src/config.js');
+var CONFIG = require('../config.js');
 var log = new h.log0(CONFIG.testLoggerOptions);
 
 //

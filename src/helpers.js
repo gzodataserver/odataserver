@@ -20,7 +20,7 @@
   var crypto = require('crypto');
   var Writable = require('stream').Writable;
 
-  var CONFIG = require('./config.js');
+  var CONFIG = require('../config.js');
 
   var StringDecoder = require('string_decoder').StringDecoder;
   var decoder = new StringDecoder('utf8');

@@ -42,7 +42,7 @@
   var test = require('tape');
   var fs = require('fs');
 
-  var CONFIG = require('./config.js');
+  var CONFIG = require('../config.js');
   var odata = require('./odataserver.js');
   var h = require('./helpers.js');
 

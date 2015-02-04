@@ -21,7 +21,7 @@
   var https = require('https');
   var h = require('../src/helpers.js');
 
-  var CONFIG = require('../src/config.js');
+  var CONFIG = require('../config.js');
   var log = new h.log0(CONFIG.testLoggerOptions);
 
   // Measure the latency in the https requests using

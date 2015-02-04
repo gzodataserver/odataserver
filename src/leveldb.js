@@ -40,7 +40,7 @@
   var StringDecoder = require('string_decoder').StringDecoder;
 
   var h = require('./helpers.js');
-  var CONFIG = require('./config.js');
+  var CONFIG = require('../config.js');
 
   var Rdbms = require(CONFIG.ODATA.RDBMS_BACKEND);
 
