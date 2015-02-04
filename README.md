@@ -22,10 +22,10 @@ tests: `npm install; npm test`.
 Now start the server with: `npm start`. Check that it is alive with:
 `curl http://localhost:9000/help`.
 
-The file `src/config.js` contains a number of variables that can be configured.
+The file `config.js` contains a number of variables that can be configured.
 Check it out, it is fairly well documented. Make sure to change the flag
 `RESET_PASSWORD_WITHOUT_LINK` for production use (all accounts on the server are
-  open for anyone otherwise).
+ open for anyone otherwise).
 
 
 Getting started with development
