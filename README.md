@@ -101,20 +101,14 @@ starting the container (the `-e` flag).
 Development
 ===========
 
-Load some test data with the script `./src-sql/init-mysql2.sh`
+Contributions are welcome.
 
-Run the extended test suite that depends on the data loaded above:
-`npm run-script test2`
+The tests are executed with `npm test`.
 
-Generate the documentation: `npm run-script docco`
+Generate the documentation with: `npm run-script docco`
 
-Check the code: `npm run-script style`
+Check the code with: `npm run-script style`
 
-I'm using editor Atom with the following addons:
-
-    apm install atom-beautify
-    apm install linter
-    apm install linter-jscs
 
 
 dtrace
