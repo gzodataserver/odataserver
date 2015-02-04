@@ -10,33 +10,33 @@
 // NOTE: see sqlBase.js for documentation about the classes.
 //
 // Classes:
-//  * mysqlBase      - base class with MySQL specific parts
-//  * sqlRead        - inhertis mysqlBase
-//  * sqlWriteStream - inherits Writable, have parts unique to MySQL
-//  * sqlDelete      - inhertis mysqlBase
-//  * sqlDrop        - inhertis mysqlBase
-//  * sqlAdmin       - inhertis mysqlBase
+//  * `mysqlBase`      - base class with MySQL specific parts
+//  * `sqlRead`        - inhertis mysqlBase
+//  * `sqlWriteStream` - inherits Writable, have parts unique to MySQL
+//  * `sqlDelete`      - inhertis mysqlBase
+//  * `sqlDrop`        - inhertis mysqlBase
+//  * `sqlAdmin`       - inhertis mysqlBase
 //
 // Arguments used in the constructors:
 //
-// options = {
-//   credentials: {
-//     user: '',
-//     passwrod: ''
-//   },
-//   sql :'',
-//   database: '',
-//   tableName: '',
-//   where: '',
-//   processRowFunc: '',
-//   closeStream: true | false,
-//   resultStream: process.stdout etc.
-//   processRowFunc: function used in sqlRead to manipulate each row read, used
-//                   for add eTags etc.
-// };
+//     options = {
+//       credentials: {
+//         user: '',
+//         passwrod: ''
+//       },
+//       sql :'',
+//       database: '',
+//       tableName: '',
+//       where: '',
+//       processRowFunc: '',
+//       closeStream: true | false,
+//       resultStream: process.stdout etc.
+//       processRowFunc: function used in sqlRead to manipulate each row read, used
+//                       for add eTags etc.
+//     };
 //
 // NOTES:
-// * closeStream - is not always taken into account, should look over this
+// * `closeStream` - is not always taken into account, should look over this
 //
 //
 //------------------------------
@@ -58,8 +58,6 @@
   var mysql = require('mysql');
   var u = require('underscore');
 
-  // The full path to the teste
-  //CONFIG.mysqlLoggerOptions.filename = __filename;
   var log = new h.log0(CONFIG.mysqlLoggerOptions);
 
   //
@@ -76,10 +74,10 @@
       log.log('runQuery error in MySQL connection: ' + err.code); // 'ER_BAD_DB_ERROR'
     });
 
-    // connect to the mysql server using the connection created in init
+    // connect to the mysql server using the connection
     conn.connect();
-    // pipe the result to the result stream provided
 
+    // Run the query
     var query = conn.query(sql);
 
     query
@@ -109,7 +107,7 @@
 
   };
 
-  // self.options needs to be defined in the object that inherits this object
+  // `self.options` needs to be defined in the object that inherits this object
   var mysqlBase = function(credentials) {
     var self = this;
     log.debug('mysqlBase constructor');
@@ -202,12 +200,13 @@
     return row;
   };
 
-  // options: {
-  //  * sql - the sql select statement to run
-  //  * processRowFunc - each row can be manipulated with this function before
+  // The `options` object must contain:
+  //
+  //     options: {
+  //      * sql - the sql select statement to run
+  //      * processRowFunc - each row can be manipulated with this function before
   //                     it is returned
-  // }
-  // exports.sqlRead = function(credentials, sql, processRowFunc) {
+  //     }
   exports.sqlRead = function(options) {
     var self = this;
 
@@ -219,11 +218,11 @@
     self.result = [];
   };
 
-  // inherit mysqlBase prototype
+  // inherit `mysqlBase` prototype
   exports.sqlRead.prototype = Object.create(mysqlBase.prototype);
 
-  // Fetch all rows in to an array. `done` is then called with this
-  // array is its only argument
+  // Fetch all rows in to an array. `resultFunc` is then called with this
+  // array is its only argument. `errFunc` is used in case of errors.
   exports.sqlRead.prototype.fetchAll = function(resultFunc, errFunc) {
     var self = this;
 
@@ -252,7 +251,7 @@
 
   exports.sqlWriteStream = function(options, endFunc, errFunc) {
     var self = this;
-    // call stream.Writeable constructor
+    // call `stream.Writeable` constructor
     Writable.call(this);
 
     self.options = options;
@@ -265,10 +264,10 @@
     self.errFunc = errFunc;
   };
 
-  // inherit stream.Writeable
+  // inherit `stream.Writeable`
   exports.sqlWriteStream.prototype = Object.create(Writable.prototype);
 
-  // override the write function
+  // override the `write` function
   exports.sqlWriteStream.prototype._write = function(chunk, encoding, done) {
     var self = this;
     var json;
@@ -285,7 +284,7 @@
       log.debug('_write could not parse this JSON' +
         ' (waiting for next chunk and trying again): ' +
         self.data);
-      // just wait for the next chunk
+      // just wait for the next chunk in case of an error
       self.jsonOK = false;
       done();
     }
@@ -331,7 +330,7 @@
     }
   };
 
-  // inherit mysqlBase prototype
+  // inherit `mysqlBase` prototype
   exports.sqlDelete.prototype = Object.create(mysqlBase.prototype);
 
   //
@@ -346,7 +345,7 @@
     log.debug('exports.sqlCreate: ' + self.sql);
   };
 
-  // inherit mysqlBase prototype
+  // inherit `mysqlBase` prototype
   exports.sqlCreate.prototype = Object.create(mysqlBase.prototype);
 
   //
@@ -361,7 +360,7 @@
     self.sql = 'drop table if exists ' + options.tableName + ';';
   };
 
-  // inherit mysqlBase prototype
+  // inherit `mysqlBase` prototype
   exports.sqlDrop.prototype = Object.create(mysqlBase.prototype);
 
   //
@@ -375,14 +374,12 @@
 
     // Allow multiple statements
     self.options.credentials.multipleStatements = true;
-    // Use when resetting passwords
-    //self.options.password = null;
 
     mysqlBase.call(this, self.options.credentials);
 
   };
 
-  // inherit mysqlBase prototype
+  // inherit `mysqlBase` prototype
   exports.sqlAdmin.prototype = Object.create(mysqlBase.prototype);
 
   // get MySQL credentials for the object
@@ -434,8 +431,8 @@
       " from '" + accountId + "'@'localhost';";
   };
 
-  // Get the service definition, e.g database model
-  // sql:'select tableName, (data_length+index_length)/1024/1024 as mb from information_schema.tables where table_schema="'+ schema + '"'};
+  // Get the size of the databse and the service definition, e.g the database
+  // model
   exports.sqlAdmin.prototype.serviceDef = function(accountId) {
     var self = this;
     self.sql =

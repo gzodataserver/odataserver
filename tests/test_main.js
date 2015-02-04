@@ -34,8 +34,6 @@ var moduleSelf = this;
 moduleSelf.accountId = accountId;
 moduleSelf.accountId2 = accountId2;
 
-
-
 //
 // Start the odata server
 // -----------------------------
@@ -576,7 +574,8 @@ tap('testing read from bucket', function(test) {
   th.httpRequest(options, null, function(data, statusCode) {
     var jsonData = h.jsonParse(data);
     log.debug('Received: ' + data);
-    test.assert(data === 'Some data to write to the bucket...', 'testing read from bucket' );
+    test.assert(data === 'Some data to write to the bucket...',
+                'testing read from bucket');
     test.assert(statusCode === 200, 'read from bucket');
     test.end();
 
@@ -623,7 +622,8 @@ tap('testing delete_account', function(test) {
     hostname: CONFIG.ODATA.HOST,
     port: CONFIG.ODATA.PORT,
     method: 'POST',
-    path: '/delete_account',
+    path: '/' + accountId + '/' + CONFIG.ODATA.SYS_PATH + '/delete_account',
+//    path: '/delete_account',
     headers: {
       user: accountId,
       password: password
@@ -652,7 +652,8 @@ tap('testing delete_account #2', function(test) {
     hostname: CONFIG.ODATA.HOST,
     port: CONFIG.ODATA.PORT,
     method: 'POST',
-    path: '/delete_account',
+    path: '/' + accountId + '/' + CONFIG.ODATA.SYS_PATH + '/delete_account',
+//    path: '/delete_account',
     headers: {
       user: accountId2,
       password: password2

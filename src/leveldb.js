@@ -5,12 +5,15 @@
 //
 //------------------------------
 //
-// Simple bucket server on top of LevelDB.
+// Simple bucket server on top of LevelDB. This implementation can be used as
+// a reference if other backends are developed. Just implement the classes
+// listed below.
 //
 // Classes:
-// * BucketHttpServer - handles both read and write through HTTP GET and POST
-// * BucketReadStream - internal class
-// * BucketWriteStream - internal class
+// * `BucketHttpServer` - handles both read and write through HTTP GET and POST.
+//   Is ised by `main.js`
+// * `BucketReadStream` - internal class
+// * `BucketWriteStream` - internal class
 //
 // Some notes about this bucket server:
 // * Versions are supported. A new version is created each time data is written
@@ -18,8 +21,8 @@
 // * Each chunk received in the stream is written as a separate value
 // * A key looks like this: `/image1~000000111~000000017` (version 111, 17 chunks)
 // * Access control is implemented using the RDBMS server. A table is created
-//   for each bucket. The `grant` and `revoke` are used in the same way as for
-//   RDBMS tables. Read and write is checked by by first doing a select and
+//   for each bucket. The `grant` and `revoke` methods are used in the same way
+//   as for RDBMS tables. Read and write is checked by by first doing a select and
 //   insert respectively
 //
 // Using Google JavaScript Style Guide
@@ -47,7 +50,7 @@
   // set debugging flag
   var log = new h.log0(CONFIG.leveldbLoggerOptions);
 
-  // check for admin operations, where the url start with /s/...
+  // list of admin operations
   var adminOps = ['create_bucket', 'drop_bucket'];
 
   // Check if operation is a valid admin operation
@@ -61,7 +64,7 @@
   //
 
   exports.close = function() {
-    // close the leveldb properly
+    // close the leveldb database properly
     moduleSelf.leveldb.close();
   };
 
@@ -79,8 +82,6 @@
 
     //
     // Privileged properties
-    // ---------------------
-
     // These are initialized in the init function
 
     self._noReadChunks = 0;
@@ -157,7 +158,6 @@
 
     //
     // Privileged properties
-    // ---------------------
     // These are initialized in the init function
 
     self._noSavedChunks = 0;
@@ -167,7 +167,7 @@
   };
 
   // inherit stream.Writeable
-  //LevelDBWriteStream.prototype = Object.create(writable.prototype);
+  // LevelDBWriteStream.prototype = Object.create(writable.prototype);
   util.inherits(exports.BucketWriteStream, writable);
 
   // Initialize leveldb object
@@ -335,7 +335,7 @@
       }
     };
 
-  // HTTP REST Server that
+  // HTTP REST Server
   exports.BucketHttpServer.prototype.main = function(request, response) {
     log.debug('In main ...');
 
@@ -479,7 +479,7 @@
           function(res) {
             exports.BucketHttpServer.prototype.handleReadWriteRequest(request,
               response);
-            }, function(err) {
+          }, function(err) {
             h.writeError(response, 'Cannot read from bucket: ' + err);
           }
         );
@@ -493,7 +493,7 @@
           function() {
             exports.BucketHttpServer.prototype.handleReadWriteRequest(request,
               response);
-            },
+          },
           function(err) {
             h.writeError(response, 'Cannot write to bucket. ' + err);
           }
@@ -513,21 +513,5 @@
 
     }
   };
-
-  //
-  // Manage LevelDB users - admin functions
-  // ====================================
-
-  // Admin constructor, credentials should be supplied
-  exports.bucketAdmin = function(options) {
-    var self_ = this;
-    self_.options = options;
-  };
-
-  // create a new bucket
-  exports.bucketAdmin.prototype.checkGet = function(bucketPath) {};
-
-  // create a new bucket
-  exports.bucketAdmin.prototype.checkPost = function(bucketPath) {};
 
 })(this);

@@ -7,7 +7,7 @@ Simple OData server for MySQL
 Introduction
 ============
 
-Copy `src/setenv.template` to `src/setenv` and update with the database and
+Copy `setenv.template` to `setenv` and update with the database and
 mail server credentials. Environment variables are used to set admin credentials
 for the database and the mail server. The admin database needs to have
 privileges to create schemas, users etc. Admin/root is typically used.
@@ -23,8 +23,9 @@ Now start the server with: `npm start`. Check that it is alive with:
 `curl http://localhost:9000/help`.
 
 The file `src/config.js` contains a number of variables that can be configured.
-Check it out, it is fairly well documented.
-
+Check it out, it is fairly well documented. Make sure to change the flag
+`RESET_PASSWORD_WITHOUT_LINK` for production use (all accounts on the server are
+  open for anyone otherwise).
 
 
 Getting started with development
@@ -48,9 +49,11 @@ Prerequisites:
 Build the image: `docker build --rm -t odataserver .`
 
 Run the container in daemon mode:
-`docker run -d -p 81:81 -p 9000:9000 -e ADMIN_USER="root" \
--e ADMIN_PASSWORD="secret" -e MAIL_USER="joe@example.com" \
--e MAIL_PASSWORD="yyy" --name odataserver odataserver`.
+
+    docker run -d -p 81:81 -p 9000:9000 -e ADMIN_USER="root" \
+    -e ADMIN_PASSWORD="secret" -e MAIL_USER="joe@example.com" \
+    -e MAIL_PASSWORD="yyy" --name odataserver odataserver
+
 The ports 81 and 9000 that have been exposed from the container will be routed
 from the host to the container using the `-p` flag.
 
@@ -124,14 +127,16 @@ The odata probes are viewed like this:
 `sudo dtrace -Z -n 'nodeapp*:::probe{ trace(copyinstr(arg0)); }'``
 
 
-MS SQL Server - WORK IN PROGRESS
-=================================
+MS SQL Server
+=============
+
+_(This is work in progress)_
 
 The `win` folder contains a `package.json` for installation on Windows. The
 [mssql module](https://www.npmjs.org/package/mssql) is used instead of the
-[mysql module](https://www.npmjs.org/package/mysql). This version don't include support
-for BLOB storage in leveldb since the [leveldb package](https://www.npmjs.org/package/leveldb)  
-don't support windows.
+[mysql module](https://www.npmjs.org/package/mysql). This version don't include
+supportfor BLOB storage in leveldb since the
+[leveldb package](https://www.npmjs.org/package/leveldb) don't support windows.
 
 Run `npm test` to validate that the setup is ok.
 
@@ -139,7 +144,9 @@ Run `npm test` to validate that the setup is ok.
 Known issues
 ============
 
-1. Docker build fails during `npm install`. This is rather common and is probably related to problems with the npm package servers. Just build again until it works.
+1. Docker build fails during `npm install`. This is rather common and is
+probably related to problems with the npm package servers. Just build again
+until it works.
 
 
 [travis-image]: https://img.shields.io/travis/gizur/odataserver.svg?style=flat

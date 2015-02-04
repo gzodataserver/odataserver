@@ -24,7 +24,7 @@
     // Number of rows to return if nothing else is specified
     DEFAULT_ROW_COUNT: 100,
 
-    // Url for system operations - http(s)://HOST:PORT/SYS_PATH/[operation]
+    // Url for system operations - http(s)://HOST:PORT/ACCOUNT/SYS_PATH/[operation]
     SYS_PATH: 's',
 
     // Make sure that the RDBMS backend works like sqlBase.js outlines if you
@@ -42,7 +42,7 @@
     HELP_PATH: 'help',
 
     // The prefix used in the name of buckets
-    HELP_FILE: './docs/Usage.md',
+    HELP_FILE: './Usage.md',
 
     // How long the reset password link is valid (using Date.now() to generate
     // timestamps)
@@ -75,7 +75,7 @@
 
   c.MAIL_OPTIONS = {
     // sender address
-    from: 'noreply@gizur.com',
+    from: 'noreply@example.com',
 
     // list of receivers
     to: 'this will be replaced',
@@ -105,8 +105,8 @@
     ADMIN_PASSWORD: process.env.ADMIN_PASSWORD,
 
     // The IP/DNS of the OData server
-    EMAIL: 'test@gizur.com',
-    EMAIL2: 'test2@gizur.com',
+    EMAIL: 'test@example.com',
+    EMAIL2: 'test2@example.com',
 
     // IMPORTANT: This is only used for tests. It must always be set to false
     // in production
@@ -124,7 +124,7 @@
     // can for instance be generated like this: `openssl rand -base64 32`
     SECRET_SALT: 'MnS3FQfXIbtMrvT6Y1zboNHLkiX/hui0NVqcR33EoQs=',
 
-    // algorith use to create account id. 'sha1', 'md5', 'sha256', 'sha512',
+    // Algorithm used to create account ids. 'sha1', 'md5', 'sha256', 'sha512',
     // etc. `openssl list-message-digest-algorithms` will display the available
     // digest algorithms
     HASH_ALG: 'sha1',
@@ -137,8 +137,8 @@
   // ------------------------------------
 
   // These credentials are use to create new users. It can for instance be
-  // the admin/root user, or you can also create a new user with only exactly
-  // the needed priviledges for extra security
+  // the admin/root user, or you can also create a new user with  exactly
+  // the needed priviledges (for extra security)
   c.RDBMS = {
 
     // DB admin/root username
@@ -166,7 +166,8 @@
   // Logging setup
   // -------------
 
-  // The # before test_XXX is necessary for the test TAP protocol
+  // The `#` before `test_XXX` is necessary for the tests to comply with the
+  // TAP protocol
   c.testLoggerOptions = {
     debug: false,
     filename: '# test_XXX.js',
@@ -201,11 +202,14 @@
 
   // dtrace setup
   // -------------
+  // See [DTRACE.md](../tests/DTRACE.md) for more information.
 
   c.enableDtrace = true;
 
   // Too Busy setup
   // -------------
+  // Experimental - the RDBMS is likely the bottleneck, not this NodeJS process!
+  //
   // The server will respond inidicating that it is too busy in order to keep
   // the response times. NOTE: Using tooBusy will prevent the tests from
   // completing (a timer is running in the event loop)

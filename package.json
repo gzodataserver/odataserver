@@ -1,6 +1,6 @@
 {
   "name": "odataserver",
-  "description": "Serve MySQL database as odata",
+  "description": "OData server with support for BLOBs",
   "version": "0.0.1",
   "author": {
     "name": "Jonas Colmsjö",
@@ -8,15 +8,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/colmsjo/odataserver.git"
+    "url": "https://github.com/gizur/odataserver.git"
   },
   "bugs": {
-    "url": "https://github.com/colmsjo/odataserver/issues"
+    "url": "https://github.com/gizur/odataserver/issues"
   },
   "licenses": [
     {
       "type": "MIT",
-      "url": "http://opensource.org/licenses/MIT"
+      "url": "https://github.com/gizur/odataserver/blob/master/LICENSE.md"
     }
   ],
   "main": "src/main.js",
@@ -40,9 +40,8 @@
   },
   "scripts": {
     "test": "./bin/run_tests.sh",
-    "test2": "node tests/test_odataserver2.js",
     "start": "sudo ./bin/start.sh",
-    "docco": "docco -o docco src/*.js tests/*.js",
+    "docco": "./node_modules/.bin/docco -o docco src/*.js tests/*.js",
     "clean": "rm -rf docco; rm -rf mydb; rm -rf tests/mydb",
     "style": "./node_modules/.bin/jscs src/*.js tests/test_mysql.js tests/test_leveldb.js tests/test_main.js tests/helpers.js tests/test_helpers.js tests/test_mssql.js"
   },

@@ -5,7 +5,9 @@
 //
 //------------------------------
 //
-// Simple OData server on top of MySQL.
+// Simple OData server on top of a RDBMS and bucket server. Currently are MySQL
+// and Leveldb used as RDBMS and buckets servers. Some experiments have been
+// done with MS SQL (and it seams to work fine).
 //
 //
 // Using Google JavaScript Style Guide
@@ -14,6 +16,8 @@
 //------------------------------
 
 (function(moduleSelf, undefined) {
+
+  var u = require('underscore');
 
   var h = require('./helpers.js');
   var CONFIG = require('./config.js');
@@ -25,7 +29,7 @@
 
   var Rdbms = require(CONFIG.ODATA.RDBMS_BACKEND);
 
-  // Default no of rows to return
+  // Default number of rows to return
   var defaultRowCount = CONFIG.ODATA.DEFAULT_ROW_COUNT;
 
   // check for admin operations, where the url start with /s/...
@@ -43,15 +47,17 @@
     return urlAdminOps.indexOf(op) !== -1;
   };
 
-  //
-  // Parse OData URI
-  // ================
+
+  // ODataUri2Sql class 
+  // ===================
 
   //
-  // Translate OData filter to SQL where expression
-  // ----------------------------------------------
+  // Translate OData filter to a SQL where expression
+  // ------------------------------------------------
   //
+  // These OData filters are supported, see
   // http://www.odata.org/documentation/odata-version-2-0/uri-conventions
+  // for more information.
   //
   // |Operator    |Description     |Example
   // |------------|----------------|------------------------------------------------|
@@ -72,36 +78,37 @@
   // |Div         |Division        |/Products?$filter=Price div 2 gt 4             |
   // |Mod         |Modulo          |/Products?$filter=Price mod 2 eq 0             |
   // |Grouping Operators|          |                                               |
-  // [( )         |Precedence grouping|/Products?$filter=(Price sub 5) gt 10        |
+  // |( )         |Precedence grouping|/Products?$filter=(Price sub 5) gt 10        |
   //
   //
-  // http://dev.mysql.com/doc/refman/5.7/en/expressions.html
+  // A BNF for SQL where clauses (just for reference), see
+  // http://dev.mysql.com/doc/refman/5.7/en/expressions.html for more information.
   //
-  // expr:
-  //    expr OR expr
-  //  | expr || expr
-  //  | expr XOR expr
-  //  | expr AND expr
-  //  | expr && expr
-  //  | NOT expr
-  //  | ! expr
-  //  | boolean_primary IS [NOT] {TRUE | FALSE | UNKNOWN}
-  //  | boolean_primary
+  //     expr:
+  //        expr OR expr
+  //      | expr || expr
+  //      | expr XOR expr
+  //      | expr AND expr
+  //      | expr && expr
+  //      | NOT expr
+  //      | ! expr
+  //      | boolean_primary IS [NOT] {TRUE | FALSE | UNKNOWN}
+  //      | boolean_primary
   //
-  // boolean_primary:
-  //   boolean_primary IS [NOT] NULL
-  //  | boolean_primary <=> predicate
-  //  | boolean_primary comparison_operator predicate
-  //  | boolean_primary comparison_operator {ALL | ANY} (subquery)
-  //  | predicate
+  //     boolean_primary:
+  //       boolean_primary IS [NOT] NULL
+  //      | boolean_primary <=> predicate
+  //      | boolean_primary comparison_operator predicate
+  //      | boolean_primary comparison_operator {ALL | ANY} (subquery)
+  //      | predicate
   //
-  // comparison_operator: = | >= | > | <= | < | <> | !=
+  //     comparison_operator: = | >= | > | <= | < | <> | !=
 
-  // translate Odata filter operators to sql operators
-  // string not matched are just returned
+  // Translate Odata filter operators to sql operators.
+  // Strings not matched are just returned as is
   var translateOp = function(s) {
 
-    // the supported operators
+    // translation from OData filter to SQL where clause for the supported operators
     var op = [];
     op['eq'] = '=';
     op['ne'] = '<>';
@@ -139,57 +146,56 @@
     return u.map(expr, translateOp).join(' ');
   };
 
+  // Build the SQL statement
+  // ------------------------
   //
-  // Parse Query strings
-  // -------------------
+  // Supported OData Query strings:
   //
-  // Supported:
-  //
-  // * $orderby= col[ asc|desc] - SQL: order by
-  // * $filter=... - SQL: where clause
-  // * $skip=N - $orderby must supplied for the result to be reliable
-  // * $select=col,col - columns in the select
+  // * `$orderby=col[ asc|desc]` - SQL: `order by`
+  // * `$filter=...` - SQL: `where` clause
+  // * `$skip=N` - `$orderby` must supplied for the result to be reliable
+  // * `$select=col,col` - columns in the `select`
   //
   // Not supported:
   //
-  // * $top
-  // * $inlinecount
-  // * $expand
-  // * $format - use http header
+  // * `$top`
+  // * `$inlinecount`
+  // * `$expand`
+  // * `$format` - only json is supported
   //
   //
-  // MySQL Reference
-  // ---------------
+  // **SQL BNF (for reference)**
   //
-  // http://dev.mysql.com/doc/refman/5.7/en/select.html
+  // See http://dev.mysql.com/doc/refman/5.7/en/select.html for more details
   //
-  // 1.SELECT
-  //     [ALL | DISTINCT | DISTINCTROW ]
-  //       [HIGH_PRIORITY]
-  //       [MAX_STATEMENT_TIME]
-  //       [STRAIGHT_JOIN]
-  //       [SQL_SMALL_RESULT] [SQL_BIG_RESULT] [SQL_BUFFER_RESULT]
-  //       [SQL_CACHE | SQL_NO_CACHE] [SQL_CALC_FOUND_ROWS]
-  //     select_expr [, select_expr ...]
-  // 2.  [FROM table_references
-  //       [PARTITION partition_list]
-  // 3.  [WHERE where_condition]
-  // 4.  [GROUP BY {col_name | expr | position}
-  //       [ASC | DESC], ... [WITH ROLLUP]]
-  // 5.  [HAVING where_condition]
-  // 6.  [ORDER BY {col_name | expr | position}
-  //       [ASC | DESC], ...]
-  // 7.  [LIMIT {[offset,] row_count | row_count OFFSET offset}]
-  // 8.  [PROCEDURE procedure_name(argument_list)]
-  // 9.  [INTO OUTFILE 'file_name'
-  //       [CHARACTER SET charset_name]
-  //       export_options
-  //       | INTO DUMPFILE 'file_name'
-  //       | INTO var_name [, var_name]]
-  //     [FOR UPDATE | LOCK IN SHARE MODE]]
+  //     1.SELECT
+  //         [ALL | DISTINCT | DISTINCTROW ]
+  //           [HIGH_PRIORITY]
+  //           [MAX_STATEMENT_TIME]
+  //           [STRAIGHT_JOIN]
+  //           [SQL_SMALL_RESULT] [SQL_BIG_RESULT] [SQL_BUFFER_RESULT]
+  //           [SQL_CACHE | SQL_NO_CACHE] [SQL_CALC_FOUND_ROWS]
+  //         select_expr [, select_expr ...]
+  //     2.  [FROM table_references
+  //           [PARTITION partition_list]
+  //     3.  [WHERE where_condition]
+  //     4.  [GROUP BY {col_name | expr | position}
+  //           [ASC | DESC], ... [WITH ROLLUP]]
+  //     5.  [HAVING where_condition]
+  //     6.  [ORDER BY {col_name | expr | position}
+  //           [ASC | DESC], ...]
+  //     7.  [LIMIT {[offset,] row_count | row_count OFFSET offset}]
+  //     8.  [PROCEDURE procedure_name(argument_list)]
+  //     9.  [INTO OUTFILE 'file_name'
+  //           [CHARACTER SET charset_name]
+  //           export_options
+  //           | INTO DUMPFILE 'file_name'
+  //           | INTO var_name [, var_name]]
+  //         [FOR UPDATE | LOCK IN SHARE MODE]]
   //
 
   var odata2sql = function(param, key) {
+    // `id` is used to sort the statements in the right order
     switch (key) {
       case '$orderby':
         return {
@@ -233,9 +239,8 @@
   };
 
   //
-  // Convert URI to SQL
-  // ==================
-
+  // Take the json object created by `odata2sql`, sort them in the correct order
+  // create a string with the SQL
   var reduce = function(sqlObjects) {
     // create a string from the objects
     return u.reduce(
@@ -253,7 +258,10 @@
   };
 
   //
-  // parse URI using a simple BNF grammar
+  // parse the URI using a simple BNF grammar
+  // ------------------------------------
+  //
+  // This BNF describes the operations that the OData server support.
   //
   // ```
   // slash ('/'') is the delimiter for tokens
@@ -288,15 +296,13 @@
   // variable            ::= SQL schema or table name
   // ```
 
-  var u = require('underscore');
-
   var parseUri = function(method, tokens) {
     var res = parseBasicUri(method, tokens) || parseSystemUri(method, tokens) ||
       parseTableUri(method, tokens);
 
     log.debug('parseUri: ' + JSON.stringify(res));
 
-    // indexing with table(x) not supported
+    // indexing with `table(x)` is not supported
     if (res.table !== undefined && res.table.indexOf('(') > -1) {
       throw new Error('The form /schema/entity(key) is not supported.' +
       ' Use $filter instead.');
@@ -305,7 +311,7 @@
     return res;
   }
 
-  // URI like /help and /create_account
+  // URI:s like `/help` and `/create_account`
   var parseBasicUri = function(method, tokens) {
     log.debug('parseBasicUri method: ' + method + ' tokens: ' + tokens);
 
@@ -323,17 +329,10 @@
       };
     }
 
-    if (method === 'POST' && tokens[0] === 'delete_account' &&
-    tokens.length === 1) {
-      return {
-        queryType: 'delete_account'
-      };
-    }
-
     return false;
   }
 
-  // URI like /account/s/create_table
+  // URI:s like `/account/s/create_table`
   var parseSystemUri = function(method, tokens) {
     if (method === 'POST' &&
       tokens.length === 3 &&
@@ -361,7 +360,7 @@
     return false;
   }
 
-  // URI like /account or /account/table, tokens = [account,table]
+  // URI:s like `/account` or `/account/table`, `tokens = [account,table]`
   var parseTableUri = function(method, tokens) {
     if (method === 'GET' && tokens.length === 1) {
       return {
@@ -434,7 +433,7 @@
         return o.id;
       });
 
-      // add select * if there is no $select
+      // add `select *` if there is no `$select`
       if (sqlObjects[0].id != 1) {
         sqlObjects.push({
           id: 1,
@@ -443,7 +442,7 @@
       }
     }
 
-    // Check that there is no where statement in insert
+    // Check that there is no `where` statement in `insert`
     if (result.queryType === 'insert') {
 
       // check that there are no parameters
@@ -499,17 +498,17 @@
   };
 
   //
-  // ODataServer Operations
-  // =======================
+  // Implement the ODataServer class
+  // ================================
   //
-  //  requires root credentials:
+  //  These operations requires root credentials:
   //
   //  * create user (account) (POST /createAccount data={email=...})
   //  * reset password for user (POST /resetPassword data={email=...})
   //  * delete user (DELETE /deleteAccount data={accountID=...} )
   //  * get service definition (table definition)
   //
-  //  Using account credentials:
+  //  These operations use account credentials:
   //
   //  * grant privs to user (POST /privileges data={accountID=..., entity=...} )
   //  * revoke privs from user (DELETE /privileges data={accountID=..., entity=...} ))

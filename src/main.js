@@ -7,24 +7,24 @@
 //
 // This is the top file in the hierarchy. The architedture looks like this:
 //
-//     +-------------------+
-//     |        main       |
-//     +------+---------+--+
-//            |         |
-//            v         |
-//     +-------------+  |
-//     | odataserver |  |
-//     +--+----------+  |
-//        |             |
-//        |             |
-//        |             |
-//        v             v
-//  +-------+    +---------+
-//  | mysql |<---| leveldb |
-//  +-------+    +---------+
+//       +-------------------+
+//       |        main       |
+//       +------+---------+--+
+//              |         |
+//              v         |
+//       +-------------+  |
+//       | odataserver |  |
+//       +--+----------+  |
+//          |             |
+//          |             |
+//          |             |
+//          v             v
+//      +-------+    +---------+
+//      | mysql |<---| leveldb |
+//      +-------+    +---------+
 //
 //
-// LevelDB is a in-process library key/value store is currently used for buckets.
+// LevelDB is an in-process library key/value store is currently used for buckets.
 // This means that there only can be one process for each accountId (i.e.
 // ordinary application server clusters are not supported but a sharded setup
 // can be used).
@@ -33,10 +33,6 @@
 // http://google-styleguide.googlecode.com/svn/trunk/javascriptguide.xml
 //
 //------------------------------
-//
-// Install with: `npm install`
-// Run with: `npm start`
-//
 
 (function(moduleSelf, undefined) {
 
@@ -71,24 +67,23 @@
     fileStream.pipe(response);
   };
 
-
-
+  // Experimental - the RDBMS is likely the bottleneck, **not** this
+  // NodeJS process
   moduleSelf.tooBusy = false;
   var setupTooBusy = function() {
-      var ts = Date.now();
-      var lastTs = ts;
-      setInterval(function() {
-        ts = Date.now();
-        moduleSelf.tooBusy = (ts - lastTs) > 505;
-        lastTs = ts;
+    var ts = Date.now();
+    var lastTs = ts;
+    setInterval(function() {
+      ts = Date.now();
+      moduleSelf.tooBusy = (ts - lastTs) > 505;
+      lastTs = ts;
 
-        if (moduleSelf.tooBusy) {
-          log.log("ALERT: Server tooBusy!");
-        }
+      if (moduleSelf.tooBusy) {
+        log.log("ALERT: Server tooBusy!");
+      }
 
-      }, 500);
+    }, 500);
   };
-
 
   //
   // Start the OData server
@@ -96,7 +91,7 @@
 
   exports.start = function() {
 
-    if(CONFIG.enableTooBusy) {
+    if (CONFIG.enableTooBusy) {
       setupTooBusy();
     }
 
@@ -108,6 +103,7 @@
       // Only GET, POST, PUT and DELETE supported
       if (!(request.method == 'GET' ||
           request.method == 'POST' ||
+          request.method == 'PUT' ||
           request.method == 'DELETE')) {
 
         h.writeError(response, request.method + ' not supported.');
@@ -143,8 +139,8 @@
         return;
       }
 
-      // tokens_ should contain [ account, table ] or
-      // [ account, 's', system_operation ] now
+      // `tokens_` should contain `[ account, table ]` or
+      // `[ account, 's', system_operation ]` now
 
       // Check that the system operations are valid
       if (tokens_.length === 3 &&
@@ -155,9 +151,9 @@
         return;
       }
 
-      // Check if this is an operation on a bucket by looking for the b_
-      // prefix, tokens_ = [ account, 'b_'bucket] or
-      //                   [ account, 's', 'create_bucket' | 'delete_bucket' ]
+      // Check if this is an operation on a bucket by looking for the `b_`
+      // prefix, `tokens_ = [ account, 'b_'bucket]` or
+      //                   `[ account, 's', 'create_bucket' | 'delete_bucket' ]`
       if ((tokens_.length === 3 && buckets.isAdminOp(tokens_[2])) ||
           (tokens_.length === 2 &&
             tokens_[1].substr(0, CONFIG.ODATA.BUCKET_PREFIX.length) ===
