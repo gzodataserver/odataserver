@@ -20,6 +20,9 @@
     }
   ],
   "main": "src/main.js",
+  "bin" : {
+    "odataserver" : "./bin/start.sh"
+  }, 
   "dependencies": {
     "underscore": "*",
     "mysql": "*",
