@@ -799,7 +799,7 @@
 
         // operations performed with objects inheriting from the the rdbms base object
         if (['grant', 'revoke', 'create_table', 'delete_table',
-            'delete'
+            'delete', 'update'
           ].indexOf(odataRequest.queryType) !== -1) {
 
           var rdbms;
@@ -828,6 +828,13 @@
             options.tableName = odataRequest.table;
             options.where = odataRequest.where;
             rdbms = new Rdbms.sqlDelete(options);
+          }
+
+          if (odataRequest.queryType === 'update') {
+            options.tableName = odataRequest.table;
+            options.jsonData = jsonData;
+            options.where = odataRequest.where;
+            rdbms = new Rdbms.sqlUpdate(options);
           }
 
           rdbms.pipe(bucket,

@@ -34,6 +34,15 @@ var moduleSelf = this;
 moduleSelf.accountId = accountId;
 moduleSelf.accountId2 = accountId2;
 
+// operation to test
+moduleSelf.options = {
+  hostname: CONFIG.ODATA.HOST,
+  port: CONFIG.ODATA.PORT,
+  headers: {
+    user: accountId
+  }
+};
+
 //
 // Start the odata server
 // -----------------------------
@@ -94,7 +103,8 @@ tap('testing create_account and reset_password', function(test) {
       log.debug('Received: ' + data);
 
       if (jsonData.d.results.password !== undefined) {
-        password = jsonData.d.results.password;
+        moduleSelf.options.headers.password = password =
+          jsonData.d.results.password;
         log.debug('Received password:' + password);
       }
 
@@ -240,6 +250,26 @@ tap('testing select', function(test) {
     var jsonData = h.jsonParse(data);
     log.debug('Received: ' + data);
     test.assert(statusCode === 200, 'select');
+    test.end();
+  });
+
+});
+
+tap('testing update', function(test) {
+
+  moduleSelf.options.method = 'PUT';
+  moduleSelf.options.path = '/' + accountId + '/mytable';
+
+  var input = JSON.stringify({
+    col2: '33'
+  });
+
+  test.plan(1);
+
+  th.httpRequest(moduleSelf.options, input, function(data, statusCode) {
+    var jsonData = h.jsonParse(data);
+    log.debug('Received: ' + data);
+    test.assert(statusCode === 200, 'update');
     test.end();
   });
 
@@ -572,7 +602,6 @@ tap('testing read from bucket', function(test) {
   test.plan(2);
 
   th.httpRequest(options, null, function(data, statusCode) {
-    var jsonData = h.jsonParse(data);
     log.debug('Received: ' + data);
     test.assert(data === 'Some data to write to the bucket...',
                 'testing read from bucket');

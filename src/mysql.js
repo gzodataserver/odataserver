@@ -316,6 +316,25 @@
   };
 
   //
+  // Update table
+  // ------------------
+
+  exports.sqlUpdate = function(options) {
+    var self = this;
+    mysqlBase.call(this, options.credentials);
+    self.options = options;
+    self.sql = h.json2update(options.credentials.database,
+                           options.tableName,
+                           options.jsonData);
+    if (options.where !== undefined) {
+      self.sql += ' where ' + options.where;
+    }
+  };
+
+  // inherit `mysqlBase` prototype
+  exports.sqlUpdate.prototype = Object.create(mysqlBase.prototype);
+
+  //
   // Delete from table
   // ------------------
 
@@ -326,7 +345,7 @@
     self.sql = 'delete from ' + options.credentials.database + '.' +
       options.tableName;
     if (options.where !== undefined) {
-      self.sql += 'where' + options.where;
+      self.sql += ' where ' + options.where;
     }
   };
 
