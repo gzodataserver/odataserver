@@ -25,6 +25,8 @@ var h = require('../src/helpers.js');
 var CONFIG = require('../config.js');
 var log = new h.log0(CONFIG.testLoggerOptions);
 
+var moduleSelf = this;
+
 var resultStream = process.stderr;
 var delay = 0;
   // milliseconds between async tests, 10 is the minimum that works on
@@ -184,7 +186,7 @@ test('testing_fetchAll', function(test) {
 
 test('testing suite of functions, from create user to CRUD', function(test) {
 
-  test.plan(16);
+  test.plan(19);
 
   var expected1 = [{
     "fieldCount": 0,
@@ -368,6 +370,37 @@ test('testing suite of functions, from create user to CRUD', function(test) {
     bucket.empty();
     mysqlRead.pipe(bucket);
     test.ok(true, 'select from table');
+  }.bind(this), (delay++) * intervall);
+
+  // 9.Update table
+  setTimeout(function() {
+    options.tableName = 'table1';
+    options.jsonData = {
+      col2: '33'
+    };
+    options.where = 'col1=22';
+    var del = new mysql.sqlUpdate(options);
+    del.pipe(resultStream);
+
+    test.ok(true, 'update table');
+  }.bind(this), (delay++) * intervall);
+
+  // 10. read table
+  setTimeout(function() {
+    options.sql = 'select * from table1';
+    var mysqlRead = new mysql.sqlRead(options);
+    bucket.empty();
+    mysqlRead.pipe(bucket);
+
+    test.ok(true, 'read table after update');
+  }.bind(this), (delay++) * intervall);
+
+  // 11. check what was read this time
+  setTimeout(function() {
+    log.debug('BUCKET CONTENTS update (decoded):' +
+    decoder.write(bucket.get()));
+
+    test.ok(true, 'check what was read this time');
   }.bind(this), (delay++) * intervall);
 
   // 8. wait four seconds and write results
