@@ -134,6 +134,8 @@
         return;
       }
 
+/*
+Breaks service_def
       // Check that the url has table/bucket or system operation
       if (tokens_[0] !== 'create_account' &&
           tokens_[0] !== 'delete_account' &&
@@ -142,7 +144,7 @@
                                 ' ' + request.url);
         return;
       }
-
+*/
       // `tokens_` should contain `[ account, table ]` or
       // `[ account, 's', system_operation ]` now
 

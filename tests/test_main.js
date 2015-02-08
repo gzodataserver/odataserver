@@ -465,7 +465,7 @@ tap('testing select after delete', function(test) {
     var jsonData = h.jsonParse(data);
     log.debug('Received: ' + data);
     test.assert(statusCode === 200, 'select after delete');
-    test.assert(jsonData.d.results.value.length == 0, 'select after delete');
+    test.assert(jsonData.d.results.value.length === 0, 'select after delete');
     test.end();
   });
 
