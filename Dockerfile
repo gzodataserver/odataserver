@@ -91,7 +91,7 @@ ADD ./package.json /
 ADD ./bin/run_tests.sh /bin/
 ADD ./bin/start.sh /bin/
 ADD ./src /src
-ADD ./docs /docs
+ADD Usage.md /
 ADD ./tests /tests
 RUN cd /; npm install
 
