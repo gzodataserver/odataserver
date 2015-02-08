@@ -70,8 +70,8 @@ ADD ./server.cer /
 
 # init script and test db
 ADD ./src-docker/init-mysql.sh /src/
-ADD ./src-sql/test-wp.sql /src/
-ADD ./src-sql/test-vtiger.sql /src/
+#ADD ./src-sql/test-wp.sql /src/
+#ADD ./src-sql/test-vtiger.sql /src/
 
 # Install MySQL server
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y mysql-server
