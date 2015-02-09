@@ -24,7 +24,6 @@
   var log = new h.log0(CONFIG.odataServerLoggerOptions);
   var StringDecoder = require('string_decoder').StringDecoder;
 
-  var u = require('underscore');
   var nodemailer = require('nodemailer');
 
   var Rdbms = require(CONFIG.ODATA.RDBMS_BACKEND);
@@ -231,7 +230,7 @@
         throw Error('Unsupported query: ' + key);
 
       case '$format':
-        throw Error('Use http header to select format!');
+        throw Error('Only JSON is supported!');
 
       default:
         throw Error('Invalid query: ' + key);
@@ -270,6 +269,7 @@
   // <method,uri>        ::= basic_uri
   //                     |   system_uri
   //                     |   table_uri
+  //                     |   metadata_uri
   //
   // <method,basic_uri>  ::= <GET,'help'>
   //                     |  <POST,'create_account'>
@@ -286,6 +286,9 @@
   //                     |   'revoke'
   //                     |   'reset_password'
   //
+  // URI like /account/table/$metadata
+  // <method, metadata_uri> ::= <GET, variable variable '$metdata'>
+  //
   // URI like /account/table
   // <method,table_uri>  ::= <GET,variable>             -> [service_def,account]
   //                     |   <GET,variable variable>    -> [select,account,table]
@@ -298,7 +301,7 @@
 
   var parseUri = function(method, tokens) {
     var res = parseBasicUri(method, tokens) || parseSystemUri(method, tokens) ||
-      parseTableUri(method, tokens);
+              parseMetadataUri(method, tokens) || parseTableUri(method, tokens);
 
     log.debug('parseUri: ' + JSON.stringify(res));
 
@@ -309,7 +312,7 @@
     }
 
     return res;
-  }
+  };
 
   // URI:s like `/help` and `/create_account`
   var parseBasicUri = function(method, tokens) {
@@ -330,7 +333,7 @@
     }
 
     return false;
-  }
+  };
 
   // URI:s like `/account/s/create_table`
   var parseSystemUri = function(method, tokens) {
@@ -358,7 +361,22 @@
     }
 
     return false;
-  }
+  };
+
+  // URI:s like `/account/table/$metdata`
+  var parseMetadataUri = function(method, tokens) {
+    if (method === 'GET' &&
+      tokens.length === 3 &&
+      tokens[2] === '$metadata' ) {
+      return {
+        queryType: 'metadata',
+        schema: tokens[0],
+        table: tokens[1]
+      };
+    }
+
+    return false;
+  };
 
   // URI:s like `/account` or `/account/table`, `tokens = [account,table]`
   var parseTableUri = function(method, tokens) {
@@ -403,7 +421,7 @@
 
     return false;
 
-  }
+  };
 
   exports.ODataUri2Sql.prototype.parseUri2 = function(method, inputUri) {
     var url = require('url');
@@ -472,7 +490,7 @@
 
     return result;
 
-  }
+  };
 
   // calculate the MD5 etag for a JSON object
   var etag = function(obj) {

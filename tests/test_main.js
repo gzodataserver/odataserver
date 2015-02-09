@@ -490,7 +490,7 @@ tap('testing service_def', function(test) {
   th.httpRequest(options, null, function(data, statusCode) {
     var jsonData = h.jsonParse(data);
     log.debug('Received: ' + data);
-    test.assert(true, 'service_def');
+    test.assert(statusCode === 200, 'service_def');
     test.end();
 
   });

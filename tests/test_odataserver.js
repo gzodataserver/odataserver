@@ -216,6 +216,25 @@ test('Test parser for grant and revoke operations ', function(test) {
 
 });
 
+test('Test parser for metadata', function(test) {
+
+  var parser = new o2s.ODataUri2Sql();
+  var parse = parser.parseUri2;
+
+  test.plan(1);
+
+  test.deepEqual(
+    parse('GET', '/account1/table1/$metadata'), {
+      queryType: 'metadata',
+      schema: 'account1',
+      table: 'table1'
+    }, 'GET /account1/table1/$metadata');
+
+
+  test.end();
+
+});
+
 //
 // Test the etag function
 // -----------------------

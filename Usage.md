@@ -47,6 +47,9 @@ Work with tables
 1. Create a new table:
 `curl -H "user:3ea8f06baf64" -H "password:xxx" -d '{"tableName":"mytable","columns":["col1 int","col2 varchar(255)"]}' http://[IP]:[PORT]/3ea8f06baf64/s/create_table`
 
+1. Get list of tables:
+`curl -H "user:3ea8f06baf64" -H "password:xxx" http://[IP]:[PORT]/3ea8f06baf64`
+
 2. Grant privileges for the new table to bill:
 `curl -H "user:3ea8f06baf64" -H "password:xxx" -d '{"tableName":"mytable","accountId":"6adb637f9cf2"}' http://[IP]:[PORT]/3ea8f06baf64/s/grant_privs`
 

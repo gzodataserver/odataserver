@@ -460,4 +460,12 @@
       '"';
   };
 
+  // Get metadata for a table.
+  // This function can be used with any credentials (also non-root)
+  exports.sqlAdmin.prototype.metadata = function(tableName, accountId) {
+    var self = this;
+    self.sql = "select column_name,data_type,is_nullable,numeric_precision,numeric_scale from " +
+    "information_schema.columns where table_schema='" + accountId +"' and table_name='" + tableName + "';";
+  };
+
 })(this);
