@@ -45,7 +45,7 @@ Work with tables
 ----------------
 
 1. Create a new table:
-`curl -H "user:3ea8f06baf64" -H "password:xxx" -d '{"tableName":"mytable","columns":["col1 int","col2 varchar(255)"]}' http://[IP]:[PORT]/3ea8f06baf64/s/create_table`
+`curl -H "user:3ea8f06baf64" -H "password:xxx" -d '{"tableDef":{"tableName":"mytable","columns":["col1 int","col2 varchar(255)"]}}' http://[IP]:[PORT]/3ea8f06baf64/s/create_table`
 
 1. Get list of tables:
 `curl -H "user:3ea8f06baf64" -H "password:xxx" http://[IP]:[PORT]/3ea8f06baf64`
@@ -109,6 +109,17 @@ as tables.
 
 6. Drop mybucket
 `curl -X DELETE -H "user:3ea8f06baf64" -H "password:xxx" -d '{"bucketName":"b_mybucket"}' http://[IP]:[PORT]/3ea8f06baf64/s/drop_bucket`
+
+
+Servcie definitions
+-------------------
+
+
+1. Get list of tables
+`curl -H "user:3ea8f06baf64" -H "password:xxx" http://[IP]:[PORT]/3ea8f06baf64`
+
+2. Get table definition
+`curl -H "user:3ea8f06baf64" -H "password:xxx" http://[IP]:[PORT]/3ea8f06baf64/mytable/\$metadata`
 
 
 Clean up

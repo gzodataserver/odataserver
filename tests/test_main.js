@@ -497,6 +497,24 @@ tap('testing service_def', function(test) {
 
 });
 
+tap('testing metadata', function(test) {
+
+  // operation to test
+  moduleSelf.options.method ='GET';
+  moduleSelf.options.path = '/' + accountId + '/mytable/$metadata';
+
+  test.plan(1);
+
+  th.httpRequest(moduleSelf.options, null, function(data, statusCode) {
+    var jsonData = h.jsonParse(data);
+    log.debug('Received: ' + data);
+    test.assert(statusCode === 200, 'metadata');
+    test.end();
+
+  });
+
+});
+
 //
 // Test bucket privileges (more bucket tests in test_leveldb.js)
 // -------------------------------------------------------------

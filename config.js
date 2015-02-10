@@ -195,7 +195,7 @@
   };
 
   c.mainLoggerOptions = {
-    debug: false,
+    debug: true,
     filename: 'main.js',
     noLogging: true
   };

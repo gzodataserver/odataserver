@@ -613,7 +613,7 @@
     moduleSelf.resetTokens[token] = null;
 
     return accountId;
-  }
+  };
 
   // ODataServer object
   // -------------------
@@ -817,7 +817,7 @@
 
         // operations performed with objects inheriting from the the rdbms base object
         if (['grant', 'revoke', 'create_table', 'delete_table',
-            'delete', 'update'
+            'delete', 'update', 'metadata'
           ].indexOf(odataRequest.queryType) !== -1) {
 
           var rdbms;
@@ -853,6 +853,11 @@
             options.jsonData = jsonData;
             options.where = odataRequest.where;
             rdbms = new Rdbms.sqlUpdate(options);
+          }
+
+          if (odataRequest.queryType === 'metadata') {
+            rdbms = new Rdbms.sqlAdmin(options);
+            rdbms.metadata(odataRequest.table, odataRequest.schema);
           }
 
           rdbms.pipe(bucket,
