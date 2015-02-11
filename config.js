@@ -48,7 +48,7 @@
     // timestamps)
     EXPIRE_RESET_PASSWORD: 24 * 60 * 60 * 1000,
 
-    // Setting this to `true` makes it possible for anyone to create an account
+    // Setting this to `true` makes it possible for anyone to create an account.
     // This must be set to `true` when running the tests
     CREATE_ACCOUNTS_ANONYMOUSLY: true
   };

@@ -738,7 +738,7 @@
           if(odataRequest.queryType === 'create_account' &&
             !CONFIG.ODATA.CREATE_ACCOUNTS_ANONYMOUSLY) {
 
-            // do not allow account creation anonymously
+            // do not allow account creation without credentials
             // must use the credentials supplied in the http header
             sqlAdmin = new Rdbms.sqlAdmin(options);
             log.debug('Performing operation ' + odataRequest.queryType +
