@@ -735,11 +735,22 @@
         // operations performed with admin/root credentials
         if (adminCredentialOps.indexOf(odataRequest.queryType) !== -1) {
 
-          log.debug('Performing operation ' + odataRequest.queryType +
-            ' with admin/root credentials');
-          log.debug('odataRequest: ' + JSON.stringify(odataRequest));
+          if(odataRequest.queryType === 'create_account' &&
+            !CONFIG.ODATA.CREATE_ACCOUNTS_ANONYMOUSLY) {
 
-          sqlAdmin = new Rdbms.sqlAdmin(adminOptions);
+            // do not allow account creation anonymously
+            // must use the credentials supplied in the http header
+            sqlAdmin = new Rdbms.sqlAdmin(options);
+            log.debug('Performing operation ' + odataRequest.queryType +
+              ' with credentials ' + options.credentials.user);
+          } else {
+            // Use the admin/root credentials
+            sqlAdmin = new Rdbms.sqlAdmin(adminOptions);
+            log.debug('Performing operation ' + odataRequest.queryType +
+              ' with admin/root credentials');
+          }
+
+          log.debug('odataRequest: ' + JSON.stringify(odataRequest));
 
           var email = '';
           if (odataRequest.queryType === 'create_account') {

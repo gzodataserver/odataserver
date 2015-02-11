@@ -47,6 +47,10 @@
     // How long the reset password link is valid (using Date.now() to generate
     // timestamps)
     EXPIRE_RESET_PASSWORD: 24 * 60 * 60 * 1000,
+
+    // Setting this to `true` makes it possible for anyone to create an account
+    // This must be set to `true` when running the tests
+    CREATE_ACCOUNTS_ANONYMOUSLY: true
   };
 
   // HTTPS settings
@@ -113,8 +117,8 @@
     RESET_PASSWORD_WITHOUT_LINK: true,
   };
 
-  // Account IDs are based email adresses
-  // -------------------------------------
+  // Account IDs are based on email adresses
+  // ---------------------------------------
 
   // Documentation of the hash function used is found here:
   // http://nodejs.org/api/crypto.html
