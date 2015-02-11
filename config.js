@@ -50,7 +50,7 @@
 
     // Setting this to `true` makes it possible for anyone to create an account.
     // This must be set to `true` when running the tests
-    CREATE_ACCOUNTS_ANONYMOUSLY: true
+    CREATE_ACCOUNTS_WITHOUT_CREDENTIALS: true
   };
 
   // HTTPS settings

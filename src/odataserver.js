@@ -736,7 +736,7 @@
         if (adminCredentialOps.indexOf(odataRequest.queryType) !== -1) {
 
           if(odataRequest.queryType === 'create_account' &&
-            !CONFIG.ODATA.CREATE_ACCOUNTS_ANONYMOUSLY) {
+            !CONFIG.ODATA.CREATE_ACCOUNTS_WITHOUT_CREDENTIALS) {
 
             // do not allow account creation without credentials
             // must use the credentials supplied in the http header
