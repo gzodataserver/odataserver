@@ -102,9 +102,9 @@ tap('testing create_account and reset_password', function(test) {
       var jsonData = h.jsonParse(data);
       log.debug('Received: ' + data);
 
-      if (jsonData.d.results.password !== undefined) {
+      if (jsonData.d.password !== undefined) {
         moduleSelf.options.headers.password = password =
-          jsonData.d.results.password;
+          jsonData.d.password;
         log.debug('Received password:' + password);
       }
 
@@ -150,8 +150,8 @@ tap('testing create_account and reset_password for test user #2',
         var jsonData = h.jsonParse(data);
         log.debug('Received: ' + data);
 
-        if (jsonData.d.results.password !== undefined) {
-          password2 = jsonData.d.results.password;
+        if (jsonData.d.password !== undefined) {
+          password2 = jsonData.d.password;
           log.debug('Received password:' + password);
         }
 
@@ -295,7 +295,7 @@ tap('testing select with user #2 before grant', function(test) {
     var jsonData = h.jsonParse(data);
     log.debug('Received: ' + data);
     test.assert(statusCode === 200, 'select with user #2 before grant');
-    test.assert(jsonData.d.results.value.length == 0,
+    test.assert(jsonData.d.results.length === 0,
       'select with user #2 before grant');
     test.end();
   });
@@ -352,7 +352,7 @@ tap('testing select with user #2 after grant', function(test) {
     var jsonData = h.jsonParse(data);
     log.debug('Received: ' + data);
     test.assert(statusCode === 200, 'select with user #2 after grant');
-    test.assert(jsonData.d.results.value.length != 0,
+    test.assert(jsonData.d.results.length !== 0,
       'select with user #2 after grant');
     test.end();
   });
@@ -409,7 +409,7 @@ tap('testing select with user #2 after revoke', function(test) {
     var jsonData = h.jsonParse(data);
     log.debug('Received: ' + data);
     test.assert(statusCode === 200, 'select with user #2 after revoke');
-    test.assert(jsonData.d.results.value.length == 0,
+    test.assert(jsonData.d.results.length === 0,
       'select with user #2 after revoke');
     test.end();
   });
@@ -465,7 +465,7 @@ tap('testing select after delete', function(test) {
     var jsonData = h.jsonParse(data);
     log.debug('Received: ' + data);
     test.assert(statusCode === 200, 'select after delete');
-    test.assert(jsonData.d.results.value.length === 0, 'select after delete');
+    test.assert(jsonData.d.results.length === 0, 'select after delete');
     test.end();
   });
 

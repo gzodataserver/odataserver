@@ -444,11 +444,35 @@
       "Content-Type": "application/json"
     });
 
-    odataResult = {
+/*    odataResult = {
       d: {
         results: jsonData
       }
     };
+*/
+
+    var odataResult = {};
+    odataResult.d = {};
+
+    // The actual data
+    if (jsonData.value !== undefined) {
+      odataResult.d.results = jsonData.value;
+    }
+
+    // Some additional attributes (for convenience)
+    if (jsonData.rdbmsResponse !== undefined) {
+      odataResult.d.rdbmsResponse = jsonData.rdbmsResponse;
+    }
+    if (jsonData.email !== undefined) {
+      odataResult.d.email = jsonData.email;
+    }
+    if (jsonData.accountId !== undefined) {
+      odataResult.d.accountId = jsonData.accountId;
+    }
+    if (jsonData.password !== undefined) {
+      odataResult.d.password = jsonData.password;
+    }
+
     response.write(JSON.stringify(odataResult));
     response.end();
   };

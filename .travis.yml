@@ -30,3 +30,10 @@ env:
   global:
     - ADMIN_USER="root"
     - ADMIN_PASSWORD=""
+
+
+# Build the master brnch only
+branches:
+  only:
+    - master
+
