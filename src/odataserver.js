@@ -591,7 +591,7 @@
           '. SMTP Server reply: ' + info.response);
       }
     });
-  }
+  };
 
   var getAccountIdFromToken = function(token) {
     if (moduleSelf.resetTokens[token] === undefined ||
@@ -629,10 +629,11 @@
     log.debug('In main ...');
 
     var uriParser = new exports.ODataUri2Sql();
+    var odataRequest;
 
     // Parse the URI and write any errors back to the client
     try {
-      var odataRequest = uriParser.parseUri2(request.method, request.url);
+      odataRequest = uriParser.parseUri2(request.method, request.url);
       if (!odataRequest) {
         h.writeError(response, 'Could not parse URI: ' + request.url +
           ' with HTTP method: ' + request.method);

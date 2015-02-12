@@ -431,7 +431,7 @@
         return [data, "odataserver"];
       });
     }
-  }
+  };
 
   //
   // HTTP response
@@ -451,7 +451,7 @@
     };
     response.write(JSON.stringify(odataResult));
     response.end();
-  }
+  };
 
   // Respond with 406 and end the connection
   h.writeError = function(response, err) {

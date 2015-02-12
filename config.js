@@ -173,7 +173,7 @@
   // The `#` before `test_XXX` is necessary for the tests to comply with the
   // TAP protocol
   c.testLoggerOptions = {
-    debug: false,
+    debug: true,
     filename: '# test_XXX.js',
     noLogging: false
   };
@@ -181,9 +181,9 @@
   // NOTE: should turn logging on in production. Turned off here in order for
   // the tests output to comply with the TAP protocol
   c.mysqlLoggerOptions = {
-    debug: false,
+    debug: true,
     filename: 'mysql.js',
-    noLogging: true
+    noLogging: false
   };
 
   c.leveldbLoggerOptions = {
@@ -193,7 +193,7 @@
   };
 
   c.odataServerLoggerOptions = {
-    debug: false,
+    debug: true,
     filename: 'odataserver.js',
     noLogging: false
   };
@@ -201,7 +201,7 @@
   c.mainLoggerOptions = {
     debug: true,
     filename: 'main.js',
-    noLogging: true
+    noLogging: false
   };
 
   // dtrace setup
