@@ -36,4 +36,5 @@ env:
 branches:
   only:
     - master
+    - develop
 
