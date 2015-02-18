@@ -109,7 +109,7 @@ RUN chown -R www-data:www-data /var/www/html
 RUN mkdir /volume
 VOLUME /volume
 
-EXPOSE 80 81 443 3306
+EXPOSE 80 81 443
 
 ADD ./src-docker/start-supervisor.sh /start-supervisor.sh
 CMD ["/start-supervisor.sh"]

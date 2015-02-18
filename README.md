@@ -142,6 +142,9 @@ Known issues
 probably related to problems with the npm package servers. Just build again
 until it works.
 
+2. Running phpMyAdmin behind a reverse proxy, see
+   [this](https://wiki.phpmyadmin.net/pma/Config/PmaAbsoluteUri)
+
 
 [travis-image]: https://img.shields.io/travis/gizur/odataserver.svg?style=flat
 [travis-url]: https://travis-ci.org/gizur/odataserver
