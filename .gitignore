@@ -6,3 +6,4 @@ mydb
 server.*
 csr.conf
 config.js
+env.list

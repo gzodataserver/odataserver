@@ -48,20 +48,25 @@ Prerequisites:
 
 Build the image: `docker build --rm -t odataserver .`
 
-Run the container in daemon mode:
+Create an environement definitions file called `env.list`
+(copy `env.list.template` and edit).
 
-    docker run -d -p 81:81 -p 9000:9000 -e ADMIN_USER="root" \
-    -e ADMIN_PASSWORD="secret" -e MAIL_USER="joe@example.com" \
-    -e MAIL_PASSWORD="yyy" --name odataserver odataserver
+Make sure a rsyslog container with the name rsyslogserver is up and running
+(skip the `--link` part if you don't have this).
 
-The ports 81 and 9000 that have been exposed from the container will be routed
-from the host to the container using the `-p` flag.
+Run the container in on a server (assuming a proxy server used, see development
+below is this isn't the case):
+
+    docker run -t -i --env-file=env.list --restart="on-failure:10" \
+    --link rsyslog:rsyslog --name odataserver -h odataserver odataserver \
+     /bin/bash -c "supervisord; bash"
+
+Exit the shell with `ctrl-p` `ctrl-q`. `exit` will stop the container.
 
 When developing using docker, it is usefull to connect to the containers' shell:
 
-    # Start a container and connect to the shell (without mail settings)
-    docker run -t -i --rm -p 81:81 -p 9000:9000 -e ADMIN_USER="root" \
-    -e ADMIN_PASSWORD="secret" odataserver /bin/bash
+    # Start a container like this in order not to start supervisord
+    docker run -t -i --env-file=env.list --name odataserver odataserver /bin/bash
 
     # Run the tests, MySQL needs to be started manually first
     /usr/bin/mysqld_safe &
@@ -70,7 +75,7 @@ When developing using docker, it is usefull to connect to the containers' shell:
     kill <PID for MySQL>
 
     # Start the services
-    supervisord &> /tmp/out.txt &
+    supervisord &
 
     # Check that all processes are up
     ps -ef
@@ -108,6 +113,14 @@ The tests are executed with `npm test`.
 Generate the documentation with: `npm run-script docco`
 
 Check the code with: `npm run-script style`
+
+Start using docker and connect to ports on the docker host:
+
+    docker run -t -i -p 81:81 -p 9000:9000 --env-file=env.list  \
+    --name odataserver odataserver /bin/bash -c "supervisord; bash"
+
+The ports 81 and 9000 that have been exposed from the container will be routed
+from the host to the container using the `-p` flag.
 
 
 

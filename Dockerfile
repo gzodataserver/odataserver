@@ -2,13 +2,15 @@
 #
 # VERSION               0.0.1
 
-FROM       ubuntu:14.10
+FROM       ubuntu:trusty
 
 # Format: MAINTAINER Name <email@addr.ess>
 MAINTAINER Jonas Colmsjö <jonas@gizur.com>
 
 RUN echo "export HOME=/root" >> /root/.profile
 
+# Mirros: http://ftp.acc.umu.se/ubuntu/ http://us.archive.ubuntu.com/ubuntu/
+RUN echo "deb http://ftp.acc.umu.se/ubuntu/ trusty-updates main restricted" >> /etc/apt/source.list
 RUN apt-get update
 RUN apt-get install -y wget nano curl git
 
@@ -26,6 +28,15 @@ ADD ./src-docker/etc-supervisord.conf /etc/supervisord.conf
 ADD ./src-docker/etc-supervisor-conf.d-supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 RUN mkdir -p /var/log/supervisor/
 
+
+#
+# Install rsyslog
+# ---------------
+#
+
+RUN apt-get -y install rsyslog
+RUN mv /etc/rsyslog.conf /etc/rsyslog.conf.org
+ADD ./src-docker/etc-rsyslog.conf /etc/rsyslog.conf
 
 
 #
@@ -106,10 +117,5 @@ RUN cd /; npm install
 # Fix permissions
 RUN chown -R www-data:www-data /var/www/html
 
-RUN mkdir /volume
-VOLUME /volume
-
 EXPOSE 80 81 443
-
-ADD ./src-docker/start-supervisor.sh /start-supervisor.sh
-CMD ["/start-supervisor.sh"]
+CMD ["supervisord"]
