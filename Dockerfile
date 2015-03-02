@@ -117,5 +117,5 @@ RUN cd /; npm install
 # Fix permissions
 RUN chown -R www-data:www-data /var/www/html
 
-EXPOSE 80 81 443
+EXPOSE 80 81 443 9000
 CMD ["supervisord"]

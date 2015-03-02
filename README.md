@@ -59,7 +59,7 @@ below is this isn't the case):
 
     docker run -t -i --env-file=env.list --restart="on-failure:10" \
     --link beservices:beservices --name odataserver -h odataserver odataserver \
-     /bin/bash -c "supervisord; bash"
+     -p 9000:9000 /bin/bash -c "supervisord; bash"
 
 Exit the shell with `ctrl-p` `ctrl-q`. `exit` will stop the container.
 
