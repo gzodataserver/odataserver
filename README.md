@@ -58,8 +58,8 @@ Run the container in on a server (assuming a proxy server used, see development
 below is this isn't the case):
 
     docker run -t -i --env-file=env.list --restart="on-failure:10" \
-    --link rsyslog:rsyslog --name odataserver -h odataserver odataserver \
-     /bin/bash -c "supervisord; bash"
+    --link beservices:beservices --name odataserver -p 9000:9000  \
+    -h odataserver odataserver /bin/bash -c "supervisord; bash"
 
 Exit the shell with `ctrl-p` `ctrl-q`. `exit` will stop the container.
 
