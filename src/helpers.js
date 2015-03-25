@@ -499,7 +499,7 @@
   };
 
   // check that the request contains user and password headers
-  h.dentials = function(request, response) {
+  h.checkCredentials = function(request, response) {
 
     log.debug('Checking credentials: ' + JSON.stringify(request.headers));
 
