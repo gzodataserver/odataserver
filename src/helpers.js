@@ -499,13 +499,15 @@
   };
 
   // check that the request contains user and password headers
-  h.checkCredentials = function(request, response) {
+  h.dentials = function(request, response) {
 
     log.debug('Checking credentials: ' + JSON.stringify(request.headers));
 
     // Check that the request is ok
-    return !(!request.headers.hasOwnProperty('user') ||
-      !request.headers.hasOwnProperty('password'));
+    //return !(!request.headers.hasOwnProperty('user') ||
+    //  !request.headers.hasOwnProperty('password'));
+
+    return true;
 
   };
 
