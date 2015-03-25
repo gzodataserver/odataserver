@@ -159,7 +159,7 @@ until it works.
 3. Allow login in phpMyAdmin without password by adding this to config.inc.php: `$cfg['Servers'][$i]['AllowNoPassword'] = TRUE;`
 
 
-4. Setup an anonymous (without password) user with read-only access:
+4. Setup an anonymous user (without password) with read-only access:
 
 ```
 # Check if an anonymous user exists. This user has blank username and password
