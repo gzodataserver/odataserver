@@ -156,9 +156,7 @@ until it works.
 2. Running phpMyAdmin behind a reverse proxy, see
    [this](https://wiki.phpmyadmin.net/pma/Config/PmaAbsoluteUri)
 
-3. Allow login in phpMyAdmin without password by adding this to config.inc.php:
-
-    $cfg['Servers'][$i]['AllowNoPassword'] = TRUE;
+3. Allow login in phpMyAdmin without password by adding this to config.inc.php: `$cfg['Servers'][$i]['AllowNoPassword'] = TRUE;`
 
 
 4. Setup an anonymous (without password) user with read-only access:
