@@ -163,12 +163,14 @@ until it works.
 
 4. Setup an anonymous (without password) user with read-only access:
 
-    # Check if an anonymous user exists. This user has blank username and password
-    select user,password,host from mysql.user;
+```
+# Check if an anonymous user exists. This user has blank username and password
+select user,password,host from mysql.user;
 
-    # This gives read-only access to all accounts. Replace with the accountid
-    # to limit this
-    grant select on *.* to ''@'localhost'
+# This gives read-only access to all accounts. Replace with the accountid
+# to limit this
+grant select on *.* to ''@'localhost'
+```
 
 Now test to login to mysql (or phpMyAdmin) with username `anonymous`
 without a password.
