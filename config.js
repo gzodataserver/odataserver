@@ -175,21 +175,21 @@
   c.testLoggerOptions = {
     debug: true,
     filename: '# test_XXX.js',
-    noLogging: true
+    noLogging: false
   };
 
   // NOTE: should turn logging on in production. Turned off here in order for
   // the tests output to comply with the TAP protocol
   c.mysqlLoggerOptions = {
-    debug: false,
+    debug: true,
     filename: 'mysql.js',
-    noLogging: true
+    noLogging: false
   };
 
   c.leveldbLoggerOptions = {
-    debug: false,
+    debug: true,
     filename: 'leveldb.js',
-    noLogging: true
+    noLogging: false
   };
 
   c.odataServerLoggerOptions = {
@@ -201,7 +201,7 @@
   c.mainLoggerOptions = {
     debug: false,
     filename: 'main.js',
-    noLogging: true
+    noLogging: false
   };
 
   // dtrace setup

@@ -51,8 +51,10 @@ Build the image: `docker build --rm -t odataserver .`
 Create an environement definitions file called `env.list`
 (copy `env.list.template` and edit).
 
-Make sure a rsyslog container with the name rsyslogserver is up and running
-(skip the `--link` part if you don't have this).
+Make sure a container with rsyslog is running (skip the `--link` part if you
+don't have this).. I'm using this container:  
+  [beservices](https://github.com/gizur/beservices).
+
 
 Run the container in on a server (assuming a proxy server used, see development
 below is this isn't the case):
