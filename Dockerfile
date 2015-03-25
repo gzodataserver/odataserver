@@ -48,13 +48,16 @@ RUN a2enmod rewrite status
 ADD ./src-docker/etc-apache2-apache2.conf /etc/apache2/apache2.conf
 ADD ./src-docker/etc-apache2-ports.conf /etc/apache2/ports.conf
 ADD ./src-docker/etc-apache2-mods-available-status.conf /etc/apache2/mods-available/status.conf
+ADD ./src-docker/etc-apache2-sites-available-000-default.conf /etc/apache2/sites-available/000-default.conf
 
 RUN rm /var/www/html/index.html
 RUN echo "<?php\nphpinfo();\n " > /var/www/html/info.php
 
 # Install phpMyAdmin
 ADD ./src-phpmyadmin/phpMyAdmin-4.0.8-all-languages.tar.gz /var/www/html/
+ADD ./src-phpmyadmin/phpMyAdmin-4.3.12-all-languages.tar.gz /var/www/html/
 ADD ./src-phpmyadmin/config.inc.php /var/www/html/phpMyAdmin-4.0.8-all-languages/config.inc.php
+ADD ./src-phpmyadmin/config.inc.php /var/www/html/phpMyAdmin-4.3.12-all-languages/config.inc.php
 
 
 #

@@ -68,7 +68,8 @@ Exit the shell with `ctrl-p` `ctrl-q`. `exit` will stop the container.
 When developing using docker, it is usefull to connect to the containers' shell:
 
     # Start a container like this in order not to start supervisord
-    docker run -t -i --env-file=env.list --name odataserver odataserver /bin/bash
+    docker run -t -i -p 9000:9000 -p 83:81 --env-file=env.list --name odataserver \
+    odataserver /bin/bash
 
     # Run the tests, MySQL needs to be started manually first
     /usr/bin/mysqld_safe &
@@ -102,7 +103,7 @@ internal MySQl server by commenting out the `[program:mysql]` parts with `#` in
 `supervisord.conf`.
 
 MySQL credentials are passed as environment variables that are set when
-starting the container (the `-e` flag).
+starting the container (the `--env-file` flag).
 
 
 Development
@@ -115,11 +116,6 @@ The tests are executed with `npm test`.
 Generate the documentation with: `npm run-script docco`
 
 Check the code with: `npm run-script style`
-
-Start using docker and connect to ports on the docker host:
-
-    docker run -t -i -p 81:81 -p 9000:9000 --env-file=env.list  \
-    --name odataserver odataserver /bin/bash -c "supervisord; bash"
 
 The ports 81 and 9000 that have been exposed from the container will be routed
 from the host to the container using the `-p` flag.
@@ -150,8 +146,8 @@ supportfor BLOB storage in leveldb since the
 Run `npm test` to validate that the setup is ok.
 
 
-Known issues
-============
+Notes and known issues
+======================
 
 1. Docker build fails during `npm install`. This is rather common and is
 probably related to problems with the npm package servers. Just build again
@@ -159,6 +155,33 @@ until it works.
 
 2. Running phpMyAdmin behind a reverse proxy, see
    [this](https://wiki.phpmyadmin.net/pma/Config/PmaAbsoluteUri)
+
+3. Allow login in phpMyAdmin without password by adding this to config.inc.php:
+
+    $cfg['Servers'][$i]['AllowNoPassword'] = TRUE;
+
+
+4. Setup an anonymous (without password) user with read-only access:
+
+    # Check if an anonymous user exists. This user has blank username and password
+    select user,password,host from mysql.user;
+
+    # This gives read-only access to all accounts. Replace with the accountid
+    # to limit this
+    grant select on *.* to ''@'localhost'
+
+Now test to login to mysql (or phpMyAdmin) with username `anonymous`
+without a password.
+
+A blank accountId should be used in the API, see example below:
+
+```
+# see http://localhost:900/help about howto create the account and tables used here
+curl -H "user:3ea8f06baf64" -H "password:xxx" -d '{"tableName":"mytable","accountId":""}' http://localhost:9000/3ea8f06baf64/s/grant
+
+curl  http://localhost:9000/3ea8f06baf64/mytable
+```
+
 
 
 [travis-image]: https://img.shields.io/travis/gizur/odataserver.svg?style=flat
