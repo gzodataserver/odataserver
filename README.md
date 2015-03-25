@@ -176,7 +176,7 @@ without a password.
 A blank accountId should be used in the API, see example below:
 
 ```
-# see http://localhost:900/help about howto create the account and tables used here
+# see http://localhost:900/help for info about how to create the account and tables used here
 curl -H "user:3ea8f06baf64" -H "password:xxx" -d '{"tableName":"mytable","accountId":""}' http://localhost:9000/3ea8f06baf64/s/grant
 
 curl  http://localhost:9000/3ea8f06baf64/mytable
