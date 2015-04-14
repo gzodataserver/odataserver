@@ -1,7 +1,7 @@
 {
   "name": "odataserver",
   "description": "OData server with support for BLOBs",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "author": {
     "name": "Jonas Colmsjö",
     "email": "jonas@gizur.com"
