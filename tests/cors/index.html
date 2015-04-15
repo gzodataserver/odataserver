@@ -1,0 +1,42 @@
+<!doctype html>
+<html>
+
+<body>
+
+  <h1>Open the console to view the result.</h1>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function(event) {
+      console.log('DOMContentLoaded');
+
+      // Helper method to parse the title tag from the response.
+      function getTitle(text) {
+        return text.match('<title>(.*)?</title>')[1];
+      }
+
+      var xhr = new XMLHttpRequest();
+
+      // Response handlers.
+      xhr.onload = function() {
+        var text = xhr.responseText;
+        var title = getTitle(text);
+        alert('Response from CORS request to ' + ': ' + title);
+      };
+
+      xhr.onerror = function() {
+        alert('Woops, there was an error making the request.');
+      };
+
+      // Test another CORS request - just to see that it works
+      //xhr.open('GET', 'http://updates.html5rocks.com', true);
+      //xhr.send();
+
+      xhr.open('GET', 'http://localhost:9000/0b213a639078/b_rootapp', true);
+      xhr.send();
+
+    });
+  </script>
+
+</body>
+
+</html>

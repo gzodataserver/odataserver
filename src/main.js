@@ -113,6 +113,16 @@
         h.writeError(response, request.method + ' not supported.');
       }
 
+      // Allow CORS
+      if (CONFIG.ODATA.ALLOW_CORS) {
+        log.debug('CORS headers set.')
+        response.setHeader('Access-Control-Allow-Origin', '*');
+
+        response.setHeader('Access-Control-Allow-Headers',
+                           'Origin, X-Requested-With, Content-Type, Accept');
+      }
+
+
       var parsedURL = url.parse(request.url, true, false);
       var a_ = parsedURL.pathname.split("/");
 
