@@ -50,7 +50,10 @@
 
     // Setting this to `true` makes it possible for anyone to create an account.
     // This must be set to `true` when running the tests
-    CREATE_ACCOUNTS_WITHOUT_CREDENTIALS: true
+    CREATE_ACCOUNTS_WITHOUT_CREDENTIALS: true,
+
+    // Should cross-origin requests be allowed
+    ALLOW_CORS: true
   };
 
   // HTTPS settings
