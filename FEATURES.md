@@ -57,3 +57,20 @@ But is should look like this according to the spec:
     ]
   }
 }
+
+
+feature2
+--------
+
+The server currently don't support the method `OPTIONS`. This is used by the
+browser when setting request headers `username` and `password`
+
+A request can look like this:
+
+```
+main.js:Processing request: "OPTIONS" - "/0b213a639078/b_rootapp" - {"host":"localhost:9000","origin":"http://127.0.0.1:8125","access-control-request-method":"GET","content-length":"0","access-control-request-headers":"password, origin, user","connection":"keep-alive","accept":"*/*","user-agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_3) AppleWebKit/600.5.17 (KHTML, like Gecko) Version/8.0.5 Safari/600.5.17","referer":"http://127.0.0.1:8125/login.html","accept-language":"sv-se","accept-encoding":"gzip, deflate"}
+```
+
+A empty response with the appropriate headers should be enough, see
+[W3 Spec](http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html). We're using
+CORS header when enables in `config.js`.

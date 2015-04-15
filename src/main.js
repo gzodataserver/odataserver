@@ -108,20 +108,33 @@
       if (!(request.method == 'GET' ||
           request.method == 'POST' ||
           request.method == 'PUT' ||
-          request.method == 'DELETE')) {
+          request.method == 'DELETE' ||
+          request.method == 'OPTIONS')) {
 
         h.writeError(response, request.method + ' not supported.');
+        return;
       }
 
       // Allow CORS
       if (CONFIG.ODATA.ALLOW_CORS) {
-        log.debug('CORS headers set.')
-        response.setHeader('Access-Control-Allow-Origin', '*');
+        var origin = request.headers['origin'];
+        log.debug('CORS headers set. Allowing the clients origin: '+origin);
+
+        response.setHeader('Access-Control-Allow-Origin', origin);
 
         response.setHeader('Access-Control-Allow-Headers',
-                           'Origin, X-Requested-With, Content-Type, Accept');
+                           'Origin, X-Requested-With, Content-Type, Accept, ' +
+                           'user, password');
+
+        response.setHeader('Access-Control-Allow-Credentials', 'true');
       }
 
+      // The response to `OPTIONS` requests is always the same empty message
+      if (request.method == 'OPTIONS') {
+        //response.write('');
+        response.end();
+        return;
+      }
 
       var parsedURL = url.parse(request.url, true, false);
       var a_ = parsedURL.pathname.split("/");

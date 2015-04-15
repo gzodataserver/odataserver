@@ -52,7 +52,8 @@ http.createServer(function(request, response) {
       response.writeHead(200, {
         'Content-Type': contentType,
         'Access-Control-Allow-Origin': '*',
-        "Access-Control-Allow-Headers": "Origin, X-Requested-With, Content-Type, Accept"
+        'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept',
+        'Access-Control-Allow-Credentials': 'true'
       });
       response.end(content, 'utf-8');
     }
