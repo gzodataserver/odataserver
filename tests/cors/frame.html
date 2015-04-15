@@ -3,9 +3,7 @@
 
 <body>
 
-  <h1>Open the console to view the result.</h1>
-
-  <input type='button' id='cors' value='cors request in main window' />
+  <input type='button' id='cors' value='cors request in iframe window' />
   <br/>
 
   <script>
@@ -48,8 +46,6 @@
       document.getElementById('cors').addEventListener('click', corsRequest, true)
     });
   </script>
-
-  <iframe src='frame.html' sandbox='allow-scripts allow-forms allow-same-origin' />
 
 </body>
 
