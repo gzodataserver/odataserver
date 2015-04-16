@@ -74,3 +74,11 @@ main.js:Processing request: "OPTIONS" - "/0b213a639078/b_rootapp" - {"host":"loc
 A empty response with the appropriate headers should be enough, see
 [W3 Spec](http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html). We're using
 CORS header when enables in `config.js`.
+
+
+feature3
+--------
+
+The service definition API does not validate the credentials. The reason is
+that the sqlAdmin object is used (which uses the root credentials) and no
+validation is performed first.

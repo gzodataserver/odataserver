@@ -182,6 +182,8 @@ curl -H "user:3ea8f06baf64" -H "password:xxx" -d '{"tableName":"mytable","accoun
 curl  http://localhost:9000/3ea8f06baf64/mytable
 ```
 
+5. Running `npm` gives `Error: Can't render headers after they are sent to the client.`
+   Delete the test user and database in mysql.
 
 
 [travis-image]: https://img.shields.io/travis/gizur/odataserver.svg?style=flat

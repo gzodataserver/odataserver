@@ -7,3 +7,4 @@ server.*
 csr.conf
 config.js
 env.list
+npm-debug.log
