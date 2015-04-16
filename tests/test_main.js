@@ -116,6 +116,31 @@ tap('testing create_account and reset_password', function(test) {
 
 });
 
+tap('testing validate password using service definition', function(test) {
+
+  // operation to test
+  var options = {
+    hostname: CONFIG.ODATA.HOST,
+    port: CONFIG.ODATA.PORT,
+    method: 'GET',
+    path: '/' + accountId,
+    headers: {
+      user: accountId,
+      password: password + '..' // Incorrect password, should not work
+    }
+  };
+
+  test.plan(1);
+
+  th.httpRequest(options, null, function(data, statusCode) {
+    var jsonData = h.jsonParse(data);
+    log.debug('Received: ' + data);
+    test.assert(statusCode === 200, 'get service definition with incorrect password');
+    test.end();
+  });
+
+});
+
 tap('testing create_account and reset_password for test user #2',
   function(test) {
 

@@ -301,14 +301,14 @@
 
   var parseUri = function(method, tokens) {
     var res = parseBasicUri(method, tokens) || parseSystemUri(method, tokens) ||
-              parseMetadataUri(method, tokens) || parseTableUri(method, tokens);
+      parseMetadataUri(method, tokens) || parseTableUri(method, tokens);
 
     log.debug('parseUri: ' + JSON.stringify(res));
 
     // indexing with `table(x)` is not supported
     if (res.table !== undefined && res.table.indexOf('(') > -1) {
       throw new Error('The form /schema/entity(key) is not supported.' +
-      ' Use $filter instead.');
+        ' Use $filter instead.');
     }
 
     return res;
@@ -367,7 +367,7 @@
   var parseMetadataUri = function(method, tokens) {
     if (method === 'GET' &&
       tokens.length === 3 &&
-      tokens[2] === '$metadata' ) {
+      tokens[2] === '$metadata') {
       return {
         queryType: 'metadata',
         schema: tokens[0],
@@ -736,7 +736,7 @@
         // operations performed with admin/root credentials
         if (adminCredentialOps.indexOf(odataRequest.queryType) !== -1) {
 
-          if(odataRequest.queryType === 'create_account' &&
+          if (odataRequest.queryType === 'create_account' &&
             !CONFIG.ODATA.CREATE_ACCOUNTS_WITHOUT_CREDENTIALS) {
 
             // do not allow account creation without credentials
@@ -808,11 +808,37 @@
                 odataResult.password = password;
               }
 
-              // The RDBMS response is JSON but it is not parsed since that
-              // sometimes fails (reason unknown)
-              odataResult.rdbmsResponse = decoder.write(bucket.get());
+              // Make sure that correct credentials have been supplied
+              if (odataRequest.queryType === 'service_def') {
+                options.processRowFunc = h.addEtag;
+                var mysqlRead = new Rdbms.sqlRead(options);
 
-              h.writeResponse(response, odataResult);
+                mysqlRead.userInfo(
+                  // handle result
+                  function(res) {
+                    log.debug(JSON.stringify(res));
+                    // The RDBMS response is JSON but it is not parsed since that
+                    // sometimes fails (reason unknown)
+                    odataResult.rdbmsResponse = decoder.write(bucket.get());
+
+                    h.writeResponse(response, odataResult);
+                  },
+                  // handle errors
+                  function(err) {
+                    h.writeError(response, err);
+                  });
+
+                return;
+
+              } else {
+
+                // The RDBMS response is JSON but it is not parsed since that
+                // sometimes fails (reason unknown)
+                odataResult.rdbmsResponse = decoder.write(bucket.get());
+
+                h.writeResponse(response, odataResult);
+              }
+
             },
             function(err) {
               h.writeError(response, err);

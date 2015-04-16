@@ -245,6 +245,33 @@
 
   };
 
+  // Validate the credentials and resturn some user data
+  exports.sqlRead.prototype.userInfo = function(resultFunc, errFunc) {
+    var self = this;
+    log.debug('userInfo sqlRead.userInfo')
+    self.sql = 'select user(), current_user()';
+
+    runQuery(self.connection, self.sql,
+      function(row) {
+        log.debug('processRow(self, row): ' + processRow(self, row));
+        self.result.push(processRow(self, row));
+      },
+      function() {
+        log.debug('userInfo result');
+        self.connection.end();
+        resultFunc(self.result);
+      },
+      function(err) {
+        log.debug('userInfo error');
+        self.connection.end();
+        if (errFunc !== undefined) {
+          errFunc(err);
+        }
+      }
+    );
+
+  };
+
   //
   // Mysql writable stream
   // ----------------------
