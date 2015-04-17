@@ -10,6 +10,30 @@
 // done with MS SQL (and it seams to work fine).
 //
 //
+// The HTTP Request Readble stream contains both read and write requests.
+// And the HTTP Writable REsult stream is used to write the result of both read
+// and write requests (GET/PUT/POST/DELETE).
+//
+//     mysql.js                      ODataServer                    HTTP Client
+// (using node-mysql)
+//                                                          -----|
+// read/write & events  read w. callbacks             Read  <--     Req stream
+//   .on('result')      sqlRead.fetchAll(resF, errF)        -----|
+//   .on(’error')
+//   .on('end')         write w. stream                     -----|
+//                      jsonStream.pipe(writeStream)  Write -->     Res stream
+//                                                          -----|
+//
+// NOTE: NodeJS Streams2 objects are typically not used by node-mysql. These are
+//       custom 'stream', actually events. It is possible to use Streams2
+//       object also (with `.streams`).
+//
+// NOTE2: The error callback should have been placed first and not last to
+//        work as nodejs API:s.
+//
+
+
+
 // Using Google JavaScript Style Guide
 // http://google-styleguide.googlecode.com/svn/trunk/javascriptguide.xml
 //
