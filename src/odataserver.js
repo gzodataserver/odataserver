@@ -809,7 +809,7 @@
               }
 
               // Make sure that correct credentials have been supplied
-              if (odataRequest.queryType === 'service_def') {
+/*              if (odataRequest.queryType === 'service_def') {
                 options.processRowFunc = h.addEtag;
                 var mysqlRead = new Rdbms.sqlRead(options);
 
@@ -831,13 +831,13 @@
                 return;
 
               } else {
-
+*/
                 // The RDBMS response is JSON but it is not parsed since that
                 // sometimes fails (reason unknown)
                 odataResult.rdbmsResponse = decoder.write(bucket.get());
 
                 h.writeResponse(response, odataResult);
-              }
+//              }
 
             },
             function(err) {
