@@ -863,6 +863,9 @@
                     // sometimes fails (reason unknown)
                     odataResult.rdbmsResponse = decoder.write(bucket.get());
 
+                    // Write the result from the sqlAdmin operation
+                    // The result from userInfo is discarded as long as it did
+                    // not generate an error (handled below)
                     h.writeResponse(response, odataResult);
                   },
                   // handle errors
