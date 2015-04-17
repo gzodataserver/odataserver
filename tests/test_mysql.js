@@ -77,7 +77,7 @@ test('setUp', function(test) {
   var self = this;
 
   log.log('NOTE: Streams are used in these tests and process.stderr' +
-          ' is as output stream.');
+          ' is used as output stream.');
 
   // drop table
   setTimeout(function() {

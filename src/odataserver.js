@@ -9,20 +9,24 @@
 // and Leveldb used as RDBMS and buckets servers. Some experiments have been
 // done with MS SQL (and it seams to work fine).
 //
+// Overview
+// -------
 //
 // The HTTP Request Readble stream contains both read and write requests.
-// And the HTTP Writable REsult stream is used to write the result of both read
-// and write requests (GET/PUT/POST/DELETE).
+// And the HTTP Writable Result stream is used to write the result of both read
+// and write requests (GET/PUT/POST/DELETE). ODataserver writes the ouput from
+// mysql operations into a bucket. The reason is that a deciding step is
+// performed.
 //
 //     mysql.js                      ODataServer                    HTTP Client
 // (using node-mysql)
 //                                                          -----|
 // read/write & events  read w. callbacks             Read  <--     Req stream
 //   .on('result')      sqlRead.fetchAll(resF, errF)        -----|
-//   .on(’error')
-//   .on('end')         write w. stream                     -----|
-//                      jsonStream.pipe(writeStream)  Write -->     Res stream
-//                                                          -----|
+//   .on(’error')       admin ops. w. stream
+//   .on('end')         sqlAdmin.pipe                       -----|
+//                      write w. stream               Write -->     Res stream
+//                      jsonStream.pipe(writeStream)        -----|
 //
 // NOTE: NodeJS Streams2 objects are typically not used by node-mysql. These are
 //       custom 'stream', actually events. It is possible to use Streams2
@@ -31,9 +35,23 @@
 // NOTE2: The error callback should have been placed first and not last to
 //        work as nodejs API:s.
 //
-
-
-
+// PLAN: Let all read operations in mysql.js support promises in addition to
+//       callbacks.
+//
+//
+// The main() function
+// -------------------
+//
+// 1. Parse the URI into ODataRequest object. This will also generate the SQL
+// 2. Process the HTTP request (using on(data) / on(error) / on(end)  )
+// 3. Parse the JSON request data
+// 4. Handle operations that requires admin privileges.
+// 5. Handle operations the use the supplied credential
+//    We let the sql classes write into a bucket here and in step 4. We then
+//    write this into the HTTP stream.
+//
+// -------------------
+//
 // Using Google JavaScript Style Guide
 // http://google-styleguide.googlecode.com/svn/trunk/javascriptguide.xml
 //
