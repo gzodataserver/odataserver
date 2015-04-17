@@ -20,22 +20,23 @@
     }
   ],
   "main": "src/main.js",
-  "bin" : {
-    "odataserver" : "./bin/odataserver"
+  "bin": {
+    "odataserver": "./bin/odataserver"
   },
   "dependencies": {
     "underscore": "*",
     "mysql": "*",
     "nodemailer": "*",
     "level": "*",
-    "dtrace-provider" : "*"
+    "dtrace-provider": "*"
   },
   "devDependencies": {
     "docco": "*",
+    "jscs": "*",
     "nodeunit": "*",
-    "travis-lint": "0.0.4",
+    "promise": "^7.0.0",
     "tape": "^3.0.3",
-    "jscs":"*"
+    "travis-lint": "0.0.4"
   },
   "engines": {
     "node": ">=0.10.x",

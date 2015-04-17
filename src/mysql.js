@@ -51,6 +51,8 @@
 
   var Readable = require('stream').Readable;
   var Writable = require('stream').Writable;
+  var Promise = require('promise');
+
   var util = require('util');
   var h = require('./helpers.js');
   var CONFIG = require('../config.js');
@@ -107,6 +109,57 @@
 
   };
 
+  // support promises - arguments conn, sql, fieldsFunc, endFunc
+  var runQuery2 = function(conn, sql, fieldsFunc, resultFunc) {
+    var self = this;
+
+    return new Promise(function(fulfill, reject) {
+      var error = null;
+
+      log.debug('runQuery2 sql (' + conn.config.user + '): ' + sql);
+
+      // 'ER_BAD_DB_ERROR'
+      conn.on('error', function(err) {
+        log.log('runQuery2 error in MySQL connection: ' + err.code);
+        return new Promise(function(fulfill, reject) {
+          reject(error);
+        });
+      });
+
+      // connect to the mysql server using the connection
+      conn.connect();
+
+      // Run the query
+      var query = conn.query(sql);
+      query
+        .on('fields', function(fields) {
+          log.debug('fields: ' + JSON.stringify(fields));
+          if (fieldsFunc) {
+            fieldsFunc(fields);
+          }
+        })
+        .on('result', function(row) {
+          log.debug('runQuery2 result: ' + JSON.stringify(row));
+          resultFunc(row);
+          if (!row) log.debug('EMPTY ROW');
+        })
+        .on('error', function(err) {
+          log.log('runQuery2 error: ' + err);
+          error = err;
+        })
+        .on('end', function() {
+          log.debug('runQuery2 end.');
+          if (error) {
+            reject(error);
+          } else {
+            fulfill();
+          }
+        });
+
+    });
+
+  };
+
   // `self.options` needs to be defined in the object that inherits this object
   var mysqlBase = function(credentials) {
     var self = this;
@@ -121,6 +174,7 @@
   // Write results into a stream
   mysqlBase.prototype.pipe = function(writeStream, endFunc, errFunc) {
     var self = this;
+
     log.debug('mysqlBase.pipe: ' + self.sql);
 
     runQuery(self.connection, self.sql,
@@ -174,6 +228,56 @@
       }
     );
   };
+
+  // Write results into a stream - endFunc, errFunc
+  // Support promises
+  mysqlBase.prototype.pipe2 = function(writeStream) {
+    var self = this;
+
+    log.debug('mysqlBase.pipe2: ' + self.sql);
+
+    // args: conn, sql, fieldsFunc, resultFunc [, callback(err, res)]
+    return runQuery2(self.connection, self.sql,
+        // fields (header) func
+        function(fields) {
+          log.debug('pipe2 fields: ' + JSON.stringify(fields));
+          if (writeStream.writeHead !== undefined) {
+            writeStream.writeHead(200, {
+              "Content-Type": "application/json"
+            });
+          }
+        },
+        // handle result
+        function(row) {
+          log.debug('pipe2 result: ' + JSON.stringify(self.options.credentials));
+          writeStream.write(JSON.stringify(row));
+        })
+      //  end func
+      .then(function() {
+        log.debug('pipe2 end: ' + JSON.stringify(self.options.credentials));
+        self.connection.end();
+        if (self.options.closeStream) {
+          writeStream.end();
+        }
+      })
+      // handle errors
+      .catch(function(err) {
+        log.debug('pipe2 error: ' + JSON.stringify(self.options.credentials));
+        if (writeStream.writeHead !== undefined) {
+          writeStream.writeHead(406, {
+            "Content-Type": "application/json"
+          });
+        }
+        writeStream.write(JSON.stringify({
+          error: err
+        }));
+        //self.connection.end();
+        if (self.options.closeStream) {
+          writeStream.end();
+        }
+      });
+  };
+
 
   // Close the MySQL connection
   mysqlBase.prototype.end = function() {
@@ -351,8 +455,8 @@
     mysqlBase.call(this, options.credentials);
     self.options = options;
     self.sql = h.json2update(options.credentials.database,
-                           options.tableName,
-                           options.jsonData);
+      options.tableName,
+      options.jsonData);
     if (options.where !== undefined) {
       self.sql += ' where ' + options.where;
     }
@@ -404,6 +508,7 @@
     mysqlBase.call(this, options.credentials);
     self.options = options;
     self.sql = 'drop table if exists ' + options.tableName + ';';
+    log.debug('end of sqlDrop constructor');
   };
 
   // inherit `mysqlBase` prototype
@@ -492,7 +597,7 @@
   exports.sqlAdmin.prototype.metadata = function(tableName, accountId) {
     var self = this;
     self.sql = "select column_name,data_type,is_nullable,numeric_precision,numeric_scale from " +
-    "information_schema.columns where table_schema='" + accountId +"' and table_name='" + tableName + "';";
+      "information_schema.columns where table_schema='" + accountId + "' and table_name='" + tableName + "';";
   };
 
 })(this);

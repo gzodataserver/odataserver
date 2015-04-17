@@ -29,8 +29,8 @@ var moduleSelf = this;
 
 var resultStream = process.stderr;
 var delay = 0;
-  // milliseconds between async tests, 10 is the minimum that works on
-  // my laptop
+// milliseconds between async tests, 10 is the minimum that works on
+// my laptop
 var intervall = 10;
 var decoder = new StringDecoder('utf8');
 
@@ -77,32 +77,34 @@ test('setUp', function(test) {
   var self = this;
 
   log.log('NOTE: Streams are used in these tests and process.stderr' +
-          ' is used as output stream.');
+    ' is used as output stream.');
 
-  // drop table
-  setTimeout(function() {
-    adminOptions.tableName = accountId + '.table1';
-    var drop = new mysql.sqlDrop(adminOptions);
-    drop.pipe(bucket);
-  }.bind(this), (delay++) * intervall);
 
-  // drop the users
-  setTimeout(function() {
-    var mysqlAdmin = new mysql.sqlAdmin(adminOptions);
-    log.debug('Drop user #1...');
-    mysqlAdmin.delete(accountId);
-    mysqlAdmin.pipe(bucket);
+    // drop table
+    setTimeout(function() {
+      adminOptions.tableName = accountId + '.table1';
+      var drop = new mysql.sqlDrop(adminOptions);
+      drop.pipe2(bucket);
+    }.bind(this), (delay++) * intervall);
 
-    var mysqlAdmin2 = new mysql.sqlAdmin(adminOptions);
-    log.debug('Drop user #2...');
-    mysqlAdmin2.delete(accountId2);
-    mysqlAdmin2.pipe(bucket);
+    // drop the users
+    setTimeout(function() {
+      var mysqlAdmin = new mysql.sqlAdmin(adminOptions);
+      log.debug('Drop user #1...');
+      mysqlAdmin.delete(accountId);
+      mysqlAdmin.pipe(bucket);
 
-    test.end();
+      var mysqlAdmin2 = new mysql.sqlAdmin(adminOptions);
+      log.debug('Drop user #2...');
+      mysqlAdmin2.delete(accountId2);
+      mysqlAdmin2.pipe(bucket);
 
-  }.bind(this), (delay++) * intervall);
+      test.end();
 
+    }.bind(this), (delay++) * intervall);
+  
 });
+
 /*
 test('testing_fetchAll', function(test) {
 
@@ -398,7 +400,7 @@ test('testing suite of functions, from create user to CRUD', function(test) {
   // 11. check what was read this time
   setTimeout(function() {
     log.debug('BUCKET CONTENTS update (decoded):' +
-    decoder.write(bucket.get()));
+      decoder.write(bucket.get()));
 
     test.ok(true, 'check what was read this time');
   }.bind(this), (delay++) * intervall);
@@ -407,7 +409,7 @@ test('testing suite of functions, from create user to CRUD', function(test) {
   setTimeout(function() {
     var decoder = new StringDecoder('utf8');
     log.debug('BUCKET CONTENTS after insert (decoded):' +
-              decoder.write(bucket.get()));
+      decoder.write(bucket.get()));
     test.ok(true, 'wait four seconds and write results');
   }.bind(this), (delay++) * intervall);
 
@@ -436,7 +438,7 @@ test('testing suite of functions, from create user to CRUD', function(test) {
   setTimeout(function() {
     var decoder = new StringDecoder('utf8');
     log.debug('BUCKET CONTENTS after insert (decoded):' +
-              decoder.write(bucket.get()));
+      decoder.write(bucket.get()));
     test.ok(true, 'wait four seconds and write results');
   }.bind(this), (delay++) * intervall);
 
@@ -462,7 +464,7 @@ test('testing suite of functions, from create user to CRUD', function(test) {
   // 11. check what was read this time
   setTimeout(function() {
     log.debug('BUCKET CONTENTS delete (decoded):' +
-              decoder.write(bucket.get()));
+      decoder.write(bucket.get()));
 
     test.ok(true, 'check what was read this time');
   }.bind(this), (delay++) * intervall);
