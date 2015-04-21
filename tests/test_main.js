@@ -116,6 +116,7 @@ tap('testing create_account and reset_password', function(test) {
 
 });
 
+
 tap('testing validate password using service definition', function(test) {
 
   // operation to test
@@ -134,8 +135,8 @@ tap('testing validate password using service definition', function(test) {
 
   th.httpRequest(options, null, function(data, statusCode) {
     var jsonData = h.jsonParse(data);
-    log.debug('Received: ' + data);
-    test.assert(statusCode === 200, 'get service definition with incorrect password');
+    log.debug('Received: ' + data + ', statusCode: ' + statusCode);
+    test.assert(statusCode === 406, 'get service definition with incorrect password');
     test.end();
   });
 

@@ -112,7 +112,7 @@ test('setUp', function(test) {
 
 test('testing suite of functions, from create user to CRUD', function(test) {
 
-  test.plan(8);
+  test.plan(9);
 
   adminOptions.sql = 'select 1';
   var mysqlRead = new mysql.sqlRead(adminOptions);
@@ -159,6 +159,15 @@ test('testing suite of functions, from create user to CRUD', function(test) {
   .then(function() {
     log.debug('Password #2 set to: ' + options2.credentials.password);
     test.ok(true, 'set passwords');
+
+    var userInfo = new mysql.userInfo(options);
+    bucket.empty();
+    return userInfo.pipe2(bucket);
+  })
+  .then(function() {
+    test.deepEqual(bucket.get().toString(),
+    '{"user()":"aebba2907b1f@localhost","current_user()":"aebba2907b1f@localhost"}',
+    'check user information');
 
     // create table
     var tableDef = {

@@ -350,46 +350,23 @@
   };
 
   //
-  // Syntactic sugar for sqlRead with options.sql = 'select user(), current_user()'
+  // Syntactic sugar for sqlRead with
+  // options.sql = 'select user(), current_user()'
   //
 
   exports.userInfo = function(options) {
     var self = this;
 
-    log.debug('userInfo sqlRead.userInfo')
-    options.sql = 'select user(), current_user()';
+    mysqlBase.call(this, options.credentials);
 
-    sqlRead.call(this, options.credentials);
-      };
-
-  // inherit `sqlRead` prototype
-  exports.sqlRead.prototype = Object.create(sqlRead.prototype);
-
-
-  // Validate the credentials and resturn some user data
-  exports.sqlRead.prototype.userInfo = function(resultFunc, errFunc) {
-    var self = this;
-
-    runQuery(self.connection, self.sql,
-      function(row) {
-        log.debug('processRow(self, row): ' + processRow(self, row));
-        self.result.push(processRow(self, row));
-      },
-      function() {
-        log.debug('userInfo result');
-        self.connection.end();
-        resultFunc(self.result);
-      },
-      function(err) {
-        log.debug('userInfo error');
-        self.connection.end();
-        if (errFunc !== undefined) {
-          errFunc(err);
-        }
-      }
-    );
-
+    self.processRowFunc = null;
+    self.options = options;
+    self.sql = 'select user(), current_user()';
+    self.result = [];
   };
+
+  // inherit `mysqlBase` prototype
+  exports.userInfo.prototype = Object.create(mysqlBase.prototype);
 
   //
   // Mysql writable stream
