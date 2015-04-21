@@ -841,8 +841,8 @@
             sqlAdmin.serviceDef(accountId);
           }
 
-          sqlAdmin.pipe(bucket,
-            function() {
+          sqlAdmin.pipe2(bucket)
+            .then(function() {
               odataResult.email = email;
               odataResult.accountId = accountId;
 
@@ -851,47 +851,31 @@
               }
 
               // Make sure that correct credentials have been supplied
-/*              if (odataRequest.queryType === 'service_def') {
-                options.processRowFunc = h.addEtag;
-                var mysqlRead = new Rdbms.sqlRead(options);
+              if (odataRequest.queryType === 'service_def') {
+                var bucket2 = new h.arrayBucketStream();
+                var userInfo = new Rdbms.userInfo(options);
 
-                mysqlRead.userInfo(
-                  // handle result
-                  function(res) {
-                    log.debug(JSON.stringify(res));
-                    // The RDBMS response is JSON but it is not parsed since that
-                    // sometimes fails (reason unknown)
-                    odataResult.rdbmsResponse = decoder.write(bucket.get());
-
-                    // Write the result from the sqlAdmin operation
-                    // The result from userInfo is discarded as long as it did
-                    // not generate an error (handled below)
-                    h.writeResponse(response, odataResult);
-                  },
-                  // handle errors
-                  function(err) {
-                    h.writeError(response, err);
-                  });
-
-                return;
-
-              } else {
-*/
-                // The RDBMS response is JSON but it is not parsed since that
-                // sometimes fails (reason unknown)
-                odataResult.rdbmsResponse = decoder.write(bucket.get());
-
-                h.writeResponse(response, odataResult);
-//              }
-
-            },
-            function(err) {
+                return userInfo.pipe2(bucket2)
+                .then(function() {
+                  var userOk = (bucket2.get().toString()
+                  .indexOf('ER_ACCESS_DENIED_ERROR') === -1);
+                  if(!userOk ) {
+                    throw bucket2.get().toString();
+                  }
+                });
+              }
+            })
+            .then(function() {
+              // The RDBMS response is JSON but it is not parsed since that
+              // sometimes fails (reason unknown)
+              odataResult.rdbmsResponse = decoder.write(bucket.get());
+              h.writeResponse(response, odataResult);
+            })
+            .catch(function(err) {
               h.writeError(response, err);
-            }
-          );
+            });
 
           return;
-
         }
 
         log.debug('Performing operation ' + odataRequest.queryType +
