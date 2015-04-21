@@ -317,6 +317,8 @@ test('testing suite of functions, from create user to CRUD', function(test) {
       test.ok(true, 'read table after update');
 
       // 11. check what was read this time
+log.debug('decoder: '+decoder);
+
       log.debug('BUCKET CONTENTS update (decoded):' +
         decoder.write(bucket.get()));
 
