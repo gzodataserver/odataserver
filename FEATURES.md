@@ -79,6 +79,14 @@ CORS header when enables in `config.js`.
 feature3
 --------
 
+Implemented promises in `mysql.js` and improved the unit tests. It should now
+be easier to run a sequence of mysql commands withotu ending up in
+callback-hell.
+
+
+feature4
+--------
+
 The service definition API does not validate the credentials. The reason is
 that the sqlAdmin object is used (which uses the root credentials) and no
 validation is performed first.
