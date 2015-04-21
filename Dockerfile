@@ -68,7 +68,7 @@ RUN apt-get install -y build-essential g++
 
 RUN curl https://raw.githubusercontent.com/creationix/nvm/v0.13.1/install.sh | bash
 # RUN echo "[ -s $HOME/.nvm/nvm.sh ] && . $HOME/.nvm/nvm.sh" >> $HOME/.profile
-RUN /bin/bash -c "source $HOME/.profile && nvm install v0.10.33"
+RUN /bin/bash -c "source $HOME/.profile && nvm install v0.12.2"
 
 ADD ./src-docker/init-node.sh /src/
 RUN /src/init-node.sh
