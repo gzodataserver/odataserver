@@ -43,7 +43,7 @@
     "npm": "1.1.x"
   },
   "scripts": {
-    "test": "./bin/run_tests.sh",
+    "test": "./bin/cleantestdb.sh; ./bin/run_tests.sh",
     "start": "sudo ./bin/start.sh",
     "docco": "./node_modules/.bin/docco -o docco src/*.js tests/*.js",
     "clean": "rm -rf docco; rm -rf mydb; rm -rf tests/mydb odataserver.min.js",
