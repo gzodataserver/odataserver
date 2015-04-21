@@ -116,7 +116,7 @@
       }
 
       // Allow CORS
-      if (CONFIG.ODATA.ALLOW_CORS) {
+      if (CONFIG.ODATA.ALLOW_CORS && request.headers['origin']) {
         var origin = request.headers['origin'];
         log.debug('CORS headers set. Allowing the clients origin: '+origin);
 

@@ -34,13 +34,13 @@
     "docco": "*",
     "jscs": "*",
     "nodeunit": "*",
-    "promise": "^7.0.0",
-    "tape": "^3.0.3",
-    "travis-lint": "0.0.4"
+    "promise": "*",
+    "tape": "*",
+    "travis-lint": "*"
   },
   "engines": {
     "node": ">=0.10.x",
-    "npm": "1.1.x"
+    "npm": ">=1.1.x"
   },
   "scripts": {
     "test": "./bin/cleantestdb.sh; ./bin/run_tests.sh",
