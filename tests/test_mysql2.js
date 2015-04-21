@@ -32,11 +32,8 @@ var log = new h.log0(loggerOptions);
 var moduleSelf = this;
 
 var resultStream = process.stderr;
-var delay = 0;
-// milliseconds between async tests, 10 is the minimum that works on
-// my laptop
-var intervall = 10;
 var decoder = new StringDecoder('utf8');
+log.debug('XXX decoder: '+decoder)
 
 // First test user
 var testEmail = 'test@gizur.com';
