@@ -5,16 +5,17 @@ Gizur's OData server for MySQL
 [![Build Status][travis-image]][travis-url]
 
 OData is a protocol that supports JSON. This makes it extremely usefull when
-developing web and moile apps. The Gizur OData Server can be used together with
+developing web and mobile apps. The Gizur OData Server can be used together with
 any MySQL database.
 
 This simple example of how it is used:
 
 ```
+# Create an account
 curl -d '{"email":"jonas@gizur.com"}' http://appdev.gizur.com:9000/create_account
 
-# A mail is sent with reset instructions. The password is sent in the API
-# response to simplify development. This is turned off in production.
+# Reset passowrd. A mail is sent with reset instructions. The password is sent
+# in the API response to simplify development. This is turned off in production.
 curl -d '{"accountId":"0b213a639078","email":"jonas@gizur.com"}' http://appdev.gizur.com:9000/0b213a639078/s/reset_password
 
 # create a new table
@@ -29,8 +30,9 @@ curl -H "user: 0b213a639078" -H "password: xxx"  http://appdev.gizur.com:9000/0b
 
 This example is using our development server. It is open, feel free to test
 around (we give no guarantees regarding up-time and the database is reset
-from time to time). Run `curl http://appdev.gizur.com:9000/help` to show
-the help.
+from time to time). There is also suport for pictures, text files etc. using
+BLOB:s. These are stored in a LevelDB database in the server.
+ Run `curl http://appdev.gizur.com:9000/help` to show the help.
 
 
 Installation
