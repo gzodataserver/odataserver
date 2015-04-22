@@ -9,7 +9,7 @@ developing web and mobile apps. The Gizur OData Server will serve as your
 mobile backend (you won't need any Mobile Backend as a Service, MBaaS). The
 server can be used together with any MySQL database.
 
-This simple example of how it is used:
+This is a simple example of how it is used:
 
 ```
 # Create an account
