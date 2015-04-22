@@ -1,7 +1,7 @@
 {
   "name": "odataserver",
   "description": "OData server with support for BLOBs",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "author": {
     "name": "Jonas Colmsjö",
     "email": "jonas@gizur.com"
@@ -52,6 +52,8 @@
   },
   "keywords": [
     "JSON",
+    "Mobile backend",
+    "MBaaS",
     "odata",
     "MySQL",
     "BLOBs"
