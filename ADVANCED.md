@@ -1,79 +1,6 @@
 Some notes regarding advanced usage and development of Gizur's OData Server
 ==========================================================================
 
-
-Running the server using docker
-===============================
-
-[docker](docker.io) is a virtualization technnique that makes it easy to run
-services that are separated from each other. It is also a great way to easily
-ensure that development, test and production configurations are identical
-(except hardware of course).
-
-Prerequisites:
-
- * docker needs to be installed - I'm using [boot2docker](http://boot2docker.io)
-
-Build the image: `docker build --rm -t odataserver .`
-
-Create an environment definitions file called `env.list`
-(copy `env.list.template` and edit).
-
-Make sure a container with rsyslog is running (skip the `--link` part if you
-don't have this).. I'm using this container:  
-  [beservices](https://github.com/gizur/beservices).
-
-
-Run the container in on a server (assuming a proxy server used, see development
-below is this isn't the case):
-
-    docker run -t -i --env-file=env.list --restart="on-failure:10" \
-    --link beservices:beservices --name odataserver -p 9000:9000  \
-    -h odataserver odataserver /bin/bash -c "supervisord; bash"
-
-Exit the shell with `ctrl-p` `ctrl-q`. `exit` will stop the container.
-
-When developing using docker, it is usefull to connect to the containers' shell:
-
-    # Start a container like this in order not to start supervisord
-    docker run -t -i -p 9000:9000 -p 83:81 --env-file=env.list --name odataserver \
-    odataserver /bin/bash
-
-    # Run the tests, MySQL needs to be started manually first
-    /usr/bin/mysqld_safe &
-    npm test
-    ps -ef
-    kill <PID for MySQL>
-
-    # Start the services
-    supervisord &
-
-    # Check that all processes are up
-    ps -ef
-
-    # Check that the server is alive
-    curl http://localhost:9000/help
-
-    # In a new terminal, check that you can connect to the odataserver
-    curl http://[IP]:9000/help
-
-    # Also, check that apache is running
-    curl http://[IP]:81/phpMyAdmin-4.0.8-all-languages/
-
-    # NOTE: fetch the ip with `boot2docker ip` if you're running boot2docker
-
-
-External MySQL
---------------
-
-The included MySQL can be replaced with an external MySQL server. Disable the
-internal MySQl server by commenting out the `[program:mysql]` parts with `#` in
-`supervisord.conf`.
-
-MySQL credentials are passed as environment variables that are set when
-starting the container (the `--env-file` flag).
-
-
 Support for SSL
 ==============
 
@@ -121,6 +48,78 @@ supportfor BLOB storage in leveldb since the
 
 Run `npm test` to validate that the setup is ok.
 
+
+Running the server using docker
+===============================
+
+[docker](docker.io) is a virtualization technnique that makes it easy to run
+services that are separated from each other. It is also a great way to easily
+ensure that development, test and production configurations are identical
+(except hardware of course).
+
+Prerequisites:
+
+* docker needs to be installed - I'm using [boot2docker](http://boot2docker.io)
+
+Build the image: `docker build --rm -t odataserver .`
+
+Create an environment definitions file called `env.list`
+(copy `env.list.template` and edit).
+
+Make sure a container with rsyslog is running (skip the `--link` part if you
+  don't have this).. I'm using this container:  
+  [beservices](https://github.com/gizur/beservices).
+
+
+  Run the container in on a server (assuming a proxy server used, see development
+    below is this isn't the case):
+
+    docker run -t -i --env-file=env.list --restart="on-failure:10" \
+    --link beservices:beservices --name odataserver -p 9000:9000  \
+    -h odataserver odataserver /bin/bash -c "supervisord; bash"
+
+    Exit the shell with `ctrl-p` `ctrl-q`. `exit` will stop the container.
+
+    When developing using docker, it is usefull to connect to the containers' shell:
+
+    # Start a container like this in order not to start supervisord
+    docker run -t -i -p 9000:9000 -p 83:81 --env-file=env.list --name odataserver \
+    odataserver /bin/bash
+
+    # Run the tests, MySQL needs to be started manually first
+    /usr/bin/mysqld_safe &
+    npm test
+    ps -ef
+    kill <PID for MySQL>
+
+    # Start the services
+    supervisord &
+
+    # Check that all processes are up
+    ps -ef
+
+    # Check that the server is alive
+    curl http://localhost:9000/help
+
+    # In a new terminal, check that you can connect to the odataserver
+    curl http://[IP]:9000/help
+
+    # Also, check that apache is running
+    curl http://[IP]:81/phpMyAdmin-4.0.8-all-languages/
+
+    # NOTE: fetch the ip with `boot2docker ip` if you're running boot2docker
+
+
+External MySQL
+--------------
+
+The included MySQL can be replaced with an external MySQL server. Disable the
+internal MySQl server by commenting out the `[program:mysql]` parts with `#` in
+`supervisord.conf`.
+
+MySQL credentials are passed as environment variables that are set when
+starting the container (the `--env-file` flag).
+    
 
 Notes and known issues
 ======================
