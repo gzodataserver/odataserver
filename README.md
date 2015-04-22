@@ -48,7 +48,7 @@ Installation
 mail server credentials. Environment variables are used to set admin credentials
 for the database and the mail server.
 
-1. Make sure port 9000 is free and then run: `npm install` follow by
+1. Make sure port 9000 is free and then run: `npm install` followed by
  `npm start`.
 
 1. Check that the server is alive with: `curl http://localhost:9000/help`.
