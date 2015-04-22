@@ -48,10 +48,6 @@ Installation
 mail server credentials. Environment variables are used to set admin credentials
 for the database and the mail server.
 
-1. A (insecure) self-signed certificate is used for development and testing. Run
-`bin/gencert.sh` to generate a key and certificate. There are many vendors that
-sells certificates for production use.
-
 1. Make sure port 9000 is free and then run: `npm install` follow by
  `npm start`.
 

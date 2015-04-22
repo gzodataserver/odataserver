@@ -16,7 +16,7 @@ Prerequisites:
 
 Build the image: `docker build --rm -t odataserver .`
 
-Create an environement definitions file called `env.list`
+Create an environment definitions file called `env.list`
 (copy `env.list.template` and edit).
 
 Make sure a container with rsyslog is running (skip the `--link` part if you
@@ -72,6 +72,14 @@ internal MySQl server by commenting out the `[program:mysql]` parts with `#` in
 
 MySQL credentials are passed as environment variables that are set when
 starting the container (the `--env-file` flag).
+
+
+Support for SSL
+==============
+
+A (insecure) self-signed certificate is used for development and testing. Run
+`bin/gencert.sh` to generate a key and certificate. There are many vendors that
+sells certificates for production use. SSL is turned on in `config.js`
 
 
 Development
