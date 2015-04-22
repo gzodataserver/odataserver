@@ -1,6 +1,3 @@
-Some notes regarding advanced usage and development of Gizur's OData Server
-==========================================================================
-
 Support for SSL
 ==============
 
@@ -119,7 +116,7 @@ internal MySQl server by commenting out the `[program:mysql]` parts with `#` in
 
 MySQL credentials are passed as environment variables that are set when
 starting the container (the `--env-file` flag).
-    
+
 
 Notes and known issues
 ======================
