@@ -32,7 +32,7 @@ curl -H "user: 0b213a639078" -H "password: xxx"  http://appdev.gizur.com:9000/0b
 This example is using our development server. It is open, feel free to test
 around (we give no guarantees regarding up-time and the database is reset
 from time to time). There is also suport for pictures, text files etc. using
-BLOB:s. These are stored in a LevelDB database in the server.
+BLOB:s. These are stored in a LevelDB database on the server.
  Run `curl http://appdev.gizur.com:9000/help` to show the help.
 
 
