@@ -28,15 +28,15 @@
     "mysql": "*",
     "nodemailer": "*",
     "level": "*",
-    "promise": "*",
-    "dtrace-provider": "*"
+    "promise": "*"
   },
   "devDependencies": {
     "docco": "*",
     "jscs": "*",
     "nodeunit": "*",
     "tape": "*",
-    "travis-lint": "*"
+    "travis-lint": "*",
+    "dtrace-provider": "*"
   },
   "engines": {
     "node": ">=0.10.x",
