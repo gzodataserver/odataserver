@@ -14,7 +14,7 @@ This simple example of how it is used:
 # Create an account
 curl -d '{"email":"jonas@gizur.com"}' http://appdev.gizur.com:9000/create_account
 
-# Reset passowrd. A mail is sent with reset instructions. The password is sent
+# Reset password. A mail is sent with reset instructions. The password is sent
 # in the API response to simplify development. This is turned off in production.
 curl -d '{"accountId":"0b213a639078","email":"jonas@gizur.com"}' http://appdev.gizur.com:9000/0b213a639078/s/reset_password
 
