@@ -5,8 +5,9 @@ Gizur's OData server for MySQL
 [![Build Status][travis-image]][travis-url]
 
 OData is a protocol that supports JSON. This makes it extremely usefull when
-developing web and mobile apps. The Gizur OData Server can be used together with
-any MySQL database.
+developing web and mobile apps. The Gizur OData Server will serve as your
+mobile backend (you won't need any Mobile Backend as a Service, MBaaS). The
+server can be used together with any MySQL database.
 
 This simple example of how it is used:
 
