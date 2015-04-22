@@ -1,7 +1,7 @@
 {
   "name": "odataserver",
   "description": "OData server with support for BLOBs",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "author": {
     "name": "Jonas Colmsjö",
     "email": "jonas@gizur.com"
@@ -51,6 +51,7 @@
     "style": "./node_modules/.bin/jscs src/*.js tests/test_mysql.js tests/test_leveldb.js tests/test_main.js tests/helpers.js tests/test_helpers.js tests/test_mssql.js"
   },
   "keywords": [
+    "JSON",
     "odata",
     "MySQL",
     "BLOBs"
