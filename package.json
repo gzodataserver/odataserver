@@ -1,7 +1,7 @@
 {
   "name": "odataserver",
   "description": "OData server with support for BLOBs",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "author": {
     "name": "Jonas Colmsjö",
     "email": "jonas@gizur.com"
@@ -28,13 +28,13 @@
     "mysql": "*",
     "nodemailer": "*",
     "level": "*",
+    "promise": "*",
     "dtrace-provider": "*"
   },
   "devDependencies": {
     "docco": "*",
     "jscs": "*",
     "nodeunit": "*",
-    "promise": "*",
     "tape": "*",
     "travis-lint": "*"
   },
