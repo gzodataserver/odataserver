@@ -28,20 +28,6 @@ The odata probes are viewed like this:
 `sudo dtrace -Z -n 'nodeapp*:::probe{ trace(copyinstr(arg0)); }'``
 
 
-MS SQL Server
-=============
-
-_(This is work in progress)_
-
-The `win` folder contains a `package.json` for installation on Windows. The
-[mssql module](https://www.npmjs.org/package/mssql) is used instead of the
-[mysql module](https://www.npmjs.org/package/mysql). This version don't include
-supportfor BLOB storage in leveldb since the
-[leveldb package](https://www.npmjs.org/package/leveldb) don't support windows.
-
-Run `npm test` to validate that the setup is ok.
-
-
 Running the server using docker
 ===============================
 
@@ -103,7 +89,7 @@ below is this isn't the case):
 
 The ports `81` and `9000` can be exposed from the container with
 `-p 81:81 -p 9000:9000` if you're not using a proxy.
-Requests will then be routed from the host to the container. 
+Requests will then be routed from the host to the container.
 
 
 External MySQL
@@ -115,6 +101,20 @@ internal MySQl server by commenting out the `[program:mysql]` parts with `#` in
 
 MySQL credentials are passed as environment variables that are set when
 starting the container (the `--env-file` flag).
+
+
+MS SQL Server
+=============
+
+_(This is work in progress)_
+
+The `win` folder contains a `package.json` for installation on Windows. The
+[mssql module](https://www.npmjs.org/package/mssql) is used instead of the
+[mysql module](https://www.npmjs.org/package/mysql). This version don't include
+supportfor BLOB storage in leveldb since the
+[leveldb package](https://www.npmjs.org/package/leveldb) don't support windows.
+
+Run `npm test` to validate that the setup is ok.
 
 
 Notes and known issues
