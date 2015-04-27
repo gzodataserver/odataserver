@@ -482,9 +482,15 @@
     // Should return 406 when failing
     // http://www.odata.org/documentation/odata-version-2-0/operations/
 
+    // Forcing the error to be valid JSON - will crash the server otherwise
+    if( typeof err === 'string') {
+      err = JSON.parse(err);
+    }
+
     odataResult = {
       d: {
-        error: err.toString() + '. See /' + CONFIG.ODATA.HELP_PATH +
+        error: err,
+        message: '. See /' + CONFIG.ODATA.HELP_PATH +
                                 ' for help.'
       }
     };
@@ -495,7 +501,7 @@
     response.write(JSON.stringify(odataResult));
     response.end();
 
-    log.log(err.toString());
+    log.log(JSON.stringify(err));
   };
 
   // check that the request contains user and password headers

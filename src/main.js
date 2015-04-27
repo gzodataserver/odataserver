@@ -176,7 +176,7 @@ Breaks service_def
           tokens_[1] === CONFIG.ODATA.SYS_PATH &&
           !odata.isAdminOp(tokens_[2]) &&
           !buckets.isAdminOp(tokens_[2])) {
-        h.writeError(response, "Invalid system operation. " + tokens_[2]);
+        h.writeError(response, {message: "Invalid system operation. " + tokens_[2]});
         return;
       }
 
