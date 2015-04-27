@@ -16,6 +16,7 @@
 //------------------------------
 
 var test = require('tape');
+var Promise = require('promise');
 
 var StringDecoder = require('string_decoder').StringDecoder;
 
