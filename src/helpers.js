@@ -490,7 +490,7 @@
     odataResult = {
       d: {
         error: err,
-        message: '. See /' + CONFIG.ODATA.HELP_PATH +
+        message: 'See /' + CONFIG.ODATA.HELP_PATH +
                                 ' for help.'
       }
     };
