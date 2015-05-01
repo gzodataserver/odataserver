@@ -9,12 +9,12 @@ There are two main branches:
  * master - contains releases
  * develop - features are merged here and then released once ready
 
-And there is one branch for each feature that is developed. These
+There is one branch for each feature that is developed. These
 branches are deleted once the feature has been merged.
 
 
-feature1
---------
+feature1 (not implemented)
+-------------------------
 
 A response currently looks like this:
 
@@ -59,8 +59,8 @@ But is should look like this according to the spec:
 }
 
 
-feature2
---------
+feature2 (implemented)
+---------------------
 
 The server currently don't support the method `OPTIONS`. This is used by the
 browser when setting request headers `username` and `password`
@@ -76,17 +76,28 @@ A empty response with the appropriate headers should be enough, see
 CORS header when enables in `config.js`.
 
 
-feature3
---------
+feature3 (implemented)
+--------------------- 
 
 Implemented promises in `mysql.js` and improved the unit tests. It should now
 be easier to run a sequence of mysql commands withotu ending up in
 callback-hell.
 
 
-feature4
---------
+feature4 (implemented)
+---------------------
 
 The service definition API does not validate the credentials. The reason is
 that the sqlAdmin object is used (which uses the root credentials) and no
 validation is performed first.
+
+Must validate credentials before using the sqlAdmin functions.
+
+
+feature5 (not implemented)
+--------------------------
+
+Make it possible to execute any valid SQL. This can be used to call
+stored procedures and also to do complex things like joins etc.
+
+
