@@ -77,7 +77,7 @@ CORS header when enables in `config.js`.
 
 
 feature3 (implemented)
---------------------- 
+---------------------
 
 Implemented promises in `mysql.js` and improved the unit tests. It should now
 be easier to run a sequence of mysql commands withotu ending up in
@@ -101,3 +101,54 @@ Make it possible to execute any valid SQL. This can be used to call
 stored procedures and also to do complex things like joins etc.
 
 
+feature 6 (not implemented)
+--------------------------
+
+Make it possible to use connectjs (expressjs) type of middleware.
+
+Setup a customized OData Sever like this:
+
+```
+var odata = require('odataserver');
+
+var buckets = new odata.BucketHttpServer();
+var rdbms = new odata.ODataServer();
+
+
+odata.user(function(req, res, next) {
+
+  // put custom middleware logic here
+
+  next();
+}));
+
+odata.use(buckets.main);
+odata.use(rdbms.main)
+
+odata.start();
+
+```
+
+In addition, it should also be possible to do this:
+
+```
+var odata = require('odataserver');
+
+var express = require('express');
+var app = express();
+
+var buckets = new odata.BucketHttpServer();
+var rdbms = new odata.ODataServer();
+
+app.use(buckets.main);
+app.use(rdbms.main);
+
+var server = app.listen(3000, function () {
+
+  var host = server.address().address;
+  var port = server.address().port;
+
+  console.log('Example app listening at http://%s:%s', host, port);
+
+});
+```
