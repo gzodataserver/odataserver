@@ -10,7 +10,7 @@ MAINTAINER Jonas Colmsjö <jonas@gizur.com>
 RUN echo "export HOME=/root" >> /root/.profile
 
 # Mirros: http://ftp.acc.umu.se/ubuntu/ http://us.archive.ubuntu.com/ubuntu/
-RUN echo "deb http://ftp.acc.umu.se/ubuntu/ trusty-updates main restricted" >> /etc/apt/source.list
+RUN echo "deb http://ftp.acc.umu.se/ubuntu/ trusty-updates main restricted" > /etc/apt/source.list
 RUN apt-get update
 RUN apt-get install -y wget nano curl git
 
@@ -37,6 +37,19 @@ RUN mkdir -p /var/log/supervisor/
 RUN apt-get -y install rsyslog
 RUN mv /etc/rsyslog.conf /etc/rsyslog.conf.org
 ADD ./src-docker/etc-rsyslog.conf /etc/rsyslog.conf
+
+
+#
+# Install cron
+# ------------
+
+# Test to update the server automatically periodically (need to find a way to restart the server also)
+# Just comment this section out to turn it off
+RUN echo '*/90 * * * *  /bin/bash -c "cd /tmp2; npm install odataserver"' > /mycron
+RUN crontab /mycron
+RUN mkdir /tmp2
+
+ADD ./src-docker/etc-pam.d-cron /etc/pam.d/cron
 
 
 #
@@ -73,10 +86,7 @@ RUN /bin/bash -c "source $HOME/.profile && nvm install v0.12.2"
 ADD ./src-docker/init-node.sh /src/
 RUN /src/init-node.sh
 
-ADD ./bin/start.sh /
 
-ADD ./server.key /
-ADD ./server.cer /
 
 #
 # Install MySQL
@@ -100,6 +110,10 @@ RUN /src/init-mysql.sh
 #
 # Add source for the odatamysql server
 # ------------------------------------
+
+# not used anymore ADD ./bin/start.sh /
+ADD ./server.key /
+ADD ./server.cer /
 
 ADD ./package.json /
 ADD ./bin/run_tests.sh /bin/

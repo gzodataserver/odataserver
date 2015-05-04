@@ -8,6 +8,8 @@
 
 (function(moduleSelf, undefined) {
 
+  var util = require('util');
+
   var c = {};
 
   // OData server configuration
@@ -112,16 +114,16 @@
     ADMIN_PASSWORD: process.env.ADMIN_PASSWORD,
 
     // The IP/DNS of the OData server
-    EMAIL: 'test@example.com',
-    EMAIL2: 'test2@example.com',
+    EMAIL: 'test@gizur.com',
+    EMAIL2: 'test2@gizur.com',
 
     // IMPORTANT: This is only used for tests. It must always be set to false
     // in production
     RESET_PASSWORD_WITHOUT_LINK: true,
   };
 
-  // Account IDs are based email adresses
-  // -------------------------------------
+  // Account IDs are based on email adresses
+  // ---------------------------------------
 
   // Documentation of the hash function used is found here:
   // http://nodejs.org/api/crypto.html
@@ -175,10 +177,16 @@
 
   // The `#` before `test_XXX` is necessary for the tests to comply with the
   // TAP protocol
+  //
+  // leave debug: true below and control the logging by setting the environment
+  // variable NODE_DEBUG=debugtest,... instead (see setenv.template)
+  //
+
   c.testLoggerOptions = {
-    debug: false,
+    debug: true,
     filename: '# test_XXX.js',
-    noLogging: false
+    noLogging: false,
+    debuglog: util.debuglog('debugtest')
   };
 
   // NOTE: should turn logging on in production. Turned off here in order for
@@ -186,25 +194,30 @@
   c.mysqlLoggerOptions = {
     debug: false,
     filename: 'mysql.js',
-    noLogging: true
+    noLogging: false,
+    debuglog: util.debuglog('debugmysql')
   };
 
   c.leveldbLoggerOptions = {
-    debug: false,
+    debug: true,
     filename: 'leveldb.js',
-    noLogging: true
+    noLogging: false,
+    debuglog: util.debuglog('debugleveldb')
   };
 
   c.odataServerLoggerOptions = {
-    debug: false,
+    debug: true,
     filename: 'odataserver.js',
-    noLogging: false
+    noLogging: false,
+    debuglog: util.debuglog('debugodata')
   };
 
   c.mainLoggerOptions = {
-    debug: false,
+    debug: true,
     filename: 'main.js',
-    noLogging: true
+    noLogging: false,
+    debuglog: util.debuglog('debugmain')
+
   };
 
   // dtrace setup

@@ -239,4 +239,33 @@ Breaks service_def
     moduleSelf.server.close();
   };
 
+  //
+  // Expose the buckets and odataserver classes to they can be used with express
+  // ---------------------------------------------------------------------------
+  //
+  //```
+  // var odataserver = require('odataserver');
+  //
+  // var express = require('express');
+  // var app = express();
+  //
+  // var buckets = new odataserver.buckets();
+  // var rdbms = new odataserver.rdbms();
+  //
+  // app.use(buckets.main);
+  // app.use(rdbms.main);
+  //
+  // var server = app.listen(3000, function () {
+  //
+  //   var host = server.address().address;
+  //   var port = server.address().port;
+  //
+  //   console.log('Example app listening at http://%s:%s', host, port);
+  //
+  // });
+  //```
+
+  exports.buckets = buckets.BucketHttpServer;
+  exports.rdbms = odata.ODataServer;
+
 })(this);
