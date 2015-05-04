@@ -2,3 +2,4 @@ export ADMIN_USER=xxx
 export ADMIN_PASSWORD=xxx
 export MAIL_USER=xxx
 export MAIL_PASSWORD=xxx
+NODE_DEBUG=debugtest,debugmysql,debugleveldb,debugodata,debugmain

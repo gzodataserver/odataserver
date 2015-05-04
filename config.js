@@ -8,6 +8,8 @@
 
 (function(moduleSelf, undefined) {
 
+  var util = require('util');
+
   var c = {};
 
   // OData server configuration
@@ -175,10 +177,16 @@
 
   // The `#` before `test_XXX` is necessary for the tests to comply with the
   // TAP protocol
+  //
+  // leave debug: true below and control the logging by setting the environment
+  // variable NODE_DEBUG=debugtest,... instead (see setenv.template)
+  //
+
   c.testLoggerOptions = {
     debug: true,
     filename: '# test_XXX.js',
-    noLogging: false
+    noLogging: false,
+    debuglog: util.debuglog('debugtest')
   };
 
   // NOTE: should turn logging on in production. Turned off here in order for
@@ -186,25 +194,30 @@
   c.mysqlLoggerOptions = {
     debug: false,
     filename: 'mysql.js',
-    noLogging: false
+    noLogging: false,
+    debuglog: util.debuglog('debugmysql')
   };
 
   c.leveldbLoggerOptions = {
     debug: true,
     filename: 'leveldb.js',
-    noLogging: false
+    noLogging: false,
+    debuglog: util.debuglog('debugleveldb')
   };
 
   c.odataServerLoggerOptions = {
     debug: true,
     filename: 'odataserver.js',
-    noLogging: false
+    noLogging: false,
+    debuglog: util.debuglog('debugodata')
   };
 
   c.mainLoggerOptions = {
     debug: true,
     filename: 'main.js',
-    noLogging: false
+    noLogging: false,
+    debuglog: util.debuglog('debugmain')
+
   };
 
   // dtrace setup

@@ -83,9 +83,14 @@
       res = self._filename + res;
     }
 
-    if (!self._noLogging) {
+    if (!self._noLogging && typeof self._debuglog !== 'undefined' ) {
+      self._debuglog(res);
+    }
+
+    if (!self._noLogging && typeof self._debuglog === 'undefined' ) {
       console.log(res);
     }
+
   };
 
   h.log0.prototype.logLevel = function(options) {
@@ -105,6 +110,11 @@
     if (typeof options.filename !== 'undefined') {
       self._filename = options.filename;
     }
+
+    if (typeof options.debuglog !== 'undefined') {
+      self._debuglog = options.debuglog;
+    }
+
   };
 
   var log = new h.log0({

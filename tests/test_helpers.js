@@ -72,12 +72,6 @@ test('testing arrayBucketStream', function(test) {
 
 test('testing logging functions', function(test) {
 
-  var log = new h.log0({
-    debug: true,
-    filename: 'test_helpers.js',
-    noLogging: false
-  });
-
   var o = {one: 1, two: 'two', pi: 3.1415};
   var f = function (one, two, pi) { var one = 1, two = 'two', pi = 3.1415; }
 
