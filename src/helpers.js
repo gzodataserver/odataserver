@@ -19,6 +19,7 @@
   var u = require('underscore');
   var crypto = require('crypto');
   var Writable = require('stream').Writable;
+  var util = require('util');
 
   var CONFIG = require('../config.js');
 
@@ -41,7 +42,7 @@
     self._info = true;
     self._noLogging = false;
     self._filename = null;
-    if (options !== undefined) {
+    if (typeof options !== 'undefined') {
       self.logLevel(options);
     }
   };
@@ -49,43 +50,59 @@
   h.log0.prototype.debug = function(text) {
     var self = this;
     if (self._debug && !self._noLogging) {
-      self.log('DEBUG:' + text);
+      self.log('DEBUG', text);
     }
   };
 
   h.log0.prototype.info = function(text) {
     var self = this;
     if (self._info && !self._noLogging) {
-      self.log('INFO:' + text);
+      self.log('INFO', text);
     }
   };
 
-  h.log0.prototype.log = function(text) {
+  h.log0.prototype.log = function() {
     var self = this;
-    if (self._filename !== undefined && self._filename !== null) {
-      text = self._filename + ':' + text;
+    var res = '';
+
+    for (var i = 0; i < arguments.length; i++) {
+      var a = arguments[i];;
+
+      if (typeof a === 'object' || typeof a === 'function') {
+        res += ':' + util.inspect(a, {
+          showHidden: true,
+          depth: null,
+          colors: true
+        });
+      } else {
+        res += ':' + a;
+      }
+    }
+
+    if (typeof self._filename !== 'undefined' && self._filename !== null) {
+      res = self._filename + res;
     }
 
     if (!self._noLogging) {
-      console.log(text);
+      console.log(res);
     }
   };
 
   h.log0.prototype.logLevel = function(options) {
     var self = this;
-    if (options.debug !== undefined) {
+    if (typeof options.debug !== 'undefined') {
       self._debug = options.debug;
     }
 
-    if (options.info !== undefined) {
+    if (typeof options.info !== 'undefined') {
       self._info = options.info;
     }
 
-    if (options.noLogging !== undefined) {
+    if (typeof options.noLogging !== 'undefined') {
       self._noLogging = options.noLogging;
     }
 
-    if (options.filename !== undefined) {
+    if (typeof options.filename !== 'undefined') {
       self._filename = options.filename;
     }
   };
@@ -444,32 +461,32 @@
       "Content-Type": "application/json"
     });
 
-/*    odataResult = {
-      d: {
-        results: jsonData
-      }
-    };
-*/
+    /*    odataResult = {
+          d: {
+            results: jsonData
+          }
+        };
+    */
 
     var odataResult = {};
     odataResult.d = {};
 
     // The actual data
-    if (jsonData.value !== undefined) {
+    if (typeof jsonData.value !== 'undefined') {
       odataResult.d.results = jsonData.value;
     }
 
     // Some additional attributes (for convenience)
-    if (jsonData.rdbmsResponse !== undefined) {
+    if (typeof jsonData.rdbmsResponse !== 'undefined') {
       odataResult.d.rdbmsResponse = jsonData.rdbmsResponse;
     }
-    if (jsonData.email !== undefined) {
+    if (typeof jsonData.email !== 'undefined') {
       odataResult.d.email = jsonData.email;
     }
-    if (jsonData.accountId !== undefined) {
+    if (typeof jsonData.accountId !== 'undefined') {
       odataResult.d.accountId = jsonData.accountId;
     }
-    if (jsonData.password !== undefined) {
+    if (typeof jsonData.password !== 'undefined') {
       odataResult.d.password = jsonData.password;
     }
 
@@ -483,7 +500,7 @@
     // http://www.odata.org/documentation/odata-version-2-0/operations/
 
     // Forcing the error to be valid JSON - will crash the server otherwise
-    if( typeof err === 'string') {
+    if (typeof err === 'string') {
       err = JSON.parse(err);
     }
 
@@ -491,7 +508,7 @@
       d: {
         error: err,
         message: 'See /' + CONFIG.ODATA.HELP_PATH +
-                                ' for help.'
+          ' for help.'
       }
     };
 
