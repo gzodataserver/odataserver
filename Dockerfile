@@ -45,7 +45,7 @@ ADD ./src-docker/etc-rsyslog.conf /etc/rsyslog.conf
 
 # Test to update the server automatically periodically (need to find a way to restart the server also)
 # Just comment this section out to turn it off
-RUN echo '*/90 * * * *  /bin/bash -c "cd /tmp2; npm install odataserver"' > /mycron
+RUN echo '*/90 * * * *  /bin/bash -c "cd /tmp2; rm -rf node_modules; date > last-run.txt; npm install odataserver > ./install.log"' > /mycron
 RUN crontab /mycron
 RUN mkdir /tmp2
 

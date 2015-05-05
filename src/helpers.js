@@ -1,17 +1,15 @@
 // helpers.js
-//------------------------------
+//-----------
 //
 // 2014-11-15, Jonas Colmsjö
-//
 //------------------------------
 //
 // Misc helpers fucntions
 //
 //
-// Using Google JavaScript Style Guide
-// http://google-styleguide.googlecode.com/svn/trunk/javascriptguide.xml
+// Using
+// [Google JavaScript Style Guide](http://google-styleguide.googlecode.com/svn/trunk/javascriptguide.xml)
 //
-//------------------------------
 
 (function(moduleSelf, undefined) {
 
@@ -20,7 +18,8 @@
   var crypto = require('crypto');
   var Writable = require('stream').Writable;
   var util = require('util');
-
+  var url = require('url');
+  
   var CONFIG = require('../config.js');
 
   var StringDecoder = require('string_decoder').StringDecoder;
@@ -466,6 +465,9 @@
 
   // Respond with 200 and the result
   h.writeResponse = function(response, jsonData) {
+    if (response.finished) {
+      return;
+    }
 
     response.writeHead(200, {
       "Content-Type": "application/json"
@@ -506,6 +508,10 @@
 
   // Respond with 406 and end the connection
   h.writeError = function(response, err) {
+    if (response.finished) {
+      return;
+    }
+
     // Should return 406 when failing
     // http://www.odata.org/documentation/odata-version-2-0/operations/
 
@@ -543,6 +549,15 @@
     return true;
 
   };
+
+  h.tokenize = function(str) {
+    var parsedURL = url.parse(str, true, false);
+    var a = parsedURL.pathname.split("/");
+
+    // drop the first element which is an empty string
+    return a.splice(1, a.length);
+  };
+
 
   // Exports
   // =======

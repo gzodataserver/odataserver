@@ -1,8 +1,7 @@
 // odataserver.js
-//------------------------------
+//---------------
 //
 // 2014-11-15, Jonas Colmsjö
-//
 //------------------------------
 //
 // Simple OData server on top of a RDBMS and bucket server. Currently are MySQL
@@ -46,16 +45,14 @@
 // 2. Process the HTTP request (using on(data) / on(error) / on(end)  )
 // 3. Parse the JSON request data
 // 4. Handle operations that requires admin privileges.
-// 5. Handle operations the use the supplied credential
+// 5. Handle operations the use the supplied credentials
 //    We let the sql classes write into a bucket here and in step 4. We then
 //    write this into the HTTP stream.
 //
-// -------------------
 //
-// Using Google JavaScript Style Guide
-// http://google-styleguide.googlecode.com/svn/trunk/javascriptguide.xml
+// Using
+// [Google JavaScript Style Guide](http://google-styleguide.googlecode.com/svn/trunk/javascriptguide.xml)
 //
-//------------------------------
 
 (function(moduleSelf, undefined) {
 
@@ -667,8 +664,11 @@
   };
 
   // HTTP REST Server that
-  exports.ODataServer.prototype.main = function(request, response) {
+  exports.ODataServer.prototype.main = function(request, response, next) {
     log.debug('In main ...');
+    if (response.finished) {
+      next();
+    }
 
     var uriParser = new exports.ODataUri2Sql();
     var odataRequest;
@@ -683,6 +683,7 @@
       log.debug('odataRequest: ' + JSON.stringify(odataRequest));
     } catch (e) {
       h.writeError(response, e);
+      next();
       return;
     }
 
@@ -698,7 +699,8 @@
         ", headers: " + JSON.stringify(request.headers) + " TYPE:" +
         odataRequest.queryType);
 
-      return;
+        next();
+        return;
     }
 
     // save input from POST and PUT here
@@ -870,9 +872,11 @@
               // sometimes fails (reason unknown)
               odataResult.rdbmsResponse = decoder.write(bucket.get());
               h.writeResponse(response, odataResult);
+              next();
             })
             .catch(function(err) {
               h.writeError(response, err);
+              next();
             });
 
           return;
@@ -931,9 +935,11 @@
             function() {
               odataResult.rdbmsResponse = decoder.write(bucket.get());
               h.writeResponse(response, odataResult);
+              next();
             },
             function(err) {
               h.writeError(response, err);
+              next();
             }
           );
 
@@ -953,6 +959,7 @@
             mysqlRead.fetchAll(function(res) {
               odataResult.value = res;
               h.writeResponse(response, odataResult);
+              next();
             });
             break;
 
@@ -964,6 +971,7 @@
               function() {
                 odataResult.rdbmsResponse = decoder.write(bucket.get());
                 h.writeResponse(response, odataResult);
+                next();
               }
             );
 
@@ -971,6 +979,7 @@
             var jsonStream = new require('stream');
             jsonStream.pipe = function(dest) {
               dest.write(JSON.stringify(jsonData));
+              next();
             };
 
             jsonStream.pipe(writeStream);
@@ -979,6 +988,7 @@
           default:
             h.writeError(response, 'Error, unknown queryType: ' +
               odataRequest.queryType);
+            next();
         }
 
       } catch (e) {

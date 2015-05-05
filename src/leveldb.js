@@ -1,9 +1,8 @@
 // leveldb.js
-//------------------------------
+//------------
 //
 // 2015-01-15, Jonas Colmsjö
-//
-//------------------------------
+//---------------------------
 //
 // Simple bucket server on top of LevelDB. This implementation can be used as
 // a reference if other backends are developed. Just implement the classes
@@ -25,10 +24,9 @@
 //   as for RDBMS tables. Read and write is checked by by first doing a select and
 //   insert respectively
 //
-// Using Google JavaScript Style Guide
-// http://google-styleguide.googlecode.com/svn/trunk/javascriptguide.xml
+// Using
+// [Google JavaScript Style Guide](http://google-styleguide.googlecode.com/svn/trunk/javascriptguide.xml)
 //
-//------------------------------
 
 (function(moduleSelf, undefined) {
 
@@ -116,32 +114,35 @@
 
   // create a leveldb stream and pipe it into a provided write stream
   exports.BucketReadStream.prototype.pipeReadStream = function(writeStream) {
-
     var self = this;
 
-    var _revision = h.pad(self._currentRevision, 9);
+    return new Promise(function(fulfill, reject) {
 
-    var _options = {
-      start: self._key + '~' + _revision + '~000000000',
-      end: self._key + '~' + _revision + '~999999999',
-      limit: 999999999,
-      reverse: false,
-      keys: false,
-      values: true
-    };
+      var _revision = h.pad(self._currentRevision, 9);
 
-    log.debug('LevelDB.pipeReadStream: ' + JSON.stringify(_options));
+      var _options = {
+        start: self._key + '~' + _revision + '~000000000',
+        end: self._key + '~' + _revision + '~999999999',
+        limit: 999999999,
+        reverse: false,
+        keys: false,
+        values: true
+      };
 
-    // create stream that reads all chunks
-    var _valueStream = moduleSelf.leveldb.createReadStream(_options);
+      log.debug('LevelDB.pipeReadStream: ' + JSON.stringify(_options));
 
-    _valueStream.on('end', function() {
-      log.debug('End event in LevelDBReadStream.');
-      self.emit('end');
+      // create stream that reads all chunks
+      var _valueStream = moduleSelf.leveldb.createReadStream(_options);
+
+      _valueStream.on('end', function() {
+        log.debug('End event in LevelDBReadStream.');
+        self.emit('end');
+        fulfill();
+      });
+
+      // pipe the created stream into the provided write stream
+      _valueStream.pipe(writeStream);
     });
-
-    // pipe the created stream into the provided write stream
-    _valueStream.pipe(writeStream);
   };
 
   //
@@ -262,89 +263,125 @@
   exports.BucketHttpServer.prototype.handleReadWriteRequest =
     function(request, response) {
 
-      var rs = exports.BucketReadStream;
-      var ws = exports.BucketWriteStream;
+      return new Promise(function(fulfill, reject) {
 
-      var leveldb = null;
+        var rs = exports.BucketReadStream;
+        var ws = exports.BucketWriteStream;
 
-      // Just for debugging
-      request.on('end', function() {
-        log.debug('end of request');
+        var leveldb = null;
+
+        // Just for debugging
+        request.on('end', function() {
+          log.debug('handleReadWriteRequest: end of http request');
+        });
+
+        // Put into leveldb
+        if (request.method == 'POST') {
+          leveldb = new ws();
+
+          // catch when write is completed and wite status to response
+          leveldb.on('finish', function() {
+            var lastChunk = leveldb.lastSucessfullChunk();
+
+            // calculate hash by reading the content from leveldb
+            leveldb = new rs();
+            leveldb.init(request.url, function() {
+              h.calcHash(leveldb, 'sha1', 'hex', function(hash) {
+                log.debug('Finish event in leveldb write. Last chunk: ' +
+                  lastChunk);
+
+                response.writeHead(200, {
+                  'Content-Type': 'application/json'
+                });
+                response.write(JSON.stringify({
+                  status: 'ok',
+                  lastChunk: lastChunk,
+                  etag: hash
+                }));
+                response.end();
+                fulfill();
+              });
+            });
+
+          });
+
+          // fetch any errors writing to database
+          leveldb.on('error', function(err) {
+            var lastChunk = leveldb.lastSucessfullChunk();
+            log.log('Error in leveldb write. Last successful chunk: ' +
+              lastChunk);
+
+            // need to somehow indicate how many chunks that were written to
+            // the database
+            h.writeError(response, JSON.stringify({
+              status: 'error',
+              errorMessage: err,
+              lastChunk: lastChunk
+            }));
+
+            reject(err);
+          });
+
+          leveldb.init(request.url, function() {
+            request.pipe(leveldb);
+          });
+
+        }
+
+        // get from leveldb
+        if (request.method == 'GET') {
+          leveldb = new rs();
+
+          leveldb.on('finish', function() {
+            fulfill();
+          });
+
+          leveldb.on('error', function(err) {
+            reject(err);
+          });
+
+          leveldb.init(request.url, function() {
+            leveldb.pipeReadStream(response);
+          });
+        }
+
       });
 
-      // Put into leveldb
-      if (request.method == 'POST') {
-        leveldb = new ws();
-
-        // catch when write is completed and wite status to response
-        leveldb.on('finish', function() {
-          var lastChunk = leveldb.lastSucessfullChunk();
-
-          leveldb = new rs();
-          leveldb.init(request.url, function() {
-            h.calcHash(leveldb, 'sha1', 'hex', function(hash) {
-              log.debug('Finish event in leveldb write. Last chunk: ' +
-                lastChunk);
-
-              response.writeHead(200, {
-                'Content-Type': 'application/json'
-              });
-              response.write(JSON.stringify({
-                status: 'ok',
-                lastChunk: lastChunk,
-                etag: hash
-              }));
-              response.end();
-            });
-          });
-
-        });
-
-        // fetch any errors writing to database
-        leveldb.on('error', function(err) {
-          var lastChunk = leveldb.lastSucessfullChunk();
-          log.log('Error in leveldb write. Last successful chunk: ' +
-            lastChunk);
-
-          // HTTP 400 General error: http://www.odata.org/documentation/odata-version-2-0/operations/
-          // need to somehow indicate how many chunks that were written to
-          // the database
-          response.writeHead(400, {
-            'Content-Type': 'application/json'
-          });
-          response.write(JSON.stringify({
-            status: 'error',
-            errorMessage: err,
-            lastChunk: lastChunk
-          }));
-          response.end();
-
-        });
-
-        leveldb.init(request.url, function() {
-          request.pipe(leveldb);
-        });
-      }
-
-      // get from leveldb
-      if (request.method == 'GET') {
-        leveldb = new rs();
-        leveldb.init(request.url, function() {
-          leveldb.pipeReadStream(response);
-        });
-      }
     };
 
+  // Check if this is an operation on a bucket by looking for the `b_`
+  // prefix, `tokens_ = [ account, 'b_'bucket]` or
+  //                   `[ account, 's', 'create_bucket' | 'delete_bucket' ]`
+  exports.BucketHttpServer.prototype.isBucketOp = function(url) {
+    var tokens = h.tokenize(url);
+
+    return ((tokens.length === 3 && exports.isAdminOp(tokens[2])) ||
+      (tokens.length === 2 &&
+        tokens[1].substr(0, CONFIG.ODATA.BUCKET_PREFIX.length) ===
+        CONFIG.ODATA.BUCKET_PREFIX));
+  };
+
   // HTTP REST Server
-  exports.BucketHttpServer.prototype.main = function(request, response) {
+  exports.BucketHttpServer.prototype.main = function(request, response, next) {
+    var self = this;
+
     log.debug('In main ...');
 
-    var self = this;
-    var parsedURL = url.parse(request.url, true, false);
-    var a = parsedURL.pathname.split("/");
+    // do nothing if the response is closed
+    if (response.finished) {
+      next();
+    }
 
-    // drop the first element which is an empty string
-    var tokens = a.splice(1, a.length);
+    if (!self.isBucketOp(request.url)) {
+      next();
+      return;
+    }
+
+    var tokens = h.tokenize(request.url);
+
+    log.debug('Bucket operation ' + request.method + " on " + tokens[0] +
+      '.' + tokens[1] + ' ' +
+      ((tokens.length === 3) ? tokens[2] : ''));
 
     var accountId = request.headers.user;
 
@@ -362,6 +399,7 @@
         var str = "Incorrent admin operation: " + bucketOp;
         log.log(str);
         h.writeError(response, str);
+        next();
         return;
       }
 
@@ -399,57 +437,53 @@
 
         log.debug('End of data');
 
-        try {
-
-          // parse odata payload into JSON object
-          var jsonData = null;
-          if (data !== '') {
-            jsonData = h.jsonParse(data);
-            log.debug('Data received: ' + JSON.stringify(jsonData));
-          }
-
-          var odataResult = {};
-          var rdbms;
-          var options = {
-            credentials: {
-              database: accountId,
-              user: accountId,
-              password: request.headers.password
-            },
-            closeStream: true
-          };
-
-          if (bucketOp === 'create_bucket') {
-            options.tableDef = {};
-            options.tableDef.tableName = jsonData.bucketName;
-            options.tableDef.columns = ['id int', 'log varchar(255)'];
-            rdbms = new Rdbms.sqlCreate(options);
-
-          }
-
-          if (bucketOp === 'drop_bucket') {
-            options.tableDef = {};
-            options.tableDef.tableName = jsonData.bucketName;
-            rdbms = new Rdbms.sqlDrop(options);
-          }
-
-          var str = 'Performing bucket operation: ' + bucketOp +
-            '. options: ' + JSON.stringify(options);
-          log.log(str);
-
-          rdbms.pipe(bucket,
-            function() {
-              odataResult.rdbmsResponse = decoder.write(bucket.get());
-              h.writeResponse(response, odataResult);
-            },
-            function(err) {
-              h.writeError(response, err);
-            }
-          );
-
-        } catch (e) {
-          h.writeError(response, e);
+        // parse odata payload into JSON object
+        var jsonData = null;
+        if (data !== '') {
+          jsonData = h.jsonParse(data);
+          log.debug('Data received: ' + JSON.stringify(jsonData));
         }
+
+        var odataResult = {};
+        var rdbms;
+        var options = {
+          credentials: {
+            database: accountId,
+            user: accountId,
+            password: request.headers.password
+          },
+          closeStream: true
+        };
+
+        if (bucketOp === 'create_bucket') {
+          options.tableDef = {};
+          options.tableDef.tableName = jsonData.bucketName;
+          options.tableDef.columns = ['id int', 'log varchar(255)'];
+          rdbms = new Rdbms.sqlCreate(options);
+        }
+
+        if (bucketOp === 'drop_bucket') {
+          options.tableDef = {};
+          options.tableDef.tableName = jsonData.bucketName;
+          rdbms = new Rdbms.sqlDrop(options);
+        }
+
+        var str = 'Performing bucket operation: ' + bucketOp +
+          '. options: ' + JSON.stringify(options);
+        log.log(str);
+
+        rdbms.pipe2(bucket).then(
+            function() {
+              log.debug('IN THEN')
+              odataResult.rdbmsResponse = bucket.get().toString();
+              h.writeResponse(response, odataResult);
+              next();
+            })
+          .catch(function(err) {
+            log.log('Error in main: ', err);
+            h.writeError(response, err);
+            next();
+          });
 
       });
 
@@ -472,40 +506,69 @@
         options.sql = 'select id, log from ' + schema + '.' + bucketName;
 
         log.debug('Check privileges for user ' + accountId + ' on bucket ' +
-                  schema + '/' + bucketName);
+          schema + '/' + bucketName);
 
+        // check privileges using rdbms, read from leveldb if successful
         var mysqlRead = new Rdbms.sqlRead(options);
-        mysqlRead.fetchAll(
-          function(res) {
-            exports.BucketHttpServer.prototype.handleReadWriteRequest(request,
-              response);
-          }, function(err) {
+        /*        mysqlRead.fetchAll(
+                  // end
+                  function(res) {
+                    exports.BucketHttpServer.prototype.handleReadWriteRequest(request,
+                      response);
+                  },
+                  // handle errors
+                  function(err) {
+                    h.writeError(response, 'Cannot read from bucket: ' + err);
+                  }
+                );
+        */
+
+        mysqlRead.fetchAll2()
+          .then(function(res) {
+            return self.handleReadWriteRequest(request, response);
+          })
+          .then(function() {
+            next();
+          })
+          .catch(function(err) {
             h.writeError(response, 'Cannot read from bucket: ' + err);
-          }
-        );
+            next();
+          });
+
       }
 
       // Check that the user can perform write operations
       if (request.method == 'POST') {
         options.tableName = bucketName;
         options.resultStream = bucket;
+
+        // check the privileges using the rdbms, write to leveldb if successful
         var writeStream = new Rdbms.sqlWriteStream(options,
+          // end
           function() {
             exports.BucketHttpServer.prototype.handleReadWriteRequest(request,
-              response);
+                response)
+              .then(function() {
+                next();
+              });
           },
+          // error
           function(err) {
             h.writeError(response, 'Cannot write to bucket. ' + err);
+            next();
           }
         );
 
         // create stream that writes json into rdbms
         var jsonStream = new require('stream');
         jsonStream.pipe = function(dest) {
-          dest.write(JSON.stringify({id: 2, log: 'writing to bucket ' +
-                                                  schema + '/' + bucketName +
-                                                  ' with credentials ' +
-                                                  accountId}));
+          dest.write(JSON.stringify({
+            id: 2,
+            log: 'writing to bucket ' +
+              schema + '/' + bucketName +
+              ' with credentials ' +
+              accountId
+          }));
         };
 
         jsonStream.pipe(writeStream);

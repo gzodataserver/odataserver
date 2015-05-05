@@ -596,7 +596,6 @@ tap('testing create bucket', function(test) {
     log.debug('Received: ' + data);
     test.assert(statusCode === 200, 'create bucket');
     test.end();
-
   });
 
 });

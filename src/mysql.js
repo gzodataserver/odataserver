@@ -1,15 +1,13 @@
 // mysql.js
-//------------------------------
+//-----------
 //
 // 2014-11-27, Jonas Colmsjö
-//
 //------------------------------
 //
 // Implementation of sql functions with on top of MySQL.
 //
-// NOTE: see sqlBase.js for documentation about the classes.
-//
 // Classes:
+//
 //  * `mysqlBase`      - base class with MySQL specific parts
 //  * `sqlRead`        - inhertis mysqlBase
 //  * `sqlWriteStream` - inherits Writable, have parts unique to MySQL
@@ -18,7 +16,7 @@
 //  * `sqlAdmin`       - inhertis mysqlBase
 //
 // Arguments used in the constructors:
-//
+//```
 //     options = {
 //       credentials: {
 //         user: '',
@@ -34,17 +32,39 @@
 //       processRowFunc: function used in sqlRead to manipulate each row read, used
 //                       for add eTags etc.
 //     };
+//```
+//
+// The functions are used like this (promises are used for async operations):
+//```
+// var options = {
+//   credentials: {
+//     database: 'accountId',
+//     user: 'accountId',
+//     password: 'password'
+//   },
+//   closeStream: true
+// };
+//
+// sqlAdmin = new Rdbms.sqlAdmin(options);
+//
+// sqlAdmin.pipe2(bucket)
+// .then(function() {
+//   // next operation
+// })
+// .catch(function(err) {
+//   // handle errors
+// });
+//```
+//
 //
 // NOTES:
+//
 // * `closeStream` - is not always taken into account, should look over this
 //
 //
-//------------------------------
 //
-// Using Google JavaScript Style Guide:
-// http://google-styleguide.googlecode.com/svn/trunk/javascriptguide.xml
-//
-//------------------------------
+// Using
+// [Google JavaScript Style Guide](http://google-styleguide.googlecode.com/svn/trunk/javascriptguide.xml)
 //
 
 (function(moduleSelf, undefined) {
@@ -331,21 +351,44 @@
     var self = this;
 
     runQuery(self.connection, self.sql,
+      // handle row
       function(row) {
-        log.debug('processRow(self, row): ' + processRow(self, row));
+        log.debug('processRow(self, row): ', processRow(self, row));
         self.result.push(processRow(self, row));
       },
+      // end
       function() {
         self.connection.end();
         resultFunc(self.result);
       },
+      // handle errors
       function(err) {
         self.connection.end();
         if (errFunc !== undefined) {
           errFunc(err);
         }
       }
+      // fields func not used
     );
+  };
+
+  exports.sqlRead.prototype.fetchAll2 = function() {
+    var self = this;
+
+    return runQuery2(self.connection, self.sql,
+      // handle fields
+      null,
+      // handle result
+      function(row) {
+        log.debug('processRow(self, row): ', processRow(self, row));
+        self.result.push(processRow(self, row));
+      },
+      null)
+    .then(function() {
+      self.connection.end();
+      return self.result;
+    });
+    // errors are not caught, let these bubble up
 
   };
 
@@ -410,6 +453,7 @@
       // just wait for the next chunk in case of an error
       self.jsonOK = false;
       done();
+      return;
     }
 
     var sql = h.json2insert(self.options.credentials.database,

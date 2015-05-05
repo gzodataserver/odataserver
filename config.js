@@ -192,7 +192,7 @@
   // NOTE: should turn logging on in production. Turned off here in order for
   // the tests output to comply with the TAP protocol
   c.mysqlLoggerOptions = {
-    debug: false,
+    debug: true,
     filename: 'mysql.js',
     noLogging: false,
     debuglog: util.debuglog('debugmysql')

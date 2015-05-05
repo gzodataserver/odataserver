@@ -1,18 +1,16 @@
 // mssql.js
-//------------------------------
+//---------
 //
 // 2014-11-25, Jonas Colmsjö
-//
 //------------------------------
 //
 // RDBMS Backend for MS SQL Server. This is _work in progress_, only sqlRead
 // has been implemented so far.
 //
 //
-// Using Google JavaScript Style Guide:
-// http://google-styleguide.googlecode.com/svn/trunk/javascriptguide.xml
+// Using
+// [Google JavaScript Style Guide](http://google-styleguide.googlecode.com/svn/trunk/javascriptguide.xml)
 //
-//------------------------------
 
 (function(self_, undefined) {
 

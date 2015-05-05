@@ -2,7 +2,6 @@
 //------------------------------
 //
 // 2014-11-27, Jonas Colmsjö
-//
 //------------------------------
 //
 // This module contains abstract classes to be implemented for each database
@@ -23,12 +22,8 @@
 //  * sqlAdmin       - inhertis sqlBase
 //
 //
-//------------------------------
-//
-// Using Google JavaScript Style Guide:
-// http://google-styleguide.googlecode.com/svn/trunk/javascriptguide.xml
-//
-//------------------------------
+// Using
+// [Google JavaScript Style Guide](http://google-styleguide.googlecode.com/svn/trunk/javascriptguide.xml)
 //
 
 (function(self_, undefined) {
