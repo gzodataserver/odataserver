@@ -237,6 +237,7 @@
   // ---------------------
 
   exports.start = function() {
+    var self = this;
 
     if (CONFIG.enableTooBusy) {
       setupTooBusy();
@@ -245,19 +246,8 @@
     // setup the middleware
     // --------------------
 
-    var odataServer = new odata.ODataServer();
-    var bucketServer = new buckets.BucketHttpServer();
-
     moduleSelf.server = new middleware();
-
-    moduleSelf.server.use(checkMethod);
-    moduleSelf.server.use(allowCors);
-    moduleSelf.server.use(logRequest);
-    moduleSelf.server.use(matchHelp);
-    moduleSelf.server.use(performChecks);
-    moduleSelf.server.use(bucketServer.main.bind(bucketServer));
-    moduleSelf.server.use(odataServer.main);
-    // NOTE: The response object is not closed explicitly
+    self.init(moduleSelf.server);
 
     // start http server
     // -----------------
@@ -271,19 +261,14 @@
         cert: fs.readFileSync(CONFIG.HTTPS_OPTIONS.CERT_FILE)
       };
 
-      //moduleSelf.server = https.createServer(httpsOptions, httpFunc);
       moduleSelf.server.listen(CONFIG.ODATA.PORT, httpsOptions);
 
     } else {
       log.log('Use HTTP.');
-      //moduleSelf.server = http.createServer(httpFunc);
       moduleSelf.server.listen(CONFIG.ODATA.PORT);
     }
 
-    //moduleSelf.server.listen(CONFIG.ODATA.PORT);
-
     log.log("Server is listening on port " + CONFIG.ODATA.PORT);
-
   };
 
   //
@@ -299,16 +284,11 @@
   // ---------------------------------------------------------------------------
   //
   //```
-  // var odataserver = require('odataserver');
-  //
   // var express = require('express');
   // var app = express();
   //
-  // var buckets = new odataserver.buckets();
-  // var rdbms = new odataserver.rdbms();
-  //
-  // app.use(buckets.main);
-  // app.use(rdbms.main);
+  // var odataserver = require('odataserver');
+  // odataserver.init(app);
   //
   // var server = app.listen(3000, function () {
   //
@@ -319,6 +299,21 @@
   //
   // });
   //```
+
+  exports.init = function(mws) {
+    var self = this;
+
+    var odataServer = new odata.ODataServer();
+    var bucketServer = new buckets.BucketHttpServer();
+
+    mws.use(checkMethod);
+    mws.use(allowCors);
+    mws.use(logRequest);
+    mws.use(matchHelp);
+    mws.use(performChecks);
+    mws.use(bucketServer.main.bind(bucketServer));
+    mws.use(odataServer.main.bind(odataServer));
+  };
 
   exports.buckets = buckets.BucketHttpServer;
   exports.rdbms = odata.ODataServer;
