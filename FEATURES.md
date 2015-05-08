@@ -256,7 +256,7 @@ exports.start = function() {
 ```
 
 
-feature 9 (not implemented)
+feature 9 (implemented)
 ---------------------------
 
 Separate out constants (that only are changed when changing the internal
