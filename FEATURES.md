@@ -101,7 +101,7 @@ Make it possible to execute any valid SQL. This can be used to call
 stored procedures and also to do complex things like joins etc.
 
 
-feature 6 (not implemented)
+feature 6 (implemented)
 --------------------------
 
 Make it possible to use connectjs (expressjs) type of middleware.
@@ -151,4 +151,106 @@ var server = app.listen(3000, function () {
   console.log('Example app listening at http://%s:%s', host, port);
 
 });
+```
+
+feature 7 (not implemented)
+--------------------------
+
+Implement the `$expand` keyword with joins.
+
+`/table1?$expand=table2$filter=col1 eq table2/col1` becomes
+`select * from table1,table2 where table1.col1=table2.col1`
+
+Implement like this:
+
+ * Add a rule to `translateOp` in `filter2where`: '/' becomes '.'
+  * Does mysql allow `col1` instead of `table1.col1`?? If not, check `sqlObjects`
+    for join when built, add `result.schema` before identifiers that are missing
+    entity/table
+ * add rule to `odata2sql`: `$expand` returns `{id: 2.5, q: ','+param}`
+
+
+feature 8 (not implemented)
+---------------------------
+
+Implement the `$batch` keyword. Multipart messages are used to send several
+queries in one request.
+
+
+feature 8 (not implemented)
+--------------------------
+
+The server cannot be configured easily when used as a module. All configuration
+is in the file `config.js`. The server is used like this:
+
+```
+var main = require('../src/main.js');
+main.start();
+```
+
+It should rather be used like this:
+
+```
+var odataserver = require('odataserver');
+
+var config = {
+  ODATA: {
+    HOST: 'localhost',
+    PORT: '9000'
+  },
+
+  RDBMS: {
+    DB_HOST: 'localhost',
+  }
+};
+
+var app = odataserver(config);
+
+app.get('/', function (req, res) {
+  res.send('Hello World!');
+});
+
+var server = app.listen(3000, function () {
+  console.log('Example app listening at http://localhost:3000');  
+});
+
+```
+
+The start method looks like this:
+
+```
+exports.start = function() {
+  var self = this;
+
+  if (CONFIG.enableTooBusy) {
+    setupTooBusy();
+  }
+
+  // setup the middleware
+  // --------------------
+
+  moduleSelf.server = new middleware();
+  self.init(moduleSelf.server);
+
+  // start http server
+  // -----------------
+
+  if (CONFIG.HTTPS_OPTIONS.USE_HTTPS) {
+
+    log.log('Use HTTPS.');
+
+    var httpsOptions = {
+      key: fs.readFileSync(CONFIG.HTTPS_OPTIONS.KEY_FILE),
+      cert: fs.readFileSync(CONFIG.HTTPS_OPTIONS.CERT_FILE)
+    };
+
+    moduleSelf.server.listen(CONFIG.ODATA.PORT, httpsOptions);
+
+  } else {
+    log.log('Use HTTP.');
+    moduleSelf.server.listen(CONFIG.ODATA.PORT);
+  }
+
+  log.log("Server is listening on port " + CONFIG.ODATA.PORT);
+};
 ```
