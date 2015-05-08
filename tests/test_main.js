@@ -10,6 +10,8 @@
 // [Google JavaScript Style Guide](http://google-styleguide.googlecode.com/svn/trunk/javascriptguide.xml)
 //
 
+var moduleSelf = this;
+
 var tap = require('tape');
 var http = require('http');
 
@@ -27,20 +29,23 @@ var log = new h.log0(CONSTANTS.testLoggerOptions);
 var main = require('../src/main.js');
 
 // used across tests
-var password, password2;
-var accountId = h.email2accountId(CONSTANTS.TEST.EMAIL);
-var accountId2 = h.email2accountId(CONSTANTS.TEST.EMAIL2);
-
-var moduleSelf = this;
-moduleSelf.accountId = accountId;
-moduleSelf.accountId2 = accountId2;
-
-// operation to test
 moduleSelf.options = {
   hostname: global.CONFIG.ODATA.HOST,
   port: global.CONFIG.ODATA.PORT,
+  method: 'POST',
   headers: {
-    user: accountId
+    user: h.email2accountId(CONSTANTS.TEST.EMAIL),
+    database: h.email2accountId(CONSTANTS.TEST.EMAIL)
+  }
+};
+
+moduleSelf.options2 = {
+  hostname: global.CONFIG.ODATA.HOST,
+  port: global.CONFIG.ODATA.PORT,
+  method: 'POST',
+  headers: {
+    user: h.email2accountId(CONSTANTS.TEST.EMAIL2),
+    database: h.email2accountId(CONSTANTS.TEST.EMAIL2)
   }
 };
 
@@ -73,12 +78,8 @@ tap('setUp', function(test) {
 tap('testing create_account and reset_password', function(test) {
 
   // operation to test
-  var options = {
-    hostname: global.CONFIG.ODATA.HOST,
-    port: global.CONFIG.ODATA.PORT,
-    method: 'POST',
-    path: '/create_account'
-  };
+  var options = h.clone(moduleSelf.options);
+  options.path = '/create_account';
 
   var jsonInput = JSON.stringify({
     email: CONSTANTS.TEST.EMAIL
@@ -91,11 +92,12 @@ tap('testing create_account and reset_password', function(test) {
     log.debug('Received: ' + data);
     test.assert(statusCode === 200, 'create_account');
 
-    options.path = '/' + moduleSelf.accountId + '/' +
+    var options = h.clone(moduleSelf.options);
+    options.path = '/' + moduleSelf.options.headers.user + '/' +
                     global.CONFIG.ODATA.SYS_PATH + '/reset_password';
 
     jsonInput = JSON.stringify({
-      accountId: moduleSelf.accountId,
+      accountId: moduleSelf.options.headers.user,
       email: CONSTANTS.TEST.EMAIL
     });
 
@@ -104,9 +106,8 @@ tap('testing create_account and reset_password', function(test) {
       log.debug('Received: ' + data);
 
       if (jsonData.d.password !== undefined) {
-        moduleSelf.options.headers.password = password =
-          jsonData.d.password;
-        log.debug('Received password:' + password);
+        moduleSelf.options.headers.password = jsonData.d.password;
+        log.debug('Received password:' + moduleSelf.options.headers.password);
       }
 
       test.assert(statusCode === 200, 'reset_password');
@@ -121,16 +122,10 @@ tap('testing create_account and reset_password', function(test) {
 tap('testing validate password using service definition', function(test) {
 
   // operation to test
-  var options = {
-    hostname: global.CONFIG.ODATA.HOST,
-    port: global.CONFIG.ODATA.PORT,
-    method: 'GET',
-    path: '/' + accountId,
-    headers: {
-      user: accountId,
-      password: password + '..' // Incorrect password, should not work
-    }
-  };
+  var options = h.clone(moduleSelf.options);
+  options.method = 'GET';
+  options.path = '/' + moduleSelf.options.headers.user;
+  options.headers.password = options.headers.password + '..'; // Incorrect password, should not work
 
   test.plan(1);
 
@@ -147,12 +142,8 @@ tap('testing create_account and reset_password for test user #2',
   function(test) {
 
     // operation to test
-    var options = {
-      hostname: global.CONFIG.ODATA.HOST,
-      port: global.CONFIG.ODATA.PORT,
-      method: 'POST',
-      path: '/create_account'
-    };
+    var options = h.clone(moduleSelf.options);
+    options.path = '/create_account';
 
     var jsonInput = JSON.stringify({
       email: CONSTANTS.TEST.EMAIL2
@@ -165,11 +156,13 @@ tap('testing create_account and reset_password for test user #2',
       log.debug('Received: ' + data);
       test.assert(statusCode === 200, 'create_account #2');
 
-      options.path = '/' + moduleSelf.accountId2 + '/' +
-      global.CONFIG.ODATA.SYS_PATH + '/reset_password';
+      var options = h.clone(moduleSelf.options2);
+
+      options.path = '/' + moduleSelf.options2.headers.user + '/' +
+                      global.CONFIG.ODATA.SYS_PATH + '/reset_password';
 
       jsonInput = JSON.stringify({
-        accountId: moduleSelf.accountId2,
+        accountId: moduleSelf.options2.headers.user,
         email: CONSTANTS.TEST.EMAIL2
       });
 
@@ -178,8 +171,8 @@ tap('testing create_account and reset_password for test user #2',
         log.debug('Received: ' + data);
 
         if (jsonData.d.password !== undefined) {
-          password2 = jsonData.d.password;
-          log.debug('Received password:' + password);
+          moduleSelf.options2.headers.password = jsonData.d.password;
+          log.debug('Received password:' + moduleSelf.options2.headers.password);
         }
 
         test.assert(statusCode === 200, 'reset_password #2');
@@ -197,16 +190,9 @@ tap('testing create_account and reset_password for test user #2',
 tap('testing create_table', function(test) {
 
   // operation to test
-  var options = {
-    hostname: global.CONFIG.ODATA.HOST,
-    port: global.CONFIG.ODATA.PORT,
-    method: 'POST',
-    path: '/' + accountId + '/' + global.CONFIG.ODATA.SYS_PATH + '/create_table',
-    headers: {
-      user: accountId,
-      password: password
-    }
-  };
+  var options = h.clone(moduleSelf.options);
+  options.path = '/' + moduleSelf.options.headers.user + '/' +
+                  global.CONFIG.ODATA.SYS_PATH + '/create_table';
 
   var tableDef = JSON.stringify({
     tableDef: {
@@ -230,16 +216,8 @@ tap('testing create_table', function(test) {
 tap('testing insert', function(test) {
 
   // operation to test
-  var options = {
-    hostname: global.CONFIG.ODATA.HOST,
-    port: global.CONFIG.ODATA.PORT,
-    method: 'POST',
-    path: '/' + accountId + '/mytable',
-    headers: {
-      user: accountId,
-      password: password
-    }
-  };
+  var options = h.clone(moduleSelf.options);
+  options.path = '/' + moduleSelf.options.headers.user + '/mytable';
 
   var input = JSON.stringify({
     col1: 22,
@@ -260,16 +238,9 @@ tap('testing insert', function(test) {
 tap('testing select', function(test) {
 
   // operation to test
-  var options = {
-    hostname: global.CONFIG.ODATA.HOST,
-    port: global.CONFIG.ODATA.PORT,
-    method: 'GET',
-    path: '/' + accountId + '/mytable',
-    headers: {
-      user: accountId,
-      password: password
-    }
-  };
+  var options = h.clone(moduleSelf.options);
+  options.method = 'GET';
+  options.path = '/' + moduleSelf.options.headers.user + '/mytable';
 
   test.plan(1);
 
@@ -284,8 +255,9 @@ tap('testing select', function(test) {
 
 tap('testing update', function(test) {
 
-  moduleSelf.options.method = 'PUT';
-  moduleSelf.options.path = '/' + accountId + '/mytable';
+  var options = h.clone(moduleSelf.options);
+  options.method = 'PUT';
+  options.path = '/' + moduleSelf.options.headers.user + '/mytable';
 
   var input = JSON.stringify({
     col2: '33'
@@ -293,7 +265,7 @@ tap('testing update', function(test) {
 
   test.plan(1);
 
-  th.httpRequest(moduleSelf.options, input, function(data, statusCode) {
+  th.httpRequest(options, input, function(data, statusCode) {
     var jsonData = h.jsonParse(data);
     log.debug('Received: ' + data);
     test.assert(statusCode === 200, 'update');
@@ -305,16 +277,9 @@ tap('testing update', function(test) {
 tap('testing select with user #2 before grant', function(test) {
 
   // operation to test
-  var options = {
-    hostname: global.CONFIG.ODATA.HOST,
-    port: global.CONFIG.ODATA.PORT,
-    method: 'GET',
-    path: '/' + accountId + '/mytable',
-    headers: {
-      user: accountId2,
-      password: password2
-    }
-  };
+  var options = h.clone(moduleSelf.options2);
+  options.method = 'GET';
+  options.path = '/' + moduleSelf.options.headers.user + '/mytable';
 
   test.plan(2);
 
@@ -332,20 +297,13 @@ tap('testing select with user #2 before grant', function(test) {
 tap('testing grant', function(test) {
 
   // operation to test
-  var options = {
-    hostname: global.CONFIG.ODATA.HOST,
-    port: global.CONFIG.ODATA.PORT,
-    method: 'POST',
-    path: '/' + accountId + '/' + global.CONFIG.ODATA.SYS_PATH + '/grant',
-    headers: {
-      user: accountId,
-      password: password
-    }
-  };
+  var options = h.clone(moduleSelf.options);
+  options.path = '/' + moduleSelf.options.headers.user + '/' +
+                global.CONFIG.ODATA.SYS_PATH + '/grant';
 
   var input = JSON.stringify({
     tableName: 'mytable',
-    accountId: accountId2
+    accountId: moduleSelf.options2.headers.user
   });
 
   test.plan(1);
@@ -362,25 +320,18 @@ tap('testing grant', function(test) {
 tap('testing select with user #2 after grant', function(test) {
 
   // operation to test
-  var options = {
-    hostname: global.CONFIG.ODATA.HOST,
-    port: global.CONFIG.ODATA.PORT,
-    method: 'GET',
-    path: '/' + accountId + '/mytable',
-    headers: {
-      user: accountId2,
-      password: password2
-    }
-  };
+  var options = h.clone(moduleSelf.options2);
+  options.method = 'GET';
+  options.path = '/' + moduleSelf.options.headers.user + '/mytable';
 
   test.plan(2);
 
   th.httpRequest(options, null, function(data, statusCode) {
     var jsonData = h.jsonParse(data);
     log.debug('Received: ' + data);
-    test.assert(statusCode === 200, 'select with user #2 after grant');
+    test.assert(statusCode === 200, 'select with user #2 after grant (status)');
     test.assert(jsonData.d.results.length !== 0,
-      'select with user #2 after grant');
+      'select with user #2 after grant (data)');
     test.end();
   });
 
@@ -389,20 +340,13 @@ tap('testing select with user #2 after grant', function(test) {
 tap('testing revoke', function(test) {
 
   // operation to test
-  var options = {
-    hostname: global.CONFIG.ODATA.HOST,
-    port: global.CONFIG.ODATA.PORT,
-    method: 'POST',
-    path: '/' + accountId + '/' + global.CONFIG.ODATA.SYS_PATH + '/revoke',
-    headers: {
-      user: accountId,
-      password: password
-    }
-  };
+  var options = h.clone(moduleSelf.options);
+  options.path = '/' + moduleSelf.options.headers.user + '/' +
+                  global.CONFIG.ODATA.SYS_PATH + '/revoke';
 
   var input = JSON.stringify({
     tableName: 'mytable',
-    accountId: accountId2
+    accountId: moduleSelf.options2.headers.user
   });
 
   test.plan(1);
@@ -419,16 +363,9 @@ tap('testing revoke', function(test) {
 tap('testing select with user #2 after revoke', function(test) {
 
   // operation to test
-  var options = {
-    hostname: global.CONFIG.ODATA.HOST,
-    port: global.CONFIG.ODATA.PORT,
-    method: 'GET',
-    path: '/' + accountId + '/mytable',
-    headers: {
-      user: accountId2,
-      password: password2
-    }
-  };
+  var options = h.clone(moduleSelf.options2);
+  options.method = 'GET';
+  options.path = '/' + moduleSelf.options.headers.user + '/mytable';
 
   test.plan(2);
 
@@ -450,16 +387,9 @@ tap('testing delete', function(test) {
   });
 
   // operation to test
-  var options = {
-    hostname: global.CONFIG.ODATA.HOST,
-    port: global.CONFIG.ODATA.PORT,
-    method: 'DELETE',
-    path: '/' + accountId + '/mytable?' + filter,
-    headers: {
-      user: accountId,
-      password: password
-    }
-  };
+  var options = h.clone(moduleSelf.options);
+  options.method = 'DELETE';
+  options.path = '/' + moduleSelf.options.headers.user + '/mytable?' + filter;
 
   test.plan(1);
 
@@ -475,16 +405,9 @@ tap('testing delete', function(test) {
 tap('testing select after delete', function(test) {
 
   // operation to test
-  var options = {
-    hostname: global.CONFIG.ODATA.HOST,
-    port: global.CONFIG.ODATA.PORT,
-    method: 'GET',
-    path: '/' + accountId + '/mytable',
-    headers: {
-      user: accountId,
-      password: password
-    }
-  };
+  var options = h.clone(moduleSelf.options);
+  options.method = 'GET';
+  options.path = '/' + moduleSelf.options.headers.user + '/mytable';
 
   test.plan(2);
 
@@ -501,16 +424,9 @@ tap('testing select after delete', function(test) {
 tap('testing service_def', function(test) {
 
   // operation to test
-  var options = {
-    hostname: global.CONFIG.ODATA.HOST,
-    port: global.CONFIG.ODATA.PORT,
-    method: 'GET',
-    path: '/' + accountId,
-    headers: {
-      user: accountId,
-      password: password
-    }
-  };
+  var options = h.clone(moduleSelf.options);
+  options.method = 'GET';
+  options.path = '/' + moduleSelf.options.headers.user;
 
   test.plan(1);
 
@@ -527,12 +443,13 @@ tap('testing service_def', function(test) {
 tap('testing metadata', function(test) {
 
   // operation to test
-  moduleSelf.options.method ='GET';
-  moduleSelf.options.path = '/' + accountId + '/mytable/$metadata';
+  var options = h.clone(moduleSelf.options);
+  options.method ='GET';
+  options.path = '/' + moduleSelf.options.headers.user + '/mytable/$metadata';
 
   test.plan(1);
 
-  th.httpRequest(moduleSelf.options, null, function(data, statusCode) {
+  th.httpRequest(options, null, function(data, statusCode) {
     var jsonData = h.jsonParse(data);
     log.debug('Received: ' + data);
     test.assert(statusCode === 200, 'metadata');
@@ -549,16 +466,9 @@ tap('testing metadata', function(test) {
 tap('testing incorrect bucket admin operation', function(test) {
 
   // operation to test
-  var options = {
-    hostname: global.CONFIG.ODATA.HOST,
-    port: global.CONFIG.ODATA.PORT,
-    method: 'POST',
-    path: '/' + accountId + '/' + global.CONFIG.ODATA.SYS_PATH + '/create_bucket2',
-    headers: {
-      user: accountId,
-      password: password
-    }
-  };
+  var options = h.clone(moduleSelf.options);
+  options.path = '/' + moduleSelf.options.headers.user + '/' +
+                  global.CONFIG.ODATA.SYS_PATH + '/create_bucket2';
 
   var bucket = JSON.stringify({name: 'b_mybucket'});
 
@@ -577,16 +487,9 @@ tap('testing incorrect bucket admin operation', function(test) {
 tap('testing create bucket', function(test) {
 
   // operation to test
-  var options = {
-    hostname: global.CONFIG.ODATA.HOST,
-    port: global.CONFIG.ODATA.PORT,
-    method: 'POST',
-    path: '/' + accountId + '/' + global.CONFIG.ODATA.SYS_PATH + '/create_bucket',
-    headers: {
-      user: accountId,
-      password: password
-    }
-  };
+  var options = h.clone(moduleSelf.options);
+  options.path = '/' + moduleSelf.options.headers.user + '/' +
+              global.CONFIG.ODATA.SYS_PATH + '/create_bucket';
 
   var bucket = JSON.stringify({bucketName: 'b_mybucket'});
 
@@ -604,16 +507,8 @@ tap('testing create bucket', function(test) {
 tap('testing write to bucket', function(test) {
 
   // operation to test
-  var options = {
-    hostname: global.CONFIG.ODATA.HOST,
-    port: global.CONFIG.ODATA.PORT,
-    method: 'POST',
-    path: '/' + accountId + '/b_mybucket',
-    headers: {
-      user: accountId,
-      password: password
-    }
-  };
+  var options = h.clone(moduleSelf.options);
+  options.path = '/' + moduleSelf.options.headers.user + '/b_mybucket';
 
   var inData = 'Some data to write to the bucket...';
 
@@ -632,16 +527,9 @@ tap('testing write to bucket', function(test) {
 tap('testing read from bucket', function(test) {
 
   // operation to test
-  var options = {
-    hostname: global.CONFIG.ODATA.HOST,
-    port: global.CONFIG.ODATA.PORT,
-    method: 'GET',
-    path: '/' + accountId + '/b_mybucket',
-    headers: {
-      user: accountId,
-      password: password
-    }
-  };
+  var options = h.clone(moduleSelf.options);
+  options.method = 'GET';
+  options.path = '/' + moduleSelf.options.headers.user + '/b_mybucket';
 
   test.plan(2);
 
@@ -659,16 +547,9 @@ tap('testing read from bucket', function(test) {
 tap('testing drop bucket', function(test) {
 
   // operation to test
-  var options = {
-    hostname: global.CONFIG.ODATA.HOST,
-    port: global.CONFIG.ODATA.PORT,
-    method: 'POST',
-    path: '/' + accountId + '/' + global.CONFIG.ODATA.SYS_PATH + '/drop_bucket',
-    headers: {
-      user: accountId,
-      password: password
-    }
-  };
+  var options = h.clone(moduleSelf.options);
+  options.path = '/' + moduleSelf.options.headers.user + '/' +
+              global.CONFIG.ODATA.SYS_PATH + '/drop_bucket';
 
   var bucket = JSON.stringify({bucketName: 'b_mybucket'});
 
@@ -691,17 +572,9 @@ tap('testing drop bucket', function(test) {
 tap('testing delete_account', function(test) {
 
   // operation to test
-  var options = {
-    hostname: global.CONFIG.ODATA.HOST,
-    port: global.CONFIG.ODATA.PORT,
-    method: 'POST',
-    path: '/' + accountId + '/' + global.CONFIG.ODATA.SYS_PATH + '/delete_account',
-//    path: '/delete_account',
-    headers: {
-      user: accountId,
-      password: password
-    }
-  };
+  var options = h.clone(moduleSelf.options);
+  options.path = '/' + moduleSelf.options.headers.user + '/' +
+              global.CONFIG.ODATA.SYS_PATH + '/delete_account';
 
   var jsonInput = JSON.stringify({
     email: CONSTANTS.TEST.EMAIL
@@ -721,17 +594,9 @@ tap('testing delete_account', function(test) {
 tap('testing delete_account #2', function(test) {
 
   // operation to test
-  var options = {
-    hostname: global.CONFIG.ODATA.HOST,
-    port: global.CONFIG.ODATA.PORT,
-    method: 'POST',
-    path: '/' + accountId + '/' + global.CONFIG.ODATA.SYS_PATH + '/delete_account',
-//    path: '/delete_account',
-    headers: {
-      user: accountId2,
-      password: password2
-    }
-  };
+  var options = h.clone(moduleSelf.options);
+  options.path= '/' + moduleSelf.options.headers.user + '/' +
+                global.CONFIG.ODATA.SYS_PATH + '/delete_account';
 
   var jsonInput = JSON.stringify({
     email: CONSTANTS.TEST.EMAIL2

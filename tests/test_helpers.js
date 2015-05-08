@@ -14,8 +14,7 @@
 var test = require('tape');
 
 var config = require('../src/config.js');
-global.global.CONFIG = new config({});
-
+global.CONFIG = new config({});
 
 var h = require('../src/helpers.js');
 var StringDecoder = require('string_decoder').StringDecoder;
@@ -24,20 +23,12 @@ var decoder = new StringDecoder('utf8');
 var CONSTANTS = require('../src/constants.js');
 var log = new h.log0(CONSTANTS.testLoggerOptions);
 
-//
-// Some Uris to test with
-// ---------------------
-
 test('setUp', function(test) {
   // setup here
 
   // setup finished
   test.end();
 });
-
-//
-// Some config and defaults
-// ---------------------
 
 test('test config and defaults', function(test) {
   var conf = new config({
@@ -50,10 +41,6 @@ test('test config and defaults', function(test) {
 
   test.end();
 });
-
-//
-// Test the arrayBucketStream
-// -----------------------
 
 test('testing arrayBucketStream', function(test) {
   test.plan(1);
@@ -84,10 +71,6 @@ test('testing arrayBucketStream', function(test) {
   test.end();
 });
 
-//
-// Test logging
-// -------------
-
 test('testing logging functions', function(test) {
 
   var o = {
@@ -106,4 +89,24 @@ test('testing logging functions', function(test) {
 
   test.end();
 
+});
+
+test('testing cloen', function(test) {
+
+  var o = {
+    one: 1,
+    two: 'two',
+    pi: 3.1415,
+
+    o: {si: 'si'}
+  };
+
+
+  var p = h.clone(o);
+  o.one = 2;
+
+  test.ok(p.one !== o.one,
+          'changing property in source object does not effect destination');
+
+  test.end();
 });

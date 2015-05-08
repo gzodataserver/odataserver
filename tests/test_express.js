@@ -12,6 +12,8 @@
 //
 //------------------------------
 
+var moduleSelf = this;
+
 var tap = require('tape');
 var http = require('http');
 var express = require('express');
@@ -27,26 +29,16 @@ var decoder = new StringDecoder('utf8');
 var CONSTANTS = require('../src/constants.js');
 var log = new h.log0(CONSTANTS.testLoggerOptions);
 
+var server;
 
-// used across tests
-var password, password2;
-var accountId = h.email2accountId(CONSTANTS.TEST.EMAIL);
-var accountId2 = h.email2accountId(CONSTANTS.TEST.EMAIL2);
-
-var moduleSelf = this;
-moduleSelf.accountId = accountId;
-moduleSelf.accountId2 = accountId2;
-
-// operation to test
 moduleSelf.options = {
   hostname: global.CONFIG.ODATA.HOST,
   port: global.CONFIG.ODATA.PORT,
   headers: {
-    user: accountId
+    user: h.email2accountId(CONSTANTS.TEST.EMAIL),
+    database: h.email2accountId(CONSTANTS.TEST.EMAIL)
   }
 };
-
-var server;
 
 //
 // Start the odata server
@@ -87,12 +79,9 @@ tap('setUp', function(test) {
 tap('testing create_account and reset_password', function(test) {
 
   // operation to test
-  var options = {
-    hostname: global.CONFIG.ODATA.HOST,
-    port: global.CONFIG.ODATA.PORT,
-    method: 'POST',
-    path: '/create_account'
-  };
+  var options = h.clone(moduleSelf.options);
+  options.method = 'POST';
+  options.path = '/create_account';
 
   var jsonInput = JSON.stringify({
     email: CONSTANTS.TEST.EMAIL
@@ -102,14 +91,16 @@ tap('testing create_account and reset_password', function(test) {
 
   th.httpRequest(options, jsonInput, function(data, statusCode) {
     var jsonData = h.jsonParse(data);
-    log.debug('Received: ' + data);
+    log.debug('Received: ', data);
     test.assert(statusCode === 200, 'create_account');
 
-    options.path = '/' + moduleSelf.accountId + '/' +
+    var options = h.clone(moduleSelf.options);
+    options.method = 'POST';
+    options.path = '/' + moduleSelf.options.headers.user + '/' +
       global.CONFIG.ODATA.SYS_PATH + '/reset_password';
 
     jsonInput = JSON.stringify({
-      accountId: moduleSelf.accountId,
+      accountId: moduleSelf.options.headers.user,
       email: CONSTANTS.TEST.EMAIL
     });
 
@@ -118,9 +109,8 @@ tap('testing create_account and reset_password', function(test) {
       log.debug('Received: ' + data);
 
       if (jsonData.d.password !== undefined) {
-        moduleSelf.options.headers.password = password =
-          jsonData.d.password;
-        log.debug('Received password:' + password);
+        moduleSelf.options.headers.password = jsonData.d.password;
+        log.debug('Received password:' + moduleSelf.options.headers.password);
       }
 
       test.assert(statusCode === 200, 'reset_password');
@@ -137,18 +127,12 @@ tap('testing create_account and reset_password', function(test) {
 
 tap('testing delete_account', function(test) {
 
+  var options = h.clone(moduleSelf.options);
+
   // operation to test
-  var options = {
-    hostname: global.CONFIG.ODATA.HOST,
-    port: global.CONFIG.ODATA.PORT,
-    method: 'POST',
-    path: '/' + accountId + '/' + global.CONFIG.ODATA.SYS_PATH + '/delete_account',
-    //    path: '/delete_account',
-    headers: {
-      user: accountId,
-      password: password
-    }
-  };
+  options.method = 'POST';
+  options.path = '/' + moduleSelf.options.headers.user + '/' +
+                global.CONFIG.ODATA.SYS_PATH + '/delete_account';
 
   var jsonInput = JSON.stringify({
     email: CONSTANTS.TEST.EMAIL
