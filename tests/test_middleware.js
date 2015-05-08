@@ -13,6 +13,10 @@
 
 
 var test = require('tape');
+
+var config = require('../src/config.js');
+global.global.CONFIG = new config({});
+
 var h = require('../src/helpers.js');
 
 var middleware = require('../src/middleware.js');

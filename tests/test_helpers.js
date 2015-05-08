@@ -2,18 +2,20 @@
 //------------------------------
 //
 // 2014-12-03, Jonas Colmsjö
-//
 //------------------------------
 //
 // Test for the helper functions
 //
 //
-// Using Google JavaScript Style Guide:
-// http://google-styleguide.googlecode.com/svn/trunk/javascriptguide.xml
+// Using
+// [Google JavaScript Style Guide](http://google-styleguide.googlecode.com/svn/trunk/javascriptguide.xml)
 //
-//------------------------------
 
 var test = require('tape');
+
+var config = require('../src/config.js');
+global.global.CONFIG = new config({});
+
 
 var h = require('../src/helpers.js');
 var StringDecoder = require('string_decoder').StringDecoder;
@@ -30,6 +32,22 @@ test('setUp', function(test) {
   // setup here
 
   // setup finished
+  test.end();
+});
+
+//
+// Some config and defaults
+// ---------------------
+
+test('test config and defaults', function(test) {
+  var conf = new config({
+    ODATA: {
+      HOST: 'myhost'
+    }
+  });
+
+  test.ok(conf.ODATA.HOST === 'myhost', 'Check that ODATA.HOST has been set');
+
   test.end();
 });
 
@@ -58,7 +76,7 @@ test('testing arrayBucketStream', function(test) {
 
   var json2 = h.jsonParse(bucket.get());
   log.debug('JSON in bucket using jsonParse col1:' + json2.col1 + ', col2:' +
-            json2.col2);
+    json2.col2);
 
   test.deepEqual(json, json2,
     'json in bucket should equal the source json');
@@ -72,8 +90,16 @@ test('testing arrayBucketStream', function(test) {
 
 test('testing logging functions', function(test) {
 
-  var o = {one: 1, two: 'two', pi: 3.1415};
-  var f = function (one, two, pi) { var one = 1, two = 'two', pi = 3.1415; }
+  var o = {
+    one: 1,
+    two: 'two',
+    pi: 3.1415
+  };
+  var f = function(one, two, pi) {
+    var one = 1,
+      two = 'two',
+      pi = 3.1415;
+  }
 
   log.debug(o);
   log.debug(f);

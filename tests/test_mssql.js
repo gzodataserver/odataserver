@@ -20,7 +20,9 @@ var StringDecoder = require('string_decoder').StringDecoder;
 var mssql = require('../src/mssql.js');
 var h = require('../src/helpers.js');
 
-var CONFIG = require('../config.js');
+var config = require('../src/config.js');
+global.global.CONFIG = new config({});
+
 var CONSTANTS = require('../src/constants.js');
 var testEmail = 'test@gizur.com';
 var testEmail2 = 'test2@gizur.com';
@@ -34,10 +36,10 @@ var accountId2 = h.email2accountId(testEmail2);
 var delay = 1;
 
 var adminCredentials = {
-  host: CONFIG.MSSQL.DB_HOST,
-  user: CONFIG.MSSQL.ADMIN_USER,
-  database: CONFIG.MSSQL.DATABASE,
-  password: CONFIG.MSSQL.ADMIN_PASSWORD
+  host: global.CONFIG.MSSQL.DB_HOST,
+  user: global.CONFIG.MSSQL.ADMIN_USER,
+  database: global.CONFIG.MSSQL.DATABASE,
+  password: global.CONFIG.MSSQL.ADMIN_PASSWORD
 };
 
 // This streams save everything written to it

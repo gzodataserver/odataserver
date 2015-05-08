@@ -18,14 +18,16 @@
 
 var tap = require('tape');
 
+var config = require('../src/config.js');
+global.global.CONFIG = new config({});
+
 var h = require('../src/helpers.js');
 var th = require('./helpers.js');
 var StringDecoder = require('string_decoder').StringDecoder;
 var decoder = new StringDecoder('utf8');
-var CONFIG = require('../config.js');
 var CONSTANTS = require('../src/constants.js');
 
-var defaultPort = CONFIG.ODATA.PORT;
+var defaultPort = global.CONFIG.ODATA.PORT;
 var log = new h.log0(CONSTANTS.testLoggerOptions);
 
 var server;
@@ -83,7 +85,7 @@ tap('testing POST', function(test) {
 
     // path and method is set in each test
     this.options = {
-      hostname: CONFIG.ODATA.HOST,
+      hostname: global.CONFIG.ODATA.HOST,
       port: defaultPort,
       headers: {
         user: 'wp',
@@ -114,7 +116,7 @@ tap('testing POST', function(test) {
 
         // path and method is set in each test
         var options2 = {
-          hostname: CONFIG.ODATA.HOST,
+          hostname: global.CONFIG.ODATA.HOST,
           port: defaultPort,
           method: 'GET',
           path: '/wp/image1',

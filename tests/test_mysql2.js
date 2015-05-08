@@ -20,12 +20,14 @@ var Promise = require('promise');
 
 var StringDecoder = require('string_decoder').StringDecoder;
 
+var config = require('../src/config.js');
+global.global.CONFIG = new config({});
+
 var mysql = require('../src/mysql.js');
 var rs = require('../src/mysql.js').sqlRead;
 var ws = require('../src/mysql.js').sqlWriteStream;
 var h = require('../src/helpers.js');
 
-var CONFIG = require('../config.js');
 var CONSTANTS = require('../src/constants.js');
 var loggerOptions = CONSTANTS.testLoggerOptions;
 loggerOptions.filename = '# test_mysql2.js'
@@ -61,9 +63,9 @@ var options2 = {
 // user for admin operatioons (creating/deleting user etc.)
 var adminOptions = {
   credentials: {
-    user: CONFIG.RDBMS.ADMIN_USER,
-    password: CONFIG.RDBMS.ADMIN_PASSWORD,
-    database: CONFIG.RDBMS.DATABASE
+    user: global.CONFIG.RDBMS.ADMIN_USER,
+    password: global.CONFIG.RDBMS.ADMIN_PASSWORD,
+    database: global.CONFIG.RDBMS.DATABASE
   },
   closeStream: false
 };

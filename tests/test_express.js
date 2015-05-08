@@ -16,12 +16,14 @@ var tap = require('tape');
 var http = require('http');
 var express = require('express');
 
+var config = require('../src/config.js');
+global.global.CONFIG = new config({});
+
 var h = require('../src/helpers.js');
 var th = require('./helpers.js');
 var StringDecoder = require('string_decoder').StringDecoder;
 var decoder = new StringDecoder('utf8');
 
-var CONFIG = require('../config.js');
 var CONSTANTS = require('../src/constants.js');
 var log = new h.log0(CONSTANTS.testLoggerOptions);
 
@@ -37,8 +39,8 @@ moduleSelf.accountId2 = accountId2;
 
 // operation to test
 moduleSelf.options = {
-  hostname: CONFIG.ODATA.HOST,
-  port: CONFIG.ODATA.PORT,
+  hostname: global.CONFIG.ODATA.HOST,
+  port: global.CONFIG.ODATA.PORT,
   headers: {
     user: accountId
   }
@@ -61,10 +63,10 @@ tap('setUp', function(test) {
   var odataserver = require('../src/main.js');
   odataserver.init(app);
 
-  server = app.listen(CONFIG.ODATA.PORT, function() {
+  server = app.listen(global.CONFIG.ODATA.PORT, function() {
 
-    console.log('Example app listening at http://%s:%s', CONFIG.ODATA.HOST,
-                CONFIG.ODATA.PORT);
+    console.log('Example app listening at http://%s:%s', global.CONFIG.ODATA.HOST,
+                global.CONFIG.ODATA.PORT);
 
   });
 
@@ -86,8 +88,8 @@ tap('testing create_account and reset_password', function(test) {
 
   // operation to test
   var options = {
-    hostname: CONFIG.ODATA.HOST,
-    port: CONFIG.ODATA.PORT,
+    hostname: global.CONFIG.ODATA.HOST,
+    port: global.CONFIG.ODATA.PORT,
     method: 'POST',
     path: '/create_account'
   };
@@ -104,7 +106,7 @@ tap('testing create_account and reset_password', function(test) {
     test.assert(statusCode === 200, 'create_account');
 
     options.path = '/' + moduleSelf.accountId + '/' +
-      CONFIG.ODATA.SYS_PATH + '/reset_password';
+      global.CONFIG.ODATA.SYS_PATH + '/reset_password';
 
     jsonInput = JSON.stringify({
       accountId: moduleSelf.accountId,
@@ -137,10 +139,10 @@ tap('testing delete_account', function(test) {
 
   // operation to test
   var options = {
-    hostname: CONFIG.ODATA.HOST,
-    port: CONFIG.ODATA.PORT,
+    hostname: global.CONFIG.ODATA.HOST,
+    port: global.CONFIG.ODATA.PORT,
     method: 'POST',
-    path: '/' + accountId + '/' + CONFIG.ODATA.SYS_PATH + '/delete_account',
+    path: '/' + accountId + '/' + global.CONFIG.ODATA.SYS_PATH + '/delete_account',
     //    path: '/delete_account',
     headers: {
       user: accountId,

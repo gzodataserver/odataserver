@@ -22,7 +22,9 @@ var rs = require('../src/mysql.js').sqlRead;
 var ws = require('../src/mysql.js').sqlWriteStream;
 var h = require('../src/helpers.js');
 
-var CONFIG = require('../config.js');
+var config = require('../src/config.js');
+global.global.CONFIG = new config({});
+
 var CONSTANTS = require('../src/constants.js');
 var log = new h.log0(CONSTANTS.testLoggerOptions);
 
@@ -60,9 +62,9 @@ var options2 = {
 // user for admin operatioons (creating/deleting user etc.)
 var adminOptions = {
   credentials: {
-    user: CONFIG.RDBMS.ADMIN_USER,
-    password: CONFIG.RDBMS.ADMIN_PASSWORD,
-    database: CONFIG.RDBMS.DATABASE
+    user: global.CONFIG.RDBMS.ADMIN_USER,
+    password: global.CONFIG.RDBMS.ADMIN_PASSWORD,
+    database: global.CONFIG.RDBMS.DATABASE
   },
   closeStream: false
 };

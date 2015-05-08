@@ -20,7 +20,6 @@
   var util = require('util');
   var url = require('url');
 
-  var CONFIG = require('../config.js');
   var CONSTANTS = require('./constants.js');
 
   var StringDecoder = require('string_decoder').StringDecoder;
@@ -332,9 +331,9 @@
 
   // calculate account id from email
   h.email2accountId = function(email) {
-    return h.hashString(CONFIG.ACCOUNT_ID.HASH_ALG,
-      CONFIG.ACCOUNT_ID.HASH_ENCODING,
-      CONFIG.ACCOUNT_ID.SECRET_SALT + email).slice(0, 12);
+    return h.hashString(global.CONFIG.ACCOUNT_ID.HASH_ALG,
+      global.CONFIG.ACCOUNT_ID.HASH_ENCODING,
+      global.CONFIG.ACCOUNT_ID.SECRET_SALT + email).slice(0, 12);
 
   };
 
@@ -445,7 +444,7 @@
   // -------------
   // View probe: `sudo dtrace -Z -n 'nodeapp*:::probe{ trace(copyinstr(arg0)); }'`
 
-  if (CONFIG.enableDtrace) {
+  if (global.CONFIG.enableDtrace) {
     var dtrace = require('dtrace-provider');
     var dtp = dtrace.createDTraceProvider("nodeapp");
     var p1 = dtp.addProbe("probe", "char *");
@@ -453,7 +452,7 @@
   }
 
   h.fireProbe = function(data) {
-    if (CONFIG.enableDtrace) {
+    if (global.CONFIG.enableDtrace) {
       dtp.fire("probe", function(p) {
         return [data, "odataserver"];
       });

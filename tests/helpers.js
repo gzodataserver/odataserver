@@ -13,84 +13,83 @@
 //
 //------------------------------
 
-(function(moduleSelf, undefined) {
 
-  var h = {};
+var moduleSelf = this;
 
-  var http = require('http');
-  var https = require('https');
-  var h = require('../src/helpers.js');
+var h = {};
 
-  var CONSTANTS = require('../src/constants.js');
-  var log = new h.log0(CONSTANTS.testLoggerOptions);
+var http = require('http');
+var https = require('https');
+var h = require('../src/helpers.js');
 
-  // Measure the latency in the https requests using
-  // an exponentially smoothed moving average (since it is easy to calculate)
-  moduleSelf.latency = 0;
-  moduleSelf.weight = 0.2;
-  moduleSelf.logIntervall = 100;
-  moduleSelf.counter = 0;
+var CONSTANTS = require('../src/constants.js');
+var log = new h.log0(CONSTANTS.testLoggerOptions);
 
-  //
-  // Helper for making http requests
-  // -------------------------------
+// Measure the latency in the https requests using
+// an exponentially smoothed moving average (since it is easy to calculate)
+moduleSelf.latency = 0;
+moduleSelf.weight = 0.2;
+moduleSelf.logIntervall = 100;
+moduleSelf.counter = 0;
 
-  h.httpRequest = function(options, input, done) {
-    var _data = '';
-    var beforeReq = Date.now();
+//
+// Helper for making http requests
+// -------------------------------
 
-    var func = function(res) {
-      // Keep track of the latency (handy when running the stress tests)
-      var receivedRes = Date.now();
-      moduleSelf.latency = (receivedRes - beforeReq) * moduleSelf.weight +
-                           (1 - moduleSelf.weight) * moduleSelf.latency;
+h.httpRequest = function(options, input, done) {
+  var _data = '';
+  var beforeReq = Date.now();
 
-      if (moduleSelf.counter++ % moduleSelf.logIntervall === 0) {
-        log.log('httpRequest average latency: ' + moduleSelf.latency +
-                '(ms)' +
-                '[beforeReq: ' + beforeReq + ' receivedRes: ' + receivedRes +
-                ' diff: ' + (receivedRes - beforeReq) + ']');
-      }
+  var func = function(res) {
+    // Keep track of the latency (handy when running the stress tests)
+    var receivedRes = Date.now();
+    moduleSelf.latency = (receivedRes - beforeReq) * moduleSelf.weight +
+      (1 - moduleSelf.weight) * moduleSelf.latency;
 
-      log.debug('status code:' + res.statusCode + ', headers: ' +
+    if (moduleSelf.counter++ % moduleSelf.logIntervall === 0) {
+      log.log('httpRequest average latency: ' + moduleSelf.latency +
+        '(ms)' +
+        '[beforeReq: ' + beforeReq + ' receivedRes: ' + receivedRes +
+        ' diff: ' + (receivedRes - beforeReq) + ']');
+    }
+
+    log.debug('status code:' + res.statusCode + ', headers: ' +
       JSON.stringify(res.headers));
 
-      res.setEncoding('utf8');
+    res.setEncoding('utf8');
 
-      res.on('data', function(chunk) {
-        _data += chunk;
-      });
-
-      res.on('end', function() {
-        done(_data, res.statusCode);
-      });
-    };
-
-    // Using a self-signed certificate for development and testing
-    options.rejectUnauthorized = false;
-
-    if (CONSTANTS.HTTPS_OPTIONS.USE_HTTPS) {
-      // use a secure https server
-      req = https.request(options, func);
-    } else {
-      // use a plain old http server
-      req = http.request(options, func);
-    }
-
-    req.on('error', function(e) {
-      log.log('problem with request: ' + e.message);
+    res.on('data', function(chunk) {
+      _data += chunk;
     });
 
-    if (input !== null) {
-      req.write(input);
-    }
-
-    req.end();
+    res.on('end', function() {
+      done(_data, res.statusCode);
+    });
   };
 
-  // Exports
-  // =======
+  // Using a self-signed certificate for development and testing
+  options.rejectUnauthorized = false;
 
-  module.exports = h;
+  if (CONSTANTS.HTTPS_OPTIONS.USE_HTTPS) {
+    // use a secure https server
+    req = https.request(options, func);
+  } else {
+    // use a plain old http server
+    req = http.request(options, func);
+  }
 
-})(this);
+  req.on('error', function(e) {
+    log.log('problem with request: ' + e.message);
+  });
+
+  if (input !== null) {
+    req.write(input);
+  }
+
+  req.end();
+};
+
+// Exports
+// =======
+
+module.exports = h;

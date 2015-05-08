@@ -17,8 +17,11 @@ var http = require('http');
 var test = require('tape');
 var u = require('underscore');
 
+var config = require('../src/config.js');
+global.global.CONFIG = new config({});
+
 var mysql = require('./../src/mysql.js');
-var CONFIG = require('../config.js');
+
 var CONSTANTS = require('../src/constants.js');
 var odata = require('./../src/odataserver.js');
 var o2s = require('../src/odataserver.js');
@@ -26,7 +29,7 @@ var o2s = require('../src/odataserver.js');
 var h = require('../src/helpers.js');
 var log = new h.log0(CONSTANTS.testLoggerOptions);
 
-var defaultPort = CONFIG.ODATA.PORT;
+var defaultPort = global.CONFIG.ODATA.PORT;
 
 var ic, c, server;
 
