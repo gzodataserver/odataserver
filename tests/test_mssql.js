@@ -21,6 +21,7 @@ var mssql = require('../src/mssql.js');
 var h = require('../src/helpers.js');
 
 var CONFIG = require('../config.js');
+var CONSTANTS = require('../src/constants.js');
 var testEmail = 'test@gizur.com';
 var testEmail2 = 'test2@gizur.com';
 

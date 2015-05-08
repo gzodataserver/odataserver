@@ -39,14 +39,15 @@
 
   var h = require('./helpers.js');
   var CONFIG = require('../config.js');
+  var CONSTANTS = require('./constants.js');
 
-  var Rdbms = require(CONFIG.ODATA.RDBMS_BACKEND);
+  var Rdbms = require(CONSTANTS.ODATA.RDBMS_BACKEND);
 
   moduleSelf.levelup = null;
   moduleSelf.leveldb = null;
 
   // set debugging flag
-  var log = new h.log0(CONFIG.leveldbLoggerOptions);
+  var log = new h.log0(CONSTANTS.leveldbLoggerOptions);
 
   // list of admin operations
   var adminOps = ['create_bucket', 'drop_bucket'];

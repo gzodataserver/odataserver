@@ -26,7 +26,8 @@ var ws = require('../src/mysql.js').sqlWriteStream;
 var h = require('../src/helpers.js');
 
 var CONFIG = require('../config.js');
-var loggerOptions = CONFIG.testLoggerOptions;
+var CONSTANTS = require('../src/constants.js');
+var loggerOptions = CONSTANTS.testLoggerOptions;
 loggerOptions.filename = '# test_mysql2.js'
 var log = new h.log0(loggerOptions);
 

@@ -23,16 +23,17 @@ var th = require('./helpers.js');
 var StringDecoder = require('string_decoder').StringDecoder;
 var decoder = new StringDecoder('utf8');
 var CONFIG = require('../config.js');
+var CONSTANTS = require('../src/constants.js');
 
 var defaultPort = CONFIG.ODATA.PORT;
-var log = new h.log0(CONFIG.testLoggerOptions);
+var log = new h.log0(CONSTANTS.testLoggerOptions);
 
 var server;
 
 // used across tests
 var password, password2;
-var accountId = h.email2accountId(CONFIG.TEST.EMAIL);
-var accountId2 = h.email2accountId(CONFIG.TEST.EMAIL2);
+var accountId = h.email2accountId(CONSTANTS.TEST.EMAIL);
+var accountId2 = h.email2accountId(CONSTANTS.TEST.EMAIL2);
 
 //
 // Start the server
@@ -40,7 +41,7 @@ var accountId2 = h.email2accountId(CONFIG.TEST.EMAIL2);
 
 tap('setUp', function(test) {
   var http = require("http");
-  var level = require('./../src/' + CONFIG.ODATA.BUCKET_BACKEND);
+  var level = require('./../src/' + CONSTANTS.ODATA.BUCKET_BACKEND);
 
   server = http.createServer(function(request, response) {
 

@@ -23,7 +23,8 @@ var ws = require('../src/mysql.js').sqlWriteStream;
 var h = require('../src/helpers.js');
 
 var CONFIG = require('../config.js');
-var log = new h.log0(CONFIG.testLoggerOptions);
+var CONSTANTS = require('../src/constants.js');
+var log = new h.log0(CONSTANTS.testLoggerOptions);
 
 var moduleSelf = this;
 
@@ -102,7 +103,7 @@ test('setUp', function(test) {
       test.end();
 
     }.bind(this), (delay++) * intervall);
-  
+
 });
 
 /*

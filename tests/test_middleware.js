@@ -17,8 +17,8 @@ var h = require('../src/helpers.js');
 
 var middleware = require('../src/middleware.js');
 
-var CONFIG = require('../config.js');
-var log = new h.log0(CONFIG.testLoggerOptions);
+var CONSTANTS = require('../src/constants.js');
+var log = new h.log0(CONSTANTS.testLoggerOptions);
 
 //
 // Whatever setup that is needed

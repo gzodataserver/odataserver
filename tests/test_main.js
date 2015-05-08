@@ -21,14 +21,15 @@ var StringDecoder = require('string_decoder').StringDecoder;
 var decoder = new StringDecoder('utf8');
 
 var CONFIG = require('../config.js');
-var log = new h.log0(CONFIG.testLoggerOptions);
+var CONSTANTS = require('../src/constants.js');
+var log = new h.log0(CONSTANTS.testLoggerOptions);
 
 var main = require('../src/main.js');
 
 // used across tests
 var password, password2;
-var accountId = h.email2accountId(CONFIG.TEST.EMAIL);
-var accountId2 = h.email2accountId(CONFIG.TEST.EMAIL2);
+var accountId = h.email2accountId(CONSTANTS.TEST.EMAIL);
+var accountId2 = h.email2accountId(CONSTANTS.TEST.EMAIL2);
 
 var moduleSelf = this;
 moduleSelf.accountId = accountId;
@@ -80,7 +81,7 @@ tap('testing create_account and reset_password', function(test) {
   };
 
   var jsonInput = JSON.stringify({
-    email: CONFIG.TEST.EMAIL
+    email: CONSTANTS.TEST.EMAIL
   });
 
   test.plan(2);
@@ -95,7 +96,7 @@ tap('testing create_account and reset_password', function(test) {
 
     jsonInput = JSON.stringify({
       accountId: moduleSelf.accountId,
-      email: CONFIG.TEST.EMAIL
+      email: CONSTANTS.TEST.EMAIL
     });
 
     th.httpRequest(options, jsonInput, function(data, statusCode) {
@@ -154,7 +155,7 @@ tap('testing create_account and reset_password for test user #2',
     };
 
     var jsonInput = JSON.stringify({
-      email: CONFIG.TEST.EMAIL2
+      email: CONSTANTS.TEST.EMAIL2
     });
 
     test.plan(2);
@@ -169,7 +170,7 @@ tap('testing create_account and reset_password for test user #2',
 
       jsonInput = JSON.stringify({
         accountId: moduleSelf.accountId2,
-        email: CONFIG.TEST.EMAIL2
+        email: CONSTANTS.TEST.EMAIL2
       });
 
       th.httpRequest(options, jsonInput, function(data, statusCode) {
@@ -703,7 +704,7 @@ tap('testing delete_account', function(test) {
   };
 
   var jsonInput = JSON.stringify({
-    email: CONFIG.TEST.EMAIL
+    email: CONSTANTS.TEST.EMAIL
   });
 
   test.plan(1);
@@ -733,7 +734,7 @@ tap('testing delete_account #2', function(test) {
   };
 
   var jsonInput = JSON.stringify({
-    email: CONFIG.TEST.EMAIL2
+    email: CONSTANTS.TEST.EMAIL2
   });
 
   test.plan(1);

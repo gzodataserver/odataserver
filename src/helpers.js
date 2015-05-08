@@ -19,8 +19,9 @@
   var Writable = require('stream').Writable;
   var util = require('util');
   var url = require('url');
-  
+
   var CONFIG = require('../config.js');
+  var CONSTANTS = require('./constants.js');
 
   var StringDecoder = require('string_decoder').StringDecoder;
   var decoder = new StringDecoder('utf8');
@@ -523,7 +524,7 @@
     odataResult = {
       d: {
         error: err,
-        message: 'See /' + CONFIG.ODATA.HELP_PATH +
+        message: 'See /' + CONSTANTS.ODATA.HELP_PATH +
           ' for help.'
       }
     };

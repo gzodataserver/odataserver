@@ -254,3 +254,10 @@ exports.start = function() {
   log.log("Server is listening on port " + CONFIG.ODATA.PORT);
 };
 ```
+
+
+feature 9 (not implemented)
+---------------------------
+
+Separate out constants (that only are changed when changing the internal
+server) from ordinary configuration. Create a file `constants.js` for this.

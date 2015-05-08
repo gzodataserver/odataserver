@@ -21,8 +21,8 @@
   var https = require('https');
   var h = require('../src/helpers.js');
 
-  var CONFIG = require('../config.js');
-  var log = new h.log0(CONFIG.testLoggerOptions);
+  var CONSTANTS = require('../src/constants.js');
+  var log = new h.log0(CONSTANTS.testLoggerOptions);
 
   // Measure the latency in the https requests using
   // an exponentially smoothed moving average (since it is easy to calculate)
@@ -69,7 +69,7 @@
     // Using a self-signed certificate for development and testing
     options.rejectUnauthorized = false;
 
-    if (CONFIG.HTTPS_OPTIONS.USE_HTTPS) {
+    if (CONSTANTS.HTTPS_OPTIONS.USE_HTTPS) {
       // use a secure https server
       req = https.request(options, func);
     } else {

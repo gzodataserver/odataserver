@@ -60,12 +60,13 @@
 
   var h = require('./helpers.js');
   var CONFIG = require('../config.js');
-  var log = new h.log0(CONFIG.odataServerLoggerOptions);
+  var CONSTANTS = require('./constants.js');
+  var log = new h.log0(CONSTANTS.odataServerLoggerOptions);
   var StringDecoder = require('string_decoder').StringDecoder;
 
   var nodemailer = require('nodemailer');
 
-  var Rdbms = require(CONFIG.ODATA.RDBMS_BACKEND);
+  var Rdbms = require(CONSTANTS.ODATA.RDBMS_BACKEND);
 
   // Default number of rows to return
   var defaultRowCount = CONFIG.ODATA.DEFAULT_ROW_COUNT;
@@ -820,7 +821,7 @@
               mailResetLink(jsonData.email, jsonData.accountId);
 
               // NOTE: allow to reset password without link, used for testing
-              if (!CONFIG.TEST.RESET_PASSWORD_WITHOUT_LINK) {
+              if (!CONSTANTS.TEST.RESET_PASSWORD_WITHOUT_LINK) {
                 h.writeResponse(response, {
                   message: 'Check your mail!'
                 });

@@ -76,11 +76,12 @@
   var util = require('util');
   var h = require('./helpers.js');
   var CONFIG = require('../config.js');
+  var CONSTANTS = require('./constants.js');
 
   var mysql = require('mysql');
   var u = require('underscore');
 
-  var log = new h.log0(CONFIG.mysqlLoggerOptions);
+  var log = new h.log0(CONSTANTS.mysqlLoggerOptions);
 
   //
   // MySQL base class inherited when streams not are inherited

@@ -40,13 +40,14 @@
   var fs = require('fs');
 
   var CONFIG = require('../config.js');
+  var CONSTANTS = require('./constants.js');
   var odata = require('./odataserver.js');
   var h = require('./helpers.js');
 
-  var log = new h.log0(CONFIG.mainLoggerOptions);
+  var log = new h.log0(CONSTANTS.mainLoggerOptions);
 
-  var rdbms = require(CONFIG.ODATA.RDBMS_BACKEND);
-  var buckets = require(CONFIG.ODATA.BUCKET_BACKEND);
+  var rdbms = require(CONSTANTS.ODATA.RDBMS_BACKEND);
+  var buckets = require(CONSTANTS.ODATA.BUCKET_BACKEND);
   var middleware = require('./middleware.js');
 
   var server;
@@ -174,7 +175,7 @@
       var fs = require('fs');
       var dir = path.join(path.dirname(fs.realpathSync(__filename)), '../');
 
-      var fileStream = fs.createReadStream(dir + CONFIG.ODATA.HELP_FILE);
+      var fileStream = fs.createReadStream(dir + CONSTANTS.ODATA.HELP_FILE);
       response.writeHead(200, {
         'Content-Type': 'text/plain'
       });
@@ -239,7 +240,7 @@
   exports.start = function() {
     var self = this;
 
-    if (CONFIG.enableTooBusy) {
+    if (CONSTANTS.enableTooBusy) {
       setupTooBusy();
     }
 
@@ -252,13 +253,13 @@
     // start http server
     // -----------------
 
-    if (CONFIG.HTTPS_OPTIONS.USE_HTTPS) {
+    if (CONSTANTS.HTTPS_OPTIONS.USE_HTTPS) {
 
       log.log('Use HTTPS.');
 
       var httpsOptions = {
-        key: fs.readFileSync(CONFIG.HTTPS_OPTIONS.KEY_FILE),
-        cert: fs.readFileSync(CONFIG.HTTPS_OPTIONS.CERT_FILE)
+        key: fs.readFileSync(CONSTANTS.HTTPS_OPTIONS.KEY_FILE),
+        cert: fs.readFileSync(CONSTANTS.HTTPS_OPTIONS.CERT_FILE)
       };
 
       moduleSelf.server.listen(CONFIG.ODATA.PORT, httpsOptions);
