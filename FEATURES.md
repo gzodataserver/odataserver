@@ -261,3 +261,9 @@ feature 9 (implemented)
 
 Separate out constants (that only are changed when changing the internal
 server) from ordinary configuration. Create a file `constants.js` for this.
+
+
+feature 10 (not implemented)
+----------------------------
+
+Cleanup in the tests, `options` not used optimally.
