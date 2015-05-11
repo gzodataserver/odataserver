@@ -17,7 +17,7 @@ var http = require('http');
 var express = require('express');
 
 var config = require('../src/config.js');
-global.global.CONFIG = new config({});
+global.CONFIG = new config({});
 
 var h = require('../src/helpers.js');
 var th = require('./helpers.js');
@@ -38,6 +38,7 @@ moduleSelf.options = {
   }
 };
 
+console.log(global.CONFIG);
 //
 // Start the odata server
 // -----------------------------
@@ -46,18 +47,16 @@ tap('setUp', function(test) {
   // setup here
 
   var express = require('express');
-  var app = express();
-
-  // Outside the package would this be:
-  // `var odataserver = require('odataserver');`
   var odataserver = require('../src/main.js');
-  odataserver.init(app);
+
+  var odata = new odataserver({});
+
+  var app = express();
+  odata.init(app);
 
   server = app.listen(global.CONFIG.ODATA.PORT, function() {
-
-    console.log('Example app listening at http://%s:%s', global.CONFIG.ODATA.HOST,
-                global.CONFIG.ODATA.PORT);
-
+    console.log('OData Server listening at http://%s:%s',
+                global.CONFIG.ODATA.HOST, global.CONFIG.ODATA.PORT);
   });
 
   // setup finished

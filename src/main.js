@@ -296,7 +296,7 @@ main.prototype.start = function() {
 // ---------------------
 
 main.prototype.stop = function() {
-  moduleSelf.server.close();
+  if (moduleSelf.server) moduleSelf.server.close();
 };
 
 //

@@ -27,6 +27,7 @@ var CONSTANTS = require('../src/constants.js');
 var log = new h.log0(CONSTANTS.testLoggerOptions);
 
 var main = require('../src/main.js');
+var server;
 
 // used across tests
 moduleSelf.options = {
@@ -59,7 +60,8 @@ tap('setUp', function(test) {
   // It does for some reason not work to start the server from within the tests
   // The http requests are closed in the wrong place. Could have something to do
   // with error handling in the node process
-  main.start();
+  server = new main({});
+  server.start();
 
   // setup finished
   test.end();
@@ -620,7 +622,7 @@ tap('testing delete_account #2', function(test) {
 tap('tearDown', function(test) {
   // setup here
 
-  main.stop();
+  server.stop();
 
 // setup finished
   test.end();
