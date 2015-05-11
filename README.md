@@ -47,14 +47,14 @@ var express = require('express');
 var config = {
   ODATA: {
     HOST: 'localhost',
-    PORT: 9001
+    PORT: 9000
   },
   RDBMS: {
     ADMIN_USER: 'root',
     ADMIN_PASSWORD: 'secret'
   }
 };
-var odataserver = require('../../gizur/odataserver');
+var odataserver = require('odataserver');
 
 var server = new odataserver(config);
 
@@ -62,8 +62,8 @@ var app = express();
 server.init(app);
 
 app.listen(config.ODATA.PORT, function() {
-  console.log('Example app listening at http://%s:%s',
-  config.ODATA.HOST, config.ODATA.PORT);
+  console.log('OData Server listening at http://%s:%s',
+              config.ODATA.HOST, config.ODATA.PORT);
 });
 ```
 
