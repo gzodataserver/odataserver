@@ -622,6 +622,6 @@ tap('tearDown', function(test) {
 
   main.stop();
 
-  // setup finished
+// setup finished
   test.end();
 });

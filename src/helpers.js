@@ -526,9 +526,12 @@ h.writeError = function(response, err) {
     }
   };
 
-  response.writeHead(406, {
-    "Content-Type": "application/json"
-  });
+  if (response.writeHead !== undefined) {
+    response.writeHead(406, {
+      "Content-Type": "application/json"
+    });
+  }
+  
   response.write(JSON.stringify(odataResult));
   response.end();
 

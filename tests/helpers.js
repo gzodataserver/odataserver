@@ -20,6 +20,7 @@ var h = {};
 
 var http = require('http');
 var https = require('https');
+var util = require('util');
 var h = require('../src/helpers.js');
 
 var CONSTANTS = require('../src/constants.js');
@@ -89,7 +90,20 @@ h.httpRequest = function(options, input, done) {
   req.end();
 };
 
+// Check if there is open requests in the event loop and open I/O handles 
+h.checkOpen = function() {
+  console.log('waiting a while for async operations to complete...');
+  setTimeout(function() {
+    var requests = process._getActiveRequests();
+    var handles = process._getActiveHandles();
 
+    console.log('open requests: ', util.inspect(requests, {colors: true}));
+    console.log('open handles: ', util.inspect(handles, {colors: true}));
+
+    console.log('#open requests: ', requests.length,
+    ', #open handles: ', handles.length);
+  }, 5000);
+};
 
 // Exports
 // =======

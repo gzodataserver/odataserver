@@ -284,15 +284,8 @@ mysqlBase.prototype.pipe2 = function(writeStream) {
     // handle errors
     .catch(function(err) {
       log.debug('pipe2 error: ' + JSON.stringify(self.options.credentials));
-      if (writeStream.writeHead !== undefined) {
-        writeStream.writeHead(406, {
-          "Content-Type": "application/json"
-        });
-      }
-      writeStream.write(JSON.stringify({
-        error: err
-      }));
-      //self.connection.end();
+      h.writeError(writeStream, err);
+      self.connection.end();
       if (self.options.closeStream) {
         writeStream.end();
       }
