@@ -2,16 +2,14 @@
 //------------------------------
 //
 // 2015-01-30, Jonas Colmsjö
-//
 //------------------------------
 //
 // Load the odata server and see how response times are affected
 //
 //
-// Using Google JavaScript Style Guide:
-// http://google-styleguide.googlecode.com/svn/trunk/javascriptguide.xml
+// Using
+// [Google JavaScript Style Guide](http://google-styleguide.googlecode.com/svn/trunk/javascriptguide.xml)
 //
-//------------------------------
 
 //
 // Whatever setup that is neede

@@ -2,15 +2,13 @@
 //------------------------------
 //
 // 2014-12-09, Jonas Colmsjö
-//
 //------------------------------
 //
 // Test main.js
 //
-// Using Google JavaScript Style Guide:
-// http://google-styleguide.googlecode.com/svn/trunk/javascriptguide.xml
+// Using
+// [Google JavaScript Style Guide](http://google-styleguide.googlecode.com/svn/trunk/javascriptguide.xml)
 //
-//------------------------------
 
 var moduleSelf = this;
 

@@ -2,7 +2,6 @@
 //------------------------------
 //
 // 2014-11-15, Jonas Colmsjö
-//
 //------------------------------
 //
 // These tests uses the new promise based functions
@@ -10,10 +9,9 @@
 // NOTE: Few proper test conditions. The purpose is mainly to run all functions
 //       without errors thrown.
 //
-// Using Google JavaScript Style Guide:
-// http://google-styleguide.googlecode.com/svn/trunk/javascriptguide.xml
+// Using
+// [Google JavaScript Style Guide](http://google-styleguide.googlecode.com/svn/trunk/javascriptguide.xml)
 //
-//------------------------------
 
 var test = require('tape');
 var Promise = require('promise');

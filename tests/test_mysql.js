@@ -2,16 +2,14 @@
 //------------------------------
 //
 // 2014-11-15, Jonas Colmsjö
-//
 //------------------------------
 //
 // Template for tests
 //
 //
-// Using Google JavaScript Style Guide:
-// http://google-styleguide.googlecode.com/svn/trunk/javascriptguide.xml
+// Using
+// [Google JavaScript Style Guide](http://google-styleguide.googlecode.com/svn/trunk/javascriptguide.xml)
 //
-//------------------------------
 
 var test = require('tape');
 

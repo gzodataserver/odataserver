@@ -2,16 +2,13 @@
 //------------------------------
 //
 // 2014-11-15, Jonas Colmsjö
-//
 //------------------------------
 //
 // Test for bucket server
 //
+// Using
+// [Google JavaScript Style Guide](http://google-styleguide.googlecode.com/svn/trunk/javascriptguide.xml)
 //
-// Using Google JavaScript Style Guide:
-// http://google-styleguide.googlecode.com/svn/trunk/javascriptguide.xml
-//
-//------------------------------
 //
 // Run like this: `./node_modules/.bin/nodeunit test_leveldb.js`
 // Install dependencies first: `npm install`
