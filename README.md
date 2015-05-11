@@ -42,17 +42,20 @@ Express
 OData Server is compatible with express. Install `odataserver` and `express`
 (`npm install odataserver express`) and
 
-
 ```
 var express = require('express');
-var odataserver = require('odataserver');
-
 var config = {
   ODATA: {
     HOST: 'localhost',
-    PORT: 9000
+    PORT: 9001
+  },
+  RDBMS: {
+    ADMIN_USER: 'root',
+    ADMIN_PASSWORD: 'secret'
   }
 };
+var odataserver = require('../../gizur/odataserver');
+
 var server = new odataserver(config);
 
 var app = express();
@@ -60,10 +63,12 @@ server.init(app);
 
 app.listen(config.ODATA.PORT, function() {
   console.log('Example app listening at http://%s:%s',
-              config.ODATA.HOST, config.ODATA.PORT);
+  config.ODATA.HOST, config.ODATA.PORT);
 });
 ```
 
+Run `curl http://localhost:9000/help` in a new terminal to verify that the
+server is running.
 
 Installation
 -----------
