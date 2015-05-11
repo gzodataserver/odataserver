@@ -45,9 +45,8 @@ ADD ./src-docker/etc-rsyslog.conf /etc/rsyslog.conf
 
 # Test to update the server automatically periodically (need to find a way to restart the server also)
 # Just comment this section out to turn it off
-RUN echo '*/90 * * * *  /bin/bash -c "cd /tmp2; rm -rf node_modules; date > last-run.txt; npm install odataserver > ./install.log"' > /mycron
+RUN echo '*/90 * * * *  /bin/bash -c "date > last-run.txt; npm install -g odataserver > ./install.log;source /tmp/odataserver.pid; kill $PID"' > /mycron
 RUN crontab /mycron
-RUN mkdir /tmp2
 
 ADD ./src-docker/etc-pam.d-cron /etc/pam.d/cron
 
@@ -87,7 +86,6 @@ ADD ./src-docker/init-node.sh /src/
 RUN /src/init-node.sh
 
 
-
 #
 # Install MySQL
 # -------------
@@ -115,14 +113,22 @@ RUN /src/init-mysql.sh
 ADD ./server.key /
 ADD ./server.cer /
 
-ADD ./package.json /
-ADD ./bin/run_tests.sh /bin/
-ADD ./bin/start.sh /bin/
-ADD ./src /src
-ADD ./Usage.md /
-ADD ./config.js /
-ADD ./tests /tests
-RUN cd /; npm install
+#ADD ./package.json /
+#ADD ./bin/run_tests.sh /bin/
+#ADD ./bin/start.sh /bin/
+#ADD ./src /src
+#ADD ./Usage.md /
+#ADD ./config.js /
+#ADD ./tests /tests
+#RUN cd /; npm install
+
+#
+# Install from npm also (select which version to run from supervisord.conf)
+#
+
+RUN /bin/bash -c "cd /; npm install -g odataserver"
+RUN /bin/bash -c "cd /; npm link odataserver"
+ADD ./bin/start2.sh /
 
 
 #

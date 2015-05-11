@@ -1,4 +1,4 @@
 #!/bin/bash
 
 source setenv
-node -e 'require("./src/main.js").start();'
+node -e 'var m=require("./src/main.js"); (new m({})).start();'

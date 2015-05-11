@@ -243,7 +243,13 @@ main = function(conf) {
   if (!(this instanceof main)) return new main(conf);
 
   global.CONFIG = new config(conf);
-  console.log(global.CONFIG);
+
+  var fs = require('fs');
+  fs.writeFile("/tmp/odataserver.pid", "PID="+process.pid, function(err) {
+    if(err) {
+      return log.log(err);
+    }
+  });
 };
 
 //

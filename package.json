@@ -1,7 +1,7 @@
 {
   "name": "odataserver",
   "description": "OData server with support for BLOBs",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "author": {
     "name": "Jonas Colmsjö",
     "email": "jonas@gizur.com"
@@ -46,7 +46,7 @@
   "scripts": {
     "cleantestdb": "./bin/cleantestdb.sh",
     "test": "./bin/run_tests.sh",
-    "start": "sudo ./bin/start.sh",
+    "start": "./bin/start.sh",
     "docco": "./node_modules/.bin/docco -o docco src/*.js tests/*.js",
     "clean": "rm -rf docco; rm -rf mydb; rm -rf tests/mydb odataserver.min.js",
     "style": "./node_modules/.bin/jscs src/*.js tests/test_mysql.js tests/test_leveldb.js tests/test_main.js tests/helpers.js tests/test_helpers.js tests/test_mssql.js"
