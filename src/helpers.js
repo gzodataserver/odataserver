@@ -521,8 +521,7 @@ h.writeError = function(response, err) {
   odataResult = {
     d: {
       error: err,
-      message: 'See /' + CONSTANTS.ODATA.HELP_PATH +
-        ' for help.'
+      message: 'See /help for help.'
     }
   };
 
@@ -531,7 +530,7 @@ h.writeError = function(response, err) {
       "Content-Type": "application/json"
     });
   }
-  
+
   response.write(JSON.stringify(odataResult));
   response.end();
 

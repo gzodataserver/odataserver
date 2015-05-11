@@ -103,7 +103,7 @@ Release history
 ---------------
 
 Major and minor releases are listed here. Patches are not listed, please see
-[Github](https://github.com/gizur/odataserver) for details in these.
+[Github](https://github.com/gizur/odataserver) for more information.
 
 
 * 0.1 - Initial release
