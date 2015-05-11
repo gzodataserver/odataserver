@@ -68,9 +68,6 @@ var nodemailer = require('nodemailer');
 
 var Rdbms = require(CONSTANTS.ODATA.RDBMS_BACKEND);
 
-// Default number of rows to return
-var defaultRowCount = global.CONFIG.ODATA.DEFAULT_ROW_COUNT;
-
 // check for admin operations, where the url start with /s/...
 var urlAdminOps = ['create_account', 'reset_password', 'delete_account',
   'create_table', 'service_def', 'grant', 'revoke', 'drop_table'
@@ -234,6 +231,9 @@ var filter2where = function(expr) {
 //
 
 var odata2sql = function(param, key) {
+  // Default number of rows to return
+  var defaultRowCount = global.CONFIG.ODATA.DEFAULT_ROW_COUNT;
+
   // `id` is used to sort the statements in the right order
   switch (key) {
     case '$orderby':

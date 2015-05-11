@@ -59,6 +59,7 @@
     "MySQL",
     "BLOB",
     "express",
-    "connect"
+    "connect",
+    "REST"
   ]
 }

@@ -177,7 +177,7 @@ var matchHelp = function(req, res, next) {
     var dir = path.join(path.dirname(fs.realpathSync(__filename)), '../');
 
     var fileStream = fs.createReadStream(dir + CONSTANTS.ODATA.HELP_FILE);
-    response.writeHead(200, {
+    res.writeHead(200, {
       'Content-Type': 'text/plain'
     });
 
@@ -185,7 +185,7 @@ var matchHelp = function(req, res, next) {
       next();
     });
 
-    fileStream.pipe(response);
+    fileStream.pipe(res);
     return;
   }
 
@@ -240,14 +240,17 @@ var performChecks = function(req, res, next) {
 // ---------------------
 
 main = function(conf) {
+  if (!(this instanceof main)) return new main(conf);
+
   global.CONFIG = new config(conf);
+  console.log(global.CONFIG);
 };
 
 //
 // Start the OData server
 // ---------------------
 
-main.start = function() {
+main.prototype.start = function() {
   var self = this;
 
   if (CONSTANTS.enableTooBusy) {
@@ -286,7 +289,7 @@ main.start = function() {
 // Stop the OData server
 // ---------------------
 
-main.stop = function() {
+main.prototype.stop = function() {
   moduleSelf.server.close();
 };
 
@@ -311,7 +314,7 @@ main.stop = function() {
 // });
 //```
 
-main.init = function(mws) {
+main.prototype.init = function(mws) {
   var self = this;
 
   var odataServer = new odata.ODataServer();
