@@ -240,7 +240,7 @@ var performChecks = function(req, res, next) {
 // ---------------------
 
 main = function(conf) {
-  global.global.CONFIG = new config(conf);
+  global.CONFIG = new config(conf);
 };
 
 //

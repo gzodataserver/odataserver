@@ -130,7 +130,7 @@ c.mainLoggerOptions = {
 // -------------
 // See [DTRACE.md](../tests/DTRACE.md) for more information.
 
-c.enableDtrace = true;
+c.enableDtrace = false;
 
 // Too Busy setup
 // -------------

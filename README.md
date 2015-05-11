@@ -36,6 +36,35 @@ BLOB:s. These are stored in a LevelDB database on the server.
  Run `curl http://appdev.gizur.com:9000/help` to show the help.
 
 
+Express
+-------
+
+OData Server is compatible with express. Install `odataserver` and `express`
+(`npm install odataserver express`) and
+
+
+```
+var express = require('express');
+var odataserver = require('odataserver');
+
+var config = {
+  ODATA: {
+    HOST: 'localhost',
+    PORT: 9000
+  }
+};
+var server = new odataserver(config);
+
+var app = express();
+server.init(app);
+
+app.listen(config.ODATA.PORT, function() {
+  console.log('Example app listening at http://%s:%s',
+              config.ODATA.HOST, config.ODATA.PORT);
+});
+```
+
+
 Installation
 -----------
 
@@ -63,6 +92,18 @@ More information
 ---------------
 
 Information regarding [advanced usage and contributing](./ADVANCED.md).
+
+
+Release history
+---------------
+
+Major and minor releases are listed here. Patches are not listed, please see
+[Github](https://github.com/gizur/odataserver) for details in these.
+
+
+* 0.1 - Initial release
+* 0.2 - Added support for expressjs
+
 
 
 [travis-image]: https://img.shields.io/travis/gizur/odataserver.svg?style=flat
