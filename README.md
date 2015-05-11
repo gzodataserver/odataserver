@@ -40,7 +40,7 @@ Express
 -------
 
 OData Server is compatible with express. Install `odataserver` and `express`
-(`npm install odataserver express`) and
+(`npm install odataserver express`) and use it like this:
 
 ```
 var express = require('express');
