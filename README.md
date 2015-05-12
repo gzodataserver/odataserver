@@ -111,5 +111,5 @@ Major and minor releases are listed here. Patches are not listed, please see
 
 
 
-[travis-image]: https://img.shields.io/travis/gizur/odataserver.svg?style=flat
+[travis-image]: https://travis-ci.org/gizur/odataserver.svg?branch=master
 [travis-url]: https://travis-ci.org/gizur/odataserver
