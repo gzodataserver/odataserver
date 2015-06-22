@@ -1,3 +1,12 @@
+Configurations
+=============
+
+All settings can be changed, see the express section in the README file.
+The default configuration is in `src/config.js`. Check it out, it is fairly well
+documented. Make sure to change the flag `RESET_PASSWORD_WITHOUT_LINK` for
+production use (all accounts on the server are open for anyone otherwise).
+
+
 Support for SSL
 ==============
 

@@ -70,6 +70,7 @@ app.listen(config.ODATA.PORT, function() {
 Run `curl http://localhost:9000/help` in a new terminal to verify that the
 server is running.
 
+
 Installation
 -----------
 
@@ -77,16 +78,11 @@ Installation
  the admin account (or an account that have privileges to create new databases
   and users).
 
-1. Do `npm install odataserver; cd node_modules/odataserver`.
+1. Clone this repo and do `npm install`.
 
 1. Copy `setenv.template` to `setenv` and update it with the database and
 mail server credentials. Environment variables are used to set admin credentials
 for the database and the mail server.
-
-1. Copy `config.js.template` to `config.js`. It contains a number of variables
-that can be configured. Check it out, it is fairly well documented. Make sure
-to change the flag `RESET_PASSWORD_WITHOUT_LINK` for production use (all
-  accounts on the server are open for anyone otherwise).
 
 1. Make sure port 9000 is free and then run: `npm start`.
 
