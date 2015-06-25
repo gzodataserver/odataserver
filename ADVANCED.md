@@ -49,16 +49,21 @@ Prerequisites:
 
 * docker needs to be installed - I'm using [boot2docker](http://boot2docker.io)
 
-Build the image: `docker build --rm -t odataserver .`
+Installation:
 
-Create an environment definitions file called `env.list`
+* Generate a self-signed certificate using `./bin/gencert.sh` or place your own
+certificate in `server.cer` and the private key in `server.key`
+
+* Build the image: `docker build --rm -t odataserver .`
+
+* Create an environment definitions file called `env.list`
 (copy `env.list.template` and edit).
 
-Make sure a container with rsyslog is running (skip the `--link` part if you
+* Make sure a container with rsyslog is running (skip the `--link` part if you
 don't have this). I'm using this container:
 [beservices](https://github.com/gizur/beservices).
 
-Run the container in on a server (assuming a proxy server used, see
+* Run the container in on a server (assuming a proxy server used, see
 below is this isn't the case):
 
     docker run -t -i --env-file=env.list --restart="on-failure:10" \
@@ -96,7 +101,7 @@ below is this isn't the case):
 
     # NOTE: fetch the ip with `boot2docker ip` if you're running boot2docker
 
-The ports `81` and `9000` can be exposed from the container with
+* The ports `81` and `9000` can be exposed from the container with
 `-p 81:81 -p 9000:9000` if you're not using a proxy.
 Requests will then be routed from the host to the container.
 
