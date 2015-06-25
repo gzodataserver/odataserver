@@ -66,6 +66,7 @@ don't have this). I'm using this container:
 * Run the container in on a server (assuming a proxy server used, see
 below is this isn't the case):
 
+```
       docker run -t -i --env-file=env.list --restart="on-failure:10" \
       --link beservices:beservices --name odataserver -p 9000:9000  \
       -h odataserver odataserver /bin/bash -c "supervisord; bash"
@@ -100,6 +101,7 @@ below is this isn't the case):
       curl http://[IP]:81/phpMyAdmin-4.0.8-all-languages/
 
       # NOTE: fetch the ip with `boot2docker ip` if you're running boot2docker
+```
 
 * The ports `81` and `9000` can be exposed from the container with
 `-p 81:81 -p 9000:9000` if you're not using a proxy.
