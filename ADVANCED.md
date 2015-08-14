@@ -68,7 +68,7 @@ below is this isn't the case):
 
 ```
 docker run -t -i --env-file=env.list --restart="on-failure:10" \
---link beservices:beservices --name odataserver -p 9000:9000  \
+--link beservices:beservices --name odataserver  \
 -h odataserver odataserver /bin/bash -c "supervisord; bash"
 
 # Check that the server is alive
