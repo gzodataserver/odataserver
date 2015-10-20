@@ -10,7 +10,7 @@ MAINTAINER Jonas Colmsjö <jonas@gizur.com>
 RUN echo "export HOME=/root" >> /root/.profile
 
 # Mirros: http://ftp.acc.umu.se/ubuntu/ http://us.archive.ubuntu.com/ubuntu/
-RUN echo "deb http://ftp.acc.umu.se/ubuntu/ trusty-updates main restricted" > /etc/apt/source.list
+#RUN echo "deb http://ftp.acc.umu.se/ubuntu/ trusty-updates main restricted" > /etc/apt/sources.list
 RUN apt-get update
 RUN apt-get install -y wget nano curl git
 
@@ -45,11 +45,11 @@ ADD ./src-docker/etc-rsyslog.conf /etc/rsyslog.conf
 
 # Test to update the server automatically periodically (need to find a way to restart the server also)
 # Just comment this section out to turn it off
-RUN echo '*/90 * * * *  /bin/bash -c "cd /tmp2; rm -rf node_modules; date > last-run.txt; npm install odataserver > ./install.log"' > /mycron
-RUN crontab /mycron
-RUN mkdir /tmp2
+#RUN echo '*/90 * * * *  /bin/bash -c "cd /tmp2; rm -rf node_modules; date > last-run.txt; npm install odataserver > ./install.log"' > /mycron
+#RUN crontab /mycron
+#RUN mkdir /tmp2
 
-ADD ./src-docker/etc-pam.d-cron /etc/pam.d/cron
+#ADD ./src-docker/etc-pam.d-cron /etc/pam.d/cron
 
 
 #
