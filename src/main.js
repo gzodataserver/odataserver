@@ -122,6 +122,8 @@ var allowCors = function(req, res, next) {
       'user, password');
 
     res.setHeader('Access-Control-Allow-Credentials', 'true');
+
+    res.setHeader('Access-Control-Allow-Methods', 'GET, PUT, POST, OPTIONS');
   }
 
   // The response to `OPTIONS` requests is always the same empty message

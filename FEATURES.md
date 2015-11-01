@@ -267,3 +267,10 @@ feature 10 (not implemented)
 ----------------------------
 
 Cleanup in the tests, `options` not used optimally.
+
+
+feature 11 (not merged)
+----------------------
+
+Need to add CORS to constans.js. Have missed this when re-factoring.
+
