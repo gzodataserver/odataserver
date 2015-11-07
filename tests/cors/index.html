@@ -9,6 +9,8 @@
   <br/>
 
   <script>
+    var TEST_URL = 'https://odata.gizur.local/0b213a639078/b_rootapp';
+
     var corsRequest = function() {
       console.log('corsRequest');
 
@@ -35,7 +37,7 @@
       //xhr.send();
 
       // Test on the development server
-      xhr.open('GET', 'http://appdev.gizur.com:9000/0b213a639078/b_rootapp', true);
+      xhr.open('GET', TEST_URL, true);
       xhr.send();
 
       // Test on localhost

@@ -871,7 +871,7 @@ exports.ODataServer.prototype.main = function(request, response, next) {
           .then(function() {
             // The RDBMS response is JSON but it is not parsed since that
             // sometimes fails (reason unknown)
-            odataResult.rdbmsResponse = decoder.write(bucket.get());
+            odataResult.rdbmsResponse = JSON.parse(decoder.write(bucket.get()));
             h.writeResponse(response, odataResult);
             next();
           })
@@ -934,7 +934,7 @@ exports.ODataServer.prototype.main = function(request, response, next) {
 
         rdbms.pipe(bucket,
           function() {
-            odataResult.rdbmsResponse = decoder.write(bucket.get());
+            odataResult.rdbmsResponse = JSON.parse(decoder.write(bucket.get()));
             h.writeResponse(response, odataResult);
             next();
           },
@@ -970,7 +970,7 @@ exports.ODataServer.prototype.main = function(request, response, next) {
           options.resultStream = bucket;
           var writeStream = new Rdbms.sqlWriteStream(options,
             function() {
-              odataResult.rdbmsResponse = decoder.write(bucket.get());
+              odataResult.rdbmsResponse = JSON.parse(decoder.write(bucket.get()));
               h.writeResponse(response, odataResult);
               next();
             }
