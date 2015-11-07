@@ -934,7 +934,9 @@ exports.ODataServer.prototype.main = function(request, response, next) {
 
         rdbms.pipe(bucket,
           function() {
-            odataResult.rdbmsResponse = JSON.parse(decoder.write(bucket.get()));
+            odataResult.rdbmsResponse = JSON.parse('[' +
+              decoder.write(bucket.get()) + ']');
+
             h.writeResponse(response, odataResult);
             next();
           },
