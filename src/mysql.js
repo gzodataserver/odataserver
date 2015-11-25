@@ -347,7 +347,6 @@ exports.sqlRead.prototype.fetchAll = function(resultFunc, errFunc) {
   runQuery(self.connection, self.sql,
     // handle row
     function(row) {
-      log.debug('processRow(self, row): ', processRow(self, row));
       self.result.push(processRow(self, row));
     },
     // end
