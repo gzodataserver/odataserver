@@ -70,7 +70,7 @@ var Rdbms = require(CONSTANTS.ODATA.RDBMS_BACKEND);
 
 // check for admin operations, where the url start with /s/...
 var urlAdminOps = ['create_account', 'reset_password', 'delete_account',
-  'create_table', 'service_def', 'grant', 'revoke', 'drop_table'
+  'create_table', 'service_def', 'grant', 'revoke', 'delete_table'
 ];
 
 // These operations require admin/root privs in the db
@@ -320,7 +320,7 @@ exports.ODataUri2Sql = function() {
 //                     |   <POST,variable 's' system_operation> -> [system_operation,account]
 // system_operation    ::= 'create_table'
 //                     |   'create_bucket'
-//                     |   'drop_table'
+//                     |   'delete_table'
 //                     |   'drop_bucket'
 //                     |   'grant'
 //                     |   'revoke'
@@ -381,7 +381,7 @@ var parseSystemUri = function(method, tokens) {
     tokens.length === 3 &&
     tokens[1] === global.CONFIG.ODATA.SYS_PATH && ['reset_password',
       'delete_account', 'create_bucket',
-      'drop_bucket', 'create_table', 'grant', 'revoke', 'drop_table'
+      'drop_bucket', 'create_table', 'grant', 'revoke', 'delete_table'
     ].indexOf(tokens[2]) !== -1) {
     return {
       queryType: tokens[2],
@@ -916,14 +916,14 @@ exports.ODataServer.prototype.main = function(request, response, next) {
 
         if (odataRequest.queryType === 'delete') {
           options.tableName = odataRequest.table;
-          options.where = odataRequest.where;
+          options.sql = odataRequest.sql;
           rdbms = new Rdbms.sqlDelete(options);
         }
 
         if (odataRequest.queryType === 'update') {
           options.tableName = odataRequest.table;
           options.jsonData = jsonData;
-          options.where = odataRequest.where;
+          options.sql = odataRequest.sql;
           rdbms = new Rdbms.sqlUpdate(options);
         }
 

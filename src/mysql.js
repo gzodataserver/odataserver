@@ -486,8 +486,9 @@ exports.sqlUpdate = function(options) {
   self.sql = h.json2update(options.credentials.database,
     options.tableName,
     options.jsonData);
-  if (options.where !== undefined) {
-    self.sql += ' where ' + options.where;
+  // where clause
+  if (options.sql !== undefined) {
+    self.sql +=  options.sql;
   }
 };
 
@@ -504,8 +505,9 @@ exports.sqlDelete = function(options) {
   self.options = options;
   self.sql = 'delete from ' + options.credentials.database + '.' +
     options.tableName;
-  if (options.where !== undefined) {
-    self.sql += ' where ' + options.where;
+  // where clause
+  if (options.sql !== undefined) {
+    self.sql += options.sql;
   }
 };
 
