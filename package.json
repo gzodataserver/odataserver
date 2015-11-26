@@ -27,7 +27,7 @@
     "underscore": "*",
     "mysql": "*",
     "nodemailer": "*",
-    "level": "*",
+    "level": "1.0.0",
     "promise": "*"
   },
   "devDependencies": {
