@@ -93,6 +93,11 @@ tap('testing create_account and reset_password', function(test) {
     var jsonData = h.jsonParse(data);
     log.debug('Received: ' + data);
     test.assert(statusCode === 200, 'create_account');
+    if(statusCode !== 200) {
+      console.trace(statusCode);
+      console.log(new Error().stack);
+      throw "ERROR: did not receive 200, " + statusCode;
+    }
 
     var options = h.clone(moduleSelf.options);
     options.path = '/' + moduleSelf.options.headers.user + '/' +
