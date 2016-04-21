@@ -2,6 +2,9 @@ Gizur's OData server for MySQL
 ==============================
 
 
+NOTE: This repo isn't actively maintained anymore. Have a look at [Odataserver2](https://github.com/gizur/odataserver2)
+which is an enhanced implementation.
+
 [![Build Status][travis-image]][travis-url]
 
 OData is a protocol that supports JSON. This makes it extremely usefull when
